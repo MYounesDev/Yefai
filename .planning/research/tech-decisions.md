@@ -80,10 +80,10 @@ point, quantiles = model.forecast(horizon=1, inputs=[sensor_history])
 - API dokümantasyonu herkese açık değil (demo talep etmek gerekiyor)
 
 ### Yefai için Değerlendirme
-- **Doğrudan embedding için kullanılamaz** — Jina CLIP v2 gibi açık modeller kullanılacak
-- **Potansiyel entegrasyon:** İleride görüntü işleme pipeline'ı olarak (v1.1+)
-- **Alternatif embedding:** Jina CLIP v2 (seçildi), SigLIP, OpenCLIP
-- NovaVision'ın "Predictive Maintenance" ve "Equipment Inspection" uygulamaları konsept olarak Yefai'ye benziyor — rakip değil, potansiyel iş birliği
+- **v1.0 inference pipeline'ı:** Anomalib ile lokal eğitilen Torch modeli NovaVision'a yüklenir
+- **Preprocessing + inference NovaVision'da:** Görüntü ön işleme ve model çıkarımı NovaVision platformunda çalışır
+- **RAG/Embedding etkilenmez:** Jina CLIP v2 embedding'leri lokal olarak üretilmeye devam eder, NovaVision sadece Anomalib inference içindir
+- **FastAPI → NovaVision API:** Backend, inference için NovaVision API'sini çağırır
 
 ---
 

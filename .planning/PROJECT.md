@@ -47,7 +47,8 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 | **Frontend** | Next.js 16 + React | Tauri WebView içinde çalışacak |
 | **Backend** | FastAPI (Python 3.11+) | AI inference, veri işleme, API gateway |
 | **Database** | Supabase + pgvector | Vektör embedding'leri, ilişkisel veri, managed PostgreSQL |
-| **AI - Görüntü Anomali** | Anomalib (PatchCore) | Few-shot görüntü anomali tespiti, train gerektirir |
+| **AI - Görüntü Anomali (Train)** | Anomalib (PatchCore) | Few-shot görüntü anomali tespiti, lokal eğitim |
+| **AI - Görüntü Anomali (Inference)** | NovaVision | Lokal eğitilen Torch modeli NovaVision'a yüklenir, preprocessing + inference NovaVision'da |
 | **AI - Embedding** | Jina CLIP v2 (865M) | Görüntü + metin aynı vektör uzayında, 89 dil (Türkçe), lokal, MRL |
 | **AI - LLM** | Gemini / Claude API | RAG chatbot, analiz, raporlama |
 | **Streaming** | WebSocket + SSE | Gerçek zamanlı veri akışı |
@@ -128,7 +129,6 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 - Model fine-tuning — demo zero/few-shot çalışacak
 - Multi-tenant bulut deployment — lokal masaüstü uygulaması
 - Mobil uygulama — sadece masaüstü
-- NovaVision entegrasyonu — no-code CV platformu, Yefai'nin custom AI pipeline'ı ile örtüşmüyor
 
 ## Evolution
 

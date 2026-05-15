@@ -40,11 +40,13 @@
 
 **Kapsam:**
 - Anomalib (PatchCore) ile train setinde eğitim (few-shot, normal örneklerle)
+- Eğitilen Torch modelini export et
+- **NovaVision inference pipeline:** Model NovaVision'a yüklenir, preprocessing + inference NovaVision'da çalışır
 - Test setinde anomali tespiti: aşınma seviyesi > eşik olan görüntüler işaretlenir
 - Aşınma tipi sınıflandırması: Flank wear, Adhesive wear, Combination
-- Embedding üretimi (Jina CLIP v2: görüntü → 1024-dim vektör, Supabase pgvector'e yaz)
+- Embedding üretimi (görüntü → vektör, pgvector'e yaz)
 - Toplu embedding: 1663 görüntü → Supabase pgvector
-- Inference endpoint'leri (FastAPI)
+- Inference endpoint'leri (FastAPI → NovaVision API çağrısı)
 - Sensör verisi: dashboard'da canlı grafik olarak GÖSTERİLİR, anomali tespitinde KULLANILMAZ
 
 **NOT:** Sensör tabanlı anomali tespiti (TimesFM) v1.1+ için ertelenmiştir. Şu an sadece görüntü ile çalışılmaktadır.
@@ -144,7 +146,6 @@ Phase 1 ──────► Phase 2 ──────► Phase 4 ────
 | Gerçek kamera entegrasyonu | IP kamera / RTSP stream |
 | Multi-instance | Aynı anda birden fazla makine izleme |
 | Windows/Linux build | Cross-platform Tauri build |
-| NovaVision CV pipeline | Görüntü işleme pipeline'ı alternatifi (no-code CV) |
 | Kullanıcı yönetimi | Rol tabanlı erişim (operatör, yönetici, admin) |
 | Anomali geçmişi analitiği | Trend grafikleri, raporlama |
 | Edge deployment | NVIDIA Jetson / Raspberry Pi'de çalıştırma |

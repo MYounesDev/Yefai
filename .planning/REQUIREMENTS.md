@@ -20,11 +20,12 @@
 
 | ID | Gereksinim | Öncelik | UAT |
 |----|-----------|---------|-----|
-| FR-2.1 | Anomalib (PatchCore) ile train setinde eğitim yapılır | P0 | Train setinde normal örneklerle memory bank oluşturulur |
-| FR-2.2 | Test setinde görüntü anomali tespiti: aşınma seviyesi > eşik olanlar işaretlenir | P0 | Eşik üstü görüntüler anomali olarak etiketlenir |
-| FR-2.3 | Aşınma tipi sınıflandırması: Flank wear, Adhesive wear, Combination | P1 | En az %80 doğruluk |
-| FR-2.4 | Sensör verisi dashboard'da canlı grafik olarak gösterilir, anomali tespitinde KULLANILMAZ | P0 | Sensör grafikleri 1 saniyede güncellenir |
-| FR-2.5 | Jina CLIP v2 ile görüntü + metin embedding'i (tek model, aynı vektör uzayı) | P0 | Her görüntü için 1024 boyutlu vektör |
+| FR-2.1 | Anomalib (PatchCore) ile train setinde eğitim yapılır, Torch modeli export edilir | P0 | Train setinde normal örneklerle memory bank oluşturulur, model .pt olarak kaydedilir |
+| FR-2.2 | Eğitilen Torch modeli NovaVision'a yüklenir, preprocessing + inference NovaVision'da çalışır | P0 | NovaVision API'den anomali skoru döner |
+| FR-2.3 | Test setinde görüntü anomali tespiti: aşınma seviyesi > eşik olanlar işaretlenir | P0 | Eşik üstü görüntüler anomali olarak etiketlenir |
+| FR-2.4 | Aşınma tipi sınıflandırması: Flank wear, Adhesive wear, Combination | P1 | En az %80 doğruluk |
+| FR-2.5 | Sensör verisi dashboard'da canlı grafik olarak gösterilir, anomali tespitinde KULLANILMAZ | P0 | Sensör grafikleri 1 saniyede güncellenir |
+| FR-2.6 | Jina CLIP v2 ile görüntü + metin embedding'i (tek model, aynı vektör uzayı) | P0 | Her görüntü için 1024 boyutlu vektör |
 
 > **NOT:** Sensör tabanlı anomali tespiti (TimesFM 2.5) v1.1+ için ertelenmiştir. v1.0'da SADECE görüntü ile anomali tespiti yapılır.
 
