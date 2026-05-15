@@ -1,0 +1,26 @@
+{
+  "name": "sector-dash",
+  "version": "1.0.0",
+  "description": "Full-stack template with Next.js frontend and Express backend",
+  "main": "server.js",
+  "scripts": {
+    "client": "cd client && npm run dev",
+    "server": "cd server && venv\\Scripts\\activate && uvicorn main:app --reload",
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "client:build": "cd client && npm run build",
+    "start": "concurrently \"cd server && npm run start\" \"cd client && npm run start\"",
+    "build": "npm run client:build"
+  },
+  "keywords": [
+    "nextjs",
+    "express",
+    "react",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "concurrently": "^8.2.2"
+  }
+}
