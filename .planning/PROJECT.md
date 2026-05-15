@@ -48,8 +48,7 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 | **Backend** | FastAPI (Python 3.11+) | AI inference, veri işleme, API gateway |
 | **Database** | Supabase + pgvector | Vektör embedding'leri, ilişkisel veri, managed PostgreSQL |
 | **AI - Görüntü Anomali** | Anomalib (PatchCore) | Few-shot görüntü anomali tespiti, train gerektirir |
-| **AI - Embedding (Metin)** | EmbeddingGemma 300M | Lokal, açık kaynak, 100+ dil, 768-dim |
-| **AI - Embedding (Multimodal)** | Gemini Embedding 2 | Görüntü + metin, API, 3072-dim |
+| **AI - Embedding** | Jina CLIP v2 (865M) | Görüntü + metin aynı vektör uzayında, 89 dil (Türkçe), lokal, MRL |
 | **AI - LLM** | Gemini / Claude API | RAG chatbot, analiz, raporlama |
 | **Streaming** | WebSocket + SSE | Gerçek zamanlı veri akışı |
 | **Bildirim & Otomasyon** | PUQ AI | Webhook tetiklemeli, Telegram/E-posta/SMS workflow'ları |
@@ -102,7 +101,7 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 | Few-shot görüntü anomali (Anomalib) | Hackathon/demo için hızlı, az train örneği yeterli | Anomalib PatchCore |
 | Supabase vs PostgreSQL | Managed pgvector, built-in auth, dashboard, row-level security | Supabase |
 | pgvector vs Pinecone | Supabase'de built-in, ek servis maliyeti yok | pgvector |
-| EmbeddingGemma vs CLIP (metin) | 300M lokal, Türkçe, sentence-transformers uyumlu | EmbeddingGemma (metin) + Gemini Embedding 2 (multimodal) |
+| Jina CLIP v2 (tek embedding modeli) | Görüntü+metin aynı uzayda, 89 dil, lokal, EmbeddingGemma+Gemini API'yi tek modelde birleştirir | Jina CLIP v2 (865M, 1024-dim, MRL) |
 | Bildirim: kendimiz vs PUQ AI | Zorunlu entegrasyon, webhook ile tetiklenen workflow | PUQ AI (Telegram/E-posta/SMS) |
 | WebSocket vs polling | Gerçek zamanlı dashboard için gerekli | WebSocket + SSE fallback |
 
@@ -118,7 +117,7 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 - [ ] **R4:** RAG tabanlı chatbot — veri seti üzerinde soru-cevap
 - [ ] **R5:** Chatbot yanıtlarında tıklanabilir ürün görselleri ve tablo verileri
 - [ ] **R6:** Streaming agent — anomali tespitinde otonom aksiyon zinciri (PUQ AI workflow tetikleme)
-- [ ] **R7:** Supabase pgvector ile görüntü embedding saklama ve arama (EmbeddingGemma + Gemini Embedding 2)
+- [ ] **R7:** Supabase pgvector ile görüntü embedding saklama ve arama (Jina CLIP v2, 1024-dim)
 - [ ] **R8:** Tauri ile native dosya sistemi erişimi ve yerel bildirimler
 - [ ] **R9:** Train/test split (%70/%30) — test verisi üzerinde canlı demo
 - [ ] **R10:** Anomali kaynağı tespiti (seri numarası, takım ID, zaman damgası, aşınma tipi)

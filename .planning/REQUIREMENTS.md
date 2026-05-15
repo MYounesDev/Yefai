@@ -24,7 +24,7 @@
 | FR-2.2 | Test setinde görüntü anomali tespiti: aşınma seviyesi > eşik olanlar işaretlenir | P0 | Eşik üstü görüntüler anomali olarak etiketlenir |
 | FR-2.3 | Aşınma tipi sınıflandırması: Flank wear, Adhesive wear, Combination | P1 | En az %80 doğruluk |
 | FR-2.4 | Sensör verisi dashboard'da canlı grafik olarak gösterilir, anomali tespitinde KULLANILMAZ | P0 | Sensör grafikleri 1 saniyede güncellenir |
-| FR-2.5 | CLIP/SigLIP ile görüntü embedding'i üretilir | P0 | Her görüntü için 512/768 boyutlu vektör |
+| FR-2.5 | Jina CLIP v2 ile görüntü + metin embedding'i (tek model, aynı vektör uzayı) | P0 | Her görüntü için 1024 boyutlu vektör |
 
 > **NOT:** Sensör tabanlı anomali tespiti (TimesFM 2.5) v1.1+ için ertelenmiştir. v1.0'da SADECE görüntü ile anomali tespiti yapılır.
 
@@ -75,9 +75,9 @@
 | ID | Gereksinim | Öncelik | UAT |
 |----|-----------|---------|-----|
 | FR-7.1 | Supabase'de ilişkisel şema: sets, images, sensors, anomalies tabloları | P0 | Schema migration çalışır |
-| FR-7.2 | pgvector eklentisi (Supabase built-in) ile embedding sütunları: text_embedding (768-dim), image_embedding (768-dim) | P0 | `SELECT * FROM images ORDER BY embedding <=> query_vector LIMIT 5` |
-| FR-7.3 | EmbeddingGemma 300M ile metin embedding'leri (metadata, label, açıklama) — lokal | P0 | 1663 kayıt için < 2 dakika |
-| FR-7.4 | Gemini Embedding 2 ile multimodal embedding (görüntü + metin) — API | P0 | Toplu embedding, rate-limit yönetimi |
+| FR-7.2 | pgvector eklentisi (Supabase built-in) ile embedding sütunu: image_embedding (1024-dim, MRL ile 64'e kısaltılabilir) | P0 | `SELECT * FROM images ORDER BY image_embedding <=> query_vector LIMIT 5` |
+| FR-7.3 | Jina CLIP v2 ile görüntü + metin embedding'i — lokal, 865M parametre, 89 dil (Türkçe dahil) | P0 | 1663 görüntü için < 20 saniye |
+| FR-7.4 | ~~Gemini Embedding 2~~ KALDIRILDI — Jina CLIP v2 tek model olarak hem görüntü hem metin embedding'i yapar | — | — |
 | FR-7.5 | Hibrit arama: vektör similarity + metadata filtre (set, wear seviyesi, tarih) | P1 | "Set 5'teki flank wear görüntüleri" sorgusu |
 | FR-7.6 | PUQ AI webhook log'ları Supabase'de saklanır (denetim için) | P2 | Her webhook call'u loglanır |
 
@@ -110,7 +110,7 @@
 | pgvector performansı büyük veride | Düşük | Orta | Supabase built-in pgvector, IVFFlat indexing |
 | Real-time WebSocket kopmaları | Orta | Orta | Auto-reconnect, buffer |
 | PUQ API downtime | Düşük | Yüksek | Webhook retry + log, kritik anomali için OS notification fallback |
-| Gemini Embedding 2 API rate limit | Orta | Düşük | Toplu embedding'i zamana yay, lokal EmbeddingGemma fallback |
+| Jina CLIP v2 model yükleme/inference süresi | Düşük | Orta | ONNX export, batch inference, MRL boyut kısaltma |
 
 ---
 

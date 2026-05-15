@@ -54,7 +54,7 @@ Operatörlere **proaktif bilgilendirme** sağlamak:
 
 ### 2. Aşınma Tipi Tahmini
 
-**Kullanılacak: CLIP/SigLIP**
+**Kullanılacak: Jina CLIP v2**
 
 - Takım görüntüsünü analiz et
 - 4 aşınma tipinin olasılığını hesapla:
@@ -100,7 +100,7 @@ Her senaryo için:
 |-----------|------|
 | **TimesFM 2.5** | Zaman serisi tahmini (horizon genişletme) |
 | **Anomalib** | Görüntü anomali tespiti (mevcut) |
-| **CLIP/SigLIP** | Aşınma tipi sınıflandırma |
+| **Jina CLIP v2** | Aşınma tipi sınıflandırma |
 | **NumPy/Pandas** | Veri işleme ve hesaplamalar |
 | **SciPy/Statsmodels** | Güven aralığı hesaplama |
 
@@ -255,7 +255,7 @@ Takım: #12
 
 **Phase 2 (AI Inference) ile:**
 - TimesFM'in `horizon` parametresini genişlet (1 → 50)
-- CLIP ile aşınma tipi sınıflandırma ekle
+- Jina CLIP v2 ile aşınma tipi sınıflandırma ekle
 - Füzyon fonksiyonu ekle (sensör + görüntü)
 
 **Phase 4 (Dashboard) ile:**
@@ -310,7 +310,7 @@ POST /api/predictions/{prediction_id}/feedback
 
 ### Adım 2: Backend - Aşınma Tipi Sınıflandırma
 **Süre:** 2 gün
-- CLIP entegrasyonu
+- Jina CLIP v2 entegrasyonu
 - 4 aşınma tipi için sınıflandırma
 - Test yaz
 

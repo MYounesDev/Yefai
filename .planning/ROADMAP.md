@@ -42,7 +42,7 @@
 - Anomalib (PatchCore) ile train setinde eğitim (few-shot, normal örneklerle)
 - Test setinde anomali tespiti: aşınma seviyesi > eşik olan görüntüler işaretlenir
 - Aşınma tipi sınıflandırması: Flank wear, Adhesive wear, Combination
-- Embedding üretimi (görüntü → vektör, pgvector'e yaz)
+- Embedding üretimi (Jina CLIP v2: görüntü → 1024-dim vektör, Supabase pgvector'e yaz)
 - Toplu embedding: 1663 görüntü → Supabase pgvector
 - Inference endpoint'leri (FastAPI)
 - Sensör verisi: dashboard'da canlı grafik olarak GÖSTERİLİR, anomali tespitinde KULLANILMAZ

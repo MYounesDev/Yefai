@@ -28,7 +28,7 @@
 CREATE TABLE sets (id SERIAL PRIMARY KEY, name TEXT, image_count INT);
 CREATE TABLE images (id SERIAL PRIMARY KEY, set_id INT REFERENCES sets(id),
   file_path TEXT, flank_wear FLOAT, adhesive_wear FLOAT, combination_wear FLOAT,
-  image_embedding vector(512));
+  image_embedding vector(1024)  -- Jina CLIP v2
 CREATE TABLE sensors (id SERIAL PRIMARY KEY, image_id INT REFERENCES images(id),
   timestamp TIMESTAMP, accelerometer FLOAT[], acoustic FLOAT[], force_x FLOAT[],
   force_y FLOAT[], force_z FLOAT[]);
@@ -80,35 +80,61 @@ point, quantiles = model.forecast(horizon=1, inputs=[sensor_history])
 - API dokümantasyonu herkese açık değil (demo talep etmek gerekiyor)
 
 ### Yefai için Değerlendirme
-- **Doğrudan embedding için kullanılamaz** — CLIP/SigLIP gibi açık modeller kullanılacak
+- **Doğrudan embedding için kullanılamaz** — Jina CLIP v2 gibi açık modeller kullanılacak
 - **Potansiyel entegrasyon:** İleride görüntü işleme pipeline'ı olarak (v1.1+)
-- **Alternatif embedding:** OpenCLIP (ViT-B/32), SigLIP, veya Jina CLIP v2
+- **Alternatif embedding:** Jina CLIP v2 (seçildi), SigLIP, OpenCLIP
 - NovaVision'ın "Predictive Maintenance" ve "Equipment Inspection" uygulamaları konsept olarak Yefai'ye benziyor — rakip değil, potansiyel iş birliği
 
 ---
 
-## 4. Multimodal Embedding Yaklaşımları
+## 4. Embedding Modeli: Jina CLIP v2 (TEK MODEL)
 
-### CLIP (OpenAI) / OpenCLIP
-- **Model:** ViT-B/32, ViT-L/14
-- **Embedding boyutu:** 512 (ViT-B), 768 (ViT-L)
-- **Avantaj:** Açık kaynak, geniş topluluk, görüntü+metin aynı uzayda
-- **Kullanım:** Görüntü ve metin sorguları aynı vektör uzayında
+**Model:** `jinaai/jina-clip-v2`
+**Parametre:** 865M
+**Vektör boyutu:** 1024 (MRL ile 64'e kadar kısaltılabilir)
+**Dil:** 89 dil (Türkçe dahil — HF tags: `tr`)
+**Lisans:** CC-BY-NC-4.0 (demo için uygun, ticari için değişebilir)
 
-### SigLIP (Google)
-- **Model:** siglip-so400m-patch14-384
-- **Embedding boyutu:** 1152
-- **Avantaj:** Daha iyi zero-shot performansı, daha hızlı
+### Neden Tek Model?
+- v1.0'da eskiden 2 model vardı: EmbeddingGemma 300M (metin) + Gemini Embedding 2 (multimodal, API)
+- Jina CLIP v2 **hem görüntü hem metin** embedding'ini aynı vektör uzayında yapar
+- Tek model = daha az bağımlılık, daha basit pipeline, API maliyeti yok
+- RAG chatbot için ideal: kullanıcı sorusu (metin) ve görüntüler aynı uzayda
 
-### Jina CLIP v2
-- **Model:** jina-clip-v2
-- **Embedding boyutu:** 1024
-- **Avantaj:** 89 dil desteği, Türkçe dahil, Matryoshka representation
+### Avantajları
+- **Türkçe desteği** kanıtlanmış (89 dil, HF tags'de `tr`)
+- **Matryoshka (MRL):** 1024 boyutlu vektörü 64'e kadar kısalt, pgvector'de 16x depolama tasarrufu
+- **Cross-modal benchmark:** 0.873 (CLIP'ten %14 daha iyi, Milvus CCKM Mart 2026)
+- **Lokal inference:** API yok, internet yok, ücretsiz
+- **M2 Pro'da çalışır:** 865M parametre, ~2GB RAM, 1663 görüntü < 20sn
 
-### Yefai için Karar
-- **Varsayılan:** OpenCLIP ViT-B/32 (hafif, hızlı, iyi destek)
-- **Yedek:** Jina CLIP v2 (Türkçe metin sorguları için daha iyi olabilir)
-- **pgvector uyumluluğu:** Hepsi uyumlu (float32 vektör)
+### Kullanım
+```python
+from transformers import AutoModel
+model = AutoModel.from_pretrained("jinaai/jina-clip-v2", trust_remote_code=True)
+
+# Görüntü embedding
+image_emb = model.encode_image(image)  # (1024,)
+
+# Türkçe metin embedding
+text_emb = model.encode_text("flank wear aşınması olan takım")  # (1024,)
+
+# Cosine similarity
+from torch.nn.functional import cosine_similarity
+score = cosine_similarity(image_emb, text_emb, dim=-1)
+```
+
+### Neden CLIP/SigLIP/EmbeddingGemma Değil?
+| Model | Görüntü | Metin | Türkçe | Parametre | Sonuç |
+|-------|---------|-------|--------|-----------|-------|
+| Jina CLIP v2 | ✅ | ✅ | ✅ 89 dil | 865M | **Seçildi** |
+| OpenCLIP ViT-B/32 | ✅ | ✅ | Orta | 150M | Hafif alternatif |
+| SigLIP SO400M | ✅ | ✅ | Orta | 400M | Daha iyi görüntü, Türkçe zayıf |
+| EmbeddingGemma 300M | ❌ | ✅ | ✅ | 300M | Görüntü yapamaz |
+| Gemini Embedding 2 | ✅ | ✅ | ✅ | 9B | API, paralı, overkill |
+
+### v1.1+ için Not
+CC-BY-NC lisans ticari kullanımda sorun çıkarırsa Apache 2.0 alternatifler: SigLIP (Google) veya Qwen3-VL-2B (Alibaba). Jina CLIP v2 API'si de değerlendirilebilir.
 
 ---
 
@@ -162,7 +188,7 @@ CREATE TABLE images (
     id SERIAL PRIMARY KEY,
     set_id INTEGER REFERENCES sets(id),
     file_path TEXT,
-    image_embedding vector(512)  -- CLIP ViT-B/32
+    image_embedding vector(1024)  -- Jina CLIP v2 (MRL ile 64'e kısaltılabilir)
 );
 CREATE INDEX ON images USING hnsw (image_embedding vector_cosine_ops);
 
