@@ -38,8 +38,15 @@
 
 **Amaç:** Anomalib (PatchCore) ile görüntü üzerinden anomali tespiti, embedding üretimi. SADECE görüntü ile çalışılır.
 
+**Detay plan:** `.planning/image-model-training-plan.md` dosyası image model eğitimi/çalıştırma için incelenecek CSV'leri, veri köklerini, manifest üretimini, label stratejisini, eğitim komutlarını ve kabul kriterlerini tarif eder.
+
 **Kapsam:**
-- Anomalib (PatchCore) ile train setinde eğitim (few-shot, normal örneklerle)
+- `data/labels.csv` içinden `ImageFile`, `wear`, `type`, `Set`, `ImageDateTime` kolonlarını incele
+- Görüntü dosyalarını `data/MATWI/Set*/images/` canonical root'undan veya mevcut geçici `llm_docs/Set*/images/` fallback root'undan çöz
+- Set bazlı leakage-safe train/val/test split oluştur; row-level random split yapma
+- `data/manifests/image_anomaly_manifest.csv` ve `data/manifests/image_wear_type_manifest.csv` üret
+- `reports/image_data_quality.md` ile eksik görselleri, wear/type dağılımını ve split özetini raporla
+- Anomalib (PatchCore) ile train setinde eğitim (few-shot, normal/low-wear örneklerle)
 - Eğitilen Torch modelini export et
 - **NovaVision inference pipeline:** Model NovaVision'a yüklenir, preprocessing + inference NovaVision'da çalışır
 - Test setinde anomali tespiti: aşınma seviyesi > eşik olan görüntüler işaretlenir
