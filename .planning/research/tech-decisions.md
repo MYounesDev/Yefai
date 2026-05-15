@@ -137,9 +137,10 @@ CREATE INDEX ON embeddings USING hnsw (embedding vector_cosine_ops);
 - Webhook ve schedule ile tetikleme
 
 ### Yefai için Değerlendirme
-- **v1.0'da out of scope** — Yefai kendi bildirim/otomasyon sistemine sahip
-- **v1.1+ potansiyel:** PUQ AI'nin bildirim/otomasyon pipeline'ları Yefai'nin alerting sistemine alternatif olabilir
-- **AI Router özelliği:** Çoklu LLM sağlayıcı yönetimi için ileride düşünülebilir
+- **v1.0'da core entegrasyon** — FastAPI → PUQ AI webhook → Telegram/E-posta/SMS bildirimleri
+- **Webhook client:** Anomali tespit anında PUQ AI workflow'unu tetikler
+- **PUQ AI workflow'ları:** Telegram alert, E-posta raporu (görüntü ekli), SMS kritik uyarı, günlük/haftalık özet rapor
+- **Fallback:** PUQ AI offline ise OS native notification + log'a yaz, retry mekanizması
 - PUQ AI dokümanları ayrı bir inceleme olarak `server/docs/puqai-inceleme.md` dosyasında
 
 ---
