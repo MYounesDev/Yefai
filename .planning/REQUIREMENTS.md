@@ -15,6 +15,7 @@
 | FR-1.2 | Train/test split (%70/%30) set bazında yapılır, aynı set bölünmez | P0 | Test setindeki hiçbir Set ID train'de yok |
 | FR-1.3 | Sensör CSV'leri parse edilir: Accelerometer, Acoustic, Force X/Y/Z, timestamp | P0 | Her sensör dosyası 6 kolon olarak okunur |
 | FR-1.4 | Görüntüler ve sensör verisi timestamp ile eşleştirilir, senkronizasyon hataları loglanır | P1 | Eşleşen çift > %90, hatalar log'da |
+| FR-1.5 | MATWI'de stok/BOM verisi olmadığı için mock yedek parça kataloğu, envanter snapshot'ı ve ticket datası üretilir | P0 | `spare_parts_catalog.csv`, `inventory_snapshots.csv`, `part_tickets.csv` ve kalite raporu oluşur |
 
 ### FR-2: AI Inference Engine (Görüntü Tabanlı)
 
@@ -81,6 +82,18 @@
 | FR-7.4 | ~~Gemini Embedding 2~~ KALDIRILDI — Jina CLIP v2 tek model olarak hem görüntü hem metin embedding'i yapar | — | — |
 | FR-7.5 | Hibrit arama: vektör similarity + metadata filtre (set, wear seviyesi, tarih) | P1 | "Set 5'teki flank wear görüntüleri" sorgusu |
 | FR-7.6 | PUQ AI webhook log'ları Supabase'de saklanır (denetim için) | P2 | Her webhook call'u loglanır |
+| FR-7.7 | Mock yedek parça tabloları: `spare_parts_catalog`, `inventory_snapshots`, `part_tickets` | P0 | Kriz senaryosu için parça, stok, lead time ve ticket sorgulanabilir |
+
+### FR-8: Yedek Parça Krizi Mock Katmanı
+
+| ID | Gereksinim | Öncelik | UAT |
+|----|-----------|---------|-----|
+| FR-8.1 | Anomali/tahmin çıktısı gerekli yedek parça veya parça ailesiyle eşleştirilir | P0 | Yüksek wear/anomali kaydında `recommended_part_id` dolu |
+| FR-8.2 | Yedek parça talebi intermittent/lumpy dağılım varsayımıyla mock ticket'a dönüştürülür | P0 | Ticket dağılım raporunda `watch`, `at_risk`, `crisis` örnekleri var |
+| FR-8.3 | Stok krizi skoru hesaplanır: stok açığı, lead time farkı, kritiklik, supplier riski, anomali şiddeti | P0 | Skor 0-100 ve risk seviyesi (`none/watch/at_risk/crisis`) döner |
+| FR-8.4 | Dashboard'da “Yedek Parça Krizi” paneli gösterilir | P0 | Panelde parça adı, eldeki stok, siparişte, ihtiyaç tarihi, lead time, risk seviyesi görünür |
+| FR-8.5 | RAG chatbot mock inventory üzerinde soru-cevap yapabilir | P1 | "Hangi kritik parçalar stokta yok?" sorusu tablo yanıtı döner |
+| FR-8.6 | PUQ AI bildiriminde stok krizi alanları yer alır | P1 | Telegram/e-posta payload'ında parça, stok, lead time ve kriz skoru var |
 
 ---
 
@@ -112,6 +125,8 @@
 | Real-time WebSocket kopmaları | Orta | Orta | Auto-reconnect, buffer |
 | PUQ API downtime | Düşük | Yüksek | Webhook retry + log, kritik anomali için OS notification fallback |
 | Jina CLIP v2 model yükleme/inference süresi | Düşük | Orta | ONNX export, batch inference, MRL boyut kısaltma |
+| Mock yedek parça verisinin gerçek veri gibi algılanması | Orta | Orta | UI ve dokümantasyonda “mock/simülasyon” etiketi, gerçek ERP kapsamını v1.1+ olarak ayırma |
+| Sentetik stok dağılımının aşırı yapay görünmesi | Orta | Orta | Intermittent/lumpy demand varsayımları, kritik sınıf dağılımı ve lead time değişkenliğiyle kalite raporu üretme |
 
 ---
 

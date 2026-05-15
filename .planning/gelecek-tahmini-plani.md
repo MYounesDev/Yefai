@@ -31,6 +31,7 @@ Operatörlere **proaktif bilgilendirme** sağlamak:
 **Dahil:**
 - ✅ Aşınma ilerleme hızı takibi (µm/saat)
 - ✅ Kritik eşiğe kalan süre hesaplama
+- ✅ Kritik eşiğe kalan süreyi mock yedek parça stok/lead time verisiyle karşılaştırma
 - ✅ Aşınma tipi olasılıkları (Anomalib'den gelen)
 - ✅ Zaman serisi görselleştirme (geçmiş + projeksiyon)
 - ✅ Basit senaryo: "hız sabit kalırsa / hızlanırsa / yavaşlarsa"
@@ -42,6 +43,7 @@ Operatörlere **proaktif bilgilendirme** sağlamak:
 - ❌ Sensör verisiyle tahmin → v1.1
 - ❌ İstatistiksel güven aralığı → v1.1
 - ❌ Otomatik sipariş sistemi
+- ❌ Gerçek ERP/MRO stok entegrasyonu (v1.0'da mock)
 - ❌ Makine kontrolü (hız değiştirme vb.)
 - ❌ ERP entegrasyonu
 
@@ -235,6 +237,12 @@ Takım: #12
   - <12 saat: Telegram + Email (acil)
   - 12-48 saat: Sadece dashboard uyarısı
   - >48 saat: Haftalık özette bilgi
+- Yedek parça mock krizi varsa bildirim payload'ına parça adı, eldeki stok, tedarik süresi ve kriz skoru eklenir.
+
+### Yedek Parça Krizi Mock Katmanı ile:
+- Tahmin çıktısındaki `hours_to_critical`, mock inventory tarafındaki `lead_time_days_p90` ile kıyaslanır.
+- Eğer `needed_by < expected_replenishment_date` ve stok pozisyonu yetersizse `stockout_risk_score` yükseltilir.
+- Detay dağılım ve veri üretim planı: `.planning/yedek-parca-krizi-mock-plan.md`.
 
 ### Yeni API Endpoint'leri (FastAPI)
 
@@ -298,8 +306,16 @@ GET  /api/predictions/factory/overview
 - Kritiklik seviyesine göre bildirim formatı
 - PUQ AI webhook payload'ı
 
-**Toplam Ek Süre:** ~5.5 gün (mevcut fazların içine dağıtılmış)
-**Mevcut sürelere etkisi:** Phase 2 +1 gün, Phase 4 +2.5 gün, Phase 5 +1 gün
+### Adım 6: Mock Yedek Parça Krizi Entegrasyonu
+**Süre:** 1 gün
+**Hangi fazda:** Phase 4 içinde
+- `hours_to_critical` ile mock `lead_time_days_p90` karşılaştırması
+- Stok pozisyonu ve supplier riskiyle `stockout_risk_score` hesaplama
+- Dashboard tahmin paneline “stok/lead time yetişiyor mu?” göstergesi
+- Kriz seviyesi `crisis` ise Phase 5 bildirimi için payload alanlarını hazırlama
+
+**Toplam Ek Süre:** ~6.5 gün (mevcut fazların içine dağıtılmış)
+**Mevcut sürelere etkisi:** Phase 2 +1 gün, Phase 4 +3.5 gün, Phase 5 +1 gün
 
 ---
 
@@ -309,6 +325,7 @@ GET  /api/predictions/factory/overview
 - ✅ Anomalib skorundan aşınma seviyesi tahmini yapılabiliyor
 - ✅ Aşınma hızı hesaplanabiliyor (son N kontrol üzerinden)
 - ✅ Kritik eşiğe kalan süre gösteriliyor
+- ✅ Yedek parça lead time/stok riskiyle karşılaştırılabiliyor
 - ✅ API yanıt süresi < 500ms
 - ✅ Grafik render süresi < 500ms
 
@@ -335,7 +352,7 @@ Phase 2: AI Inference (+ aşınma hızı hesaplama, +1 gün)
     ↓
 Phase 3: RAG Chatbot
     ↓
-Phase 4: Dashboard (+ tahmin paneli, +2.5 gün)
+Phase 4: Dashboard (+ tahmin paneli, + yedek parça krizi göstergesi, +3.5 gün)
     ↓
 Phase 5: Tauri + Bildirim (+ tahmin bildirimi, +1 gün)
 ```

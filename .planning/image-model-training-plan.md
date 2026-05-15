@@ -514,6 +514,7 @@ Bağlı fazlar:
 
 - Phase 1: image dosyaları, labels.csv, split ve veri kalite raporu hazırlanır.
 - Phase 2: image anomaly model, PatchCore, wear type classifier ve inference script/API yapılır.
+- Yedek parça krizi mock planı: `.planning/yedek-parca-krizi-mock-plan.md`; burada üretilen stok/ticket verisi image model eğitiminde label olarak kullanılmaz, yalnız inference/tahmin sonrası iş riski katmanını besler.
 - Phase 4: model çıktıları dashboard anomali panelinde gösterilir.
 - Phase 5: kritik anomali/tahmin çıktıları PUQ AI bildirim payload'ına eklenir.
 

@@ -8,7 +8,8 @@
 ## Milestone: Yefai v1.0 — Demo MVP
 
 **Hedef:** MATWI veri seti üzerinde gerçek zamanlı anomali tespiti yapan, RAG chatbot'lu,
-çok kanallı bildirim gönderen Tauri masaüstü uygulaması. Hackathon/demo sunumuna hazır.
+yedek parça stok krizi simülasyonu olan, çok kanallı bildirim gönderen Tauri masaüstü uygulaması.
+Hackathon/demo sunumuna hazır.
 
 **Zaman hedefi:** 6-8 hafta (part-time)
 **Granularity:** Coarse (5 faz)
@@ -24,13 +25,15 @@
 - Sensör CSV'lerini parse et (Accelerometer, Acoustic, Force X/Y/Z)
 - Train/test split (%70/%30) — set bazında, aynı set bölünmez
 - Supabase şeması: `sets`, `images`, `sensors`, `anomalies`, `embeddings`
+- **Yedek parça krizi mock katmanı:** MATWI'de stok/BOM verisi olmadığı için `spare_parts_catalog`, `inventory_snapshots`, `part_tickets` sentetik üretilir
 - pgvector eklentisi (Supabase'de built-in) ve embedding sütunu
 - Görüntü-sensör timestamp eşleştirme (sync hatalarını logla)
 - Veri kalite raporu (kaç eşleşen çift, kaç eksik)
+- Mock yedek parça kalite raporu (kritiklik, stok açığı, ticket/risk dağılımı)
 
 **Bağımlılıklar:** Yok
 **Deliverable:** Dolu Supabase veritabanı, veri kalite raporu
-**Tahmini süre:** 1-1.5 hafta
+**Tahmini süre:** 1-1.5 hafta + mock yedek parça katmanı için ~1 gün
 
 ---
 
@@ -39,6 +42,8 @@
 **Amaç:** Anomalib (PatchCore) ile görüntü üzerinden anomali tespiti, embedding üretimi. SADECE görüntü ile çalışılır.
 
 **Detay plan:** `.planning/image-model-training-plan.md` dosyası image model eğitimi/çalıştırma için incelenecek CSV'leri, veri köklerini, manifest üretimini, label stratejisini, eğitim komutlarını ve kabul kriterlerini tarif eder.
+
+**Yedek parça bağlantısı:** `.planning/yedek-parca-krizi-mock-plan.md` dosyası MATWI'de olmayan stok/BOM/ticket alanlarının nasıl sentetik üretileceğini ve model eğitim datasına karıştırılmadan inference/tahmin çıktısına nasıl bağlanacağını tarif eder.
 
 **Kapsam:**
 - `data/labels.csv` içinden `ImageFile`, `wear`, `type`, `Set`, `ImageDateTime` kolonlarını incele
@@ -54,13 +59,14 @@
 - Embedding üretimi (görüntü → vektör, pgvector'e yaz)
 - Toplu embedding: 1663 görüntü → Supabase pgvector
 - Inference endpoint'leri (FastAPI → NovaVision API çağrısı)
+- Opsiyonel parça eşlemesi: inference çıktısına `recommended_part_id` / `part_family` eklenir; bu alan mock inventory katmanını besler, model label'ı değildir
 - Sensör verisi: dashboard'da canlı grafik olarak GÖSTERİLİR, anomali tespitinde KULLANILMAZ
 
 **NOT:** Sensör tabanlı anomali tespiti (TimesFM) v1.1+ için ertelenmiştir. Şu an sadece görüntü ile çalışılmaktadır.
 
 **Bağımlılıklar:** Phase 1 (veri gerekli)
 **Deliverable:** Çalışan görüntü anomali tespit API'si, embedding'ler Supabase pgvector'de
-**Tahmini süre:** 1.5-2 hafta
+**Tahmini süre:** 1.5-2 hafta + parça eşleme alanı için ~0.5 gün
 
 ---
 
@@ -93,13 +99,15 @@
 - Canlı dashboard: sensör grafikleri (LineChart), görüntü akışı
 - Anomali tespit anında kırmızı vurgu + detay paneli
 - Anomali detayları: seri numarası, takım ID, aşınma tipi, zaman, skor
+- **Yedek Parça Krizi paneli:** gerekli parça, eldeki stok, siparişteki adet, lead time, ihtiyaç tarihi ve kriz skoru
+- Kriz ticket listesi: `waiting_part`, `ordered`, `stockout`, `stockout_escalation`
 - Streaming agent: anomali → log → bildirim → öneri otomatik zinciri
 - Geçmiş anomali listesi (filtreleme, sıralama)
 - Dashboard tema: koyu (dark) endüstriyel UI
 
 **Bağımlılıklar:** Phase 2 (inference), Phase 3 (opsiyonel - chatbot ayrı çalışır)
 **Deliverable:** Canlı dashboard, anomali tespit ve gösterim
-**Tahmini süre:** 1.5-2 hafta
+**Tahmini süre:** 1.5-2 hafta + yedek parça krizi paneli için ~1 gün
 
 ---
 
@@ -118,13 +126,14 @@
 - **PUQ AI E-posta workflow'u:** detaylı anomali raporu + görüntü eki
 - **PUQ AI SMS workflow'u:** kritik anomali → kısa mesaj
 - **PUQ AI raporlama workflow'u:** günlük/haftalık özet (schedule tetiklemeli)
+- **PUQ AI yedek parça krizi payload'ı:** parça adı, stok durumu, lead time, ihtiyaç tarihi, kriz skoru
 - Webhook retry + log mekanizması (Supabase'ye logla)
 - OS native notification fallback (PUQ AI offline ise)
 - macOS packaging: `.dmg` oluşturma
 
 **Bağımlılıklar:** Phase 4 (dashboard), PUQ AI hesabı + API token
 **Deliverable:** Çalışan `.dmg`, PUQ AI üzerinden en az 3 kanal bildirim aktif
-**Tahmini süre:** 2 hafta
+**Tahmini süre:** 2 hafta + yedek parça payload'ı için ~0.5 gün
 
 ---
 
@@ -155,6 +164,7 @@ Phase 1 ──────► Phase 2 ──────► Phase 4 ────
 | Windows/Linux build | Cross-platform Tauri build |
 | Kullanıcı yönetimi | Rol tabanlı erişim (operatör, yönetici, admin) |
 | Anomali geçmişi analitiği | Trend grafikleri, raporlama |
+| Gerçek ERP/MRO entegrasyonu | Mock yedek parça katmanının SAP/Maximo/ERP/CMMS verisiyle değiştirilmesi |
 | Edge deployment | NVIDIA Jetson / Raspberry Pi'de çalıştırma |
 
 ---
