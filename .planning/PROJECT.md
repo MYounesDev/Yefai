@@ -10,7 +10,7 @@
 Yefai, üretim hatlarındaki takım aşınmasını (tool wear) gerçek zamanlı izleyen, 
 anomali tespit eden ve operatörleri anında bilgilendiren bir **B2B masaüstü uygulamasıdır**.
 
-**Core loop:** Sensör verisi + kamera görüntüsü → AI anomali tespiti → Dashboard uyarısı → Çok kanallı bildirim (Telegram, E-posta, SMS, Web)
+**Core loop:** Sensör verisi + kamera görüntüsü → AI anomali tespiti → Dashboard uyarısı → FastAPI webhook → PUQ AI → Çok kanallı bildirim (Telegram, E-posta, SMS, Web)
 
 **Farkı:** Zero-shot AI modelleri (TimesFM 2.5, Anomalib) ile eğitim gerektirmeden çalışır. 
 RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzerinden sorgulama yapılabilir.
@@ -49,10 +49,11 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 | **Database** | PostgreSQL 16 + pgvector | Vektör embedding'leri, ilişkisel veri, zaman serisi |
 | **AI - Zaman Serisi** | Google TimesFM 2.5 | Zero-shot zaman serisi anomali tespiti |
 | **AI - Görüntü** | Anomalib (PatchCore) | Zero-shot görüntü anomali tespiti |
-| **AI - Embedding** | CLIP / SigLIP | Multimodal embedding (görüntü + metin) |
+| **AI - Embedding (Metin)** | EmbeddingGemma 300M | Lokal, açık kaynak, 100+ dil, 768-dim |
+| **AI - Embedding (Multimodal)** | Gemini Embedding 2 | Görüntü + ses + metin, API, 3072-dim |
 | **AI - LLM** | Gemini / Claude API | RAG chatbot, analiz, raporlama |
 | **Streaming** | WebSocket + SSE | Gerçek zamanlı veri akışı |
-| **Bildirim** | Telegram Bot, SMTP, Twilio | Çok kanallı alerting |
+| **Bildirim & Otomasyon** | PUQ AI | Webhook tetiklemeli, Telegram/E-posta/SMS workflow'ları |
 | **Agent** | Hermes Agent SDK | Otonom AI ajan iş akışları |
 
 ## Architecture (High-Level)
@@ -74,9 +75,18 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 ┌─────────────────────────────────────────────────┐
 │              FastAPI Server                       │
 │  ┌──────────┐ ┌──────────┐ ┌────────────────┐  │
-│  │ Inference│ │ RAG      │ │ Notification   │  │
-│  │ Engine   │ │ Pipeline │ │ Service        │  │
-│  └──────────┘ └──────────┘ └────────────────┘  │
+│  │ Inference│ │ RAG      │ │ PUQ AI         │  │
+│  │ Engine   │ │ Pipeline │ │ Webhook Client │  │
+│  └──────────┘ └──────────┘ └───────┬────────┘  │
+│                                     │            │
+└─────────────────────────────────────┼────────────┘
+                                      │
+                                      ▼
+                           ┌─────────────────────┐
+                           │      PUQ AI          │
+                           │  Telegram │ Email    │
+                           │  SMS │ Slack │ Web   │
+                           └─────────────────────┘
 │  ┌──────────────────────────────────────────┐  │
 │  │         PostgreSQL + pgvector             │  │
 │  │  Metadata │ Embeddings │ Time Series     │  │
@@ -92,7 +102,8 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 | Next.js SPA olarak | Tauri WebView ile uyumlu, SSR gerekmez | `output: "export"` |
 | Zero-shot AI (eğitimsiz) | Hackathon/demo için hızlı, eğitim döngüsü yok | TimesFM + Anomalib |
 | pgvector vs Pinecone | Yerel çalışma, ek servis maliyeti yok, PostgreSQL zaten var | pgvector |
-| CLIP vs özel embedding | Hazır multimodal model, sıfır kurulum | CLIP (OpenCLIP) |
+| EmbeddingGemma vs CLIP (metin) | 300M lokal, Türkçe, sentence-transformers uyumlu | EmbeddingGemma (metin) + Gemini Embedding 2 (multimodal) |
+| Bildirim: kendimiz vs PUQ AI | Zorunlu entegrasyon, webhook ile tetiklenen workflow | PUQ AI (Telegram/E-posta/SMS) |
 | WebSocket vs polling | Gerçek zamanlı dashboard için gerekli | WebSocket + SSE fallback |
 
 ## Requirements
@@ -103,20 +114,21 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 ### Active
 - [ ] **R1:** Gerçek zamanlı sensör verisi akışı ve dashboard'da canlı grafik
 - [ ] **R2:** Multimodal anomali tespiti (görüntü + sensör füzyonu)
-- [ ] **R3:** Anomali durumunda Telegram/E-posta/SMS/Web bildirimi
+- [ ] **R3:** Anomali durumunda FastAPI → PUQ AI webhook → Telegram/E-posta/SMS bildirimi
 - [ ] **R4:** RAG tabanlı chatbot — veri seti üzerinde soru-cevap
 - [ ] **R5:** Chatbot yanıtlarında tıklanabilir ürün görselleri ve tablo verileri
-- [ ] **R6:** Streaming agent — anomali tespitinde otonom aksiyon
-- [ ] **R7:** PostgreSQL pgvector ile multimodal embedding saklama ve arama
+- [ ] **R6:** Streaming agent — anomali tespitinde otonom aksiyon zinciri (PUQ AI workflow tetikleme)
+- [ ] **R7:** PostgreSQL pgvector ile multimodal embedding saklama ve arama (EmbeddingGemma + Gemini Embedding 2)
 - [ ] **R8:** Tauri ile native dosya sistemi erişimi ve yerel bildirimler
 - [ ] **R9:** Train/test split — test verisi üzerinde canlı demo
 - [ ] **R10:** Anomali kaynağı tespiti (seri numarası, takım ID, zaman damgası)
+- [ ] **R11:** PUQ AI workflow'ları: anomali alert, periyodik rapor, kritik durum escalasyonu
 
 ### Out of Scope
 - Model eğitimi (fine-tuning) — demo zero-shot çalışacak
 - Multi-tenant bulut deployment — lokal masaüstü uygulaması
 - Mobil uygulama — sadece masaüstü
-- PUQ AI entegrasyonu — workflow otomasyonu ayrı proje
+- NovaVision entegrasyonu — no-code CV platformu, Yefai'nin custom AI pipeline'ı ile örtüşmüyor
 
 ## Evolution
 

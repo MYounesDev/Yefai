@@ -45,16 +45,18 @@
 | FR-4.4 | RAG pipeline: soru → embedding → pgvector similarity search → context → LLM → yanıt | P0 | İlgili chunk'lar %90+ recall ile getirilir |
 | FR-4.5 | Chatbot session'lar arası hafıza tutar (aynı session içinde) | P2 | Önceki soruya referans verilebilir |
 
-### FR-5: Anomali Yönetimi & Uyarı
+### FR-5: Anomali Yönetimi & PUQ AI Bildirim
 
 | ID | Gereksinim | Öncelik | UAT |
 |----|-----------|---------|-----|
 | FR-5.1 | Eşik aşılınca dashboard'da görsel/sesli uyarı | P0 | Kırmızı banner + ses, anomali detayları görünür |
 | FR-5.2 | Uyarı detayları: zaman damgası, seri numarası, takım ID, aşınma tipi (flank/adhesive) | P0 | Tüm alanlar dolu |
-| FR-5.3 | Telegram bildirimi: anomali tespit anında mesaj | P1 | Bot token ile test edilir |
-| FR-5.4 | E-posta bildirimi: SMTP üzerinden detaylı anomali raporu | P1 | E-posta formatı: konu + gövde + görüntü eki |
-| FR-5.5 | SMS bildirimi: kritik anomali durumunda (Twilio) | P2 | SMS alındı onayı |
-| FR-5.6 | Bildirim tercihleri konfigüre edilebilir (hangi kanal, hangi eşik) | P2 | Ayarlar sayfasından seçim yapılır |
+| FR-5.3 | FastAPI → PUQ AI webhook: anomali tespit anında tetiklenir | P0 | Webhook payload'ı PUQ AI'ye ulaşır, HTTP 200 |
+| FR-5.4 | PUQ AI Telegram workflow'u: anomali mesajı (seri no, görüntü, skor) | P0 | Telegram'dan test mesajı alınır |
+| FR-5.5 | PUQ AI E-posta workflow'u: detaylı anomali raporu + görüntü eki | P1 | Test e-postası alınır |
+| FR-5.6 | PUQ AI SMS workflow'u: kritik anomali → kısa mesaj | P2 | Test SMS'i alınır |
+| FR-5.7 | PUQ AI raporlama workflow'u: günlük/haftalık özet rapor | P2 | Schedule ile otomatik rapor |
+| FR-5.8 | Webhook retry mekanizması: PUQ AI offline ise kuyruğa al, tekrar dene | P1 | 3 retry, başarısız olursa log'a yaz |
 
 ### FR-6: Desktop Uygulama (Tauri)
 
@@ -71,9 +73,11 @@
 | ID | Gereksinim | Öncelik | UAT |
 |----|-----------|---------|-----|
 | FR-7.1 | PostgreSQL'de ilişkisel şema: sets, images, sensors, anomalies tabloları | P0 | Schema migration çalışır |
-| FR-7.2 | pgvector eklentisi ile embedding sütunu (512/768 dim) | P0 | `SELECT * FROM images ORDER BY embedding <=> query_vector LIMIT 5` |
-| FR-7.3 | Toplu embedding üretimi ve pgvector'e yazımı | P0 | 1663 görüntü için < 5 dakika |
-| FR-7.4 | Hibrit arama: vektör similarity + metadata filtre (set, wear seviyesi, tarih) | P1 | "Set 5'teki flank wear görüntüleri" sorgusu |
+| FR-7.2 | pgvector eklentisi ile embedding sütunları: text_embedding (768-dim), multimodal_embedding (768-dim) | P0 | `SELECT * FROM images ORDER BY embedding <=> query_vector LIMIT 5` |
+| FR-7.3 | EmbeddingGemma 300M ile metin embedding'leri (metadata, label, açıklama) — lokal | P0 | 1663 kayıt için < 2 dakika |
+| FR-7.4 | Gemini Embedding 2 ile multimodal embedding (görüntü + akustik) — API | P0 | Toplu embedding, rate-limit yönetimi |
+| FR-7.5 | Hibrit arama: vektör similarity + metadata filtre (set, wear seviyesi, tarih) | P1 | "Set 5'teki flank wear görüntüleri" sorgusu |
+| FR-7.6 | PUQ AI webhook log'ları PostgreSQL'de saklanır (denetim için) | P2 | Her webhook call'u loglanır |
 
 ---
 
@@ -103,6 +107,8 @@
 | Tauri + Next.js entegrasyon sorunları | Orta | Yüksek | Önce pure Tauri + HTML testi, sonra Next.js |
 | pgvector performansı büyük veride | Düşük | Orta | IVFFlat indexing, benchmark testi |
 | Real-time WebSocket kopmaları | Orta | Orta | Auto-reconnect, buffer |
+| PUQ API downtime | Düşük | Yüksek | Webhook retry + log, kritik anomali için OS notification fallback |
+| Gemini Embedding 2 API rate limit | Orta | Düşük | Toplu embedding'i zamana yay, lokal EmbeddingGemma fallback |
 
 ---
 

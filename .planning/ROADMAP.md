@@ -93,9 +93,9 @@
 
 ---
 
-## Phase 5: Tauri Desktop + Çok Kanallı Bildirim
+## Phase 5: Tauri Desktop + PUQ AI Entegrasyonu
 
-**Amaç:** Her şeyi Tauri masaüstü uygulamasında birleştir, bildirim sistemini tamamla.
+**Amaç:** Her şeyi Tauri masaüstü uygulamasında birleştir, PUQ AI ile bildirim/otomasyon sistemini kur.
 
 **Kapsam:**
 - Tauri v2 projesi kurulumu, Next.js frontend'i WebView'de göm
@@ -103,15 +103,17 @@
 - Tauri Rust komutları: dosya seçici, sistem bildirimi, yerel port başlatma
 - FastAPI sunucusunu Tauri sidecar olarak başlat/durdur
 - Sistem tepsisi (system tray) entegrasyonu
-- Telegram Bot: anomali → mesaj (seri no, görüntü, zaman)
-- E-posta (SMTP): detaylı anomali raporu + görüntü eki
-- SMS (Twilio): kritik anomali → kısa mesaj
-- Web bildirim: anomali anında desktop notification
-- Bildirim tercihleri ayar sayfası
+- **PUQ AI webhook client:** FastAPI'den anomali tespitinde webhook tetikleme
+- **PUQ AI Telegram workflow'u:** anomali mesajı (seri no, görüntü, skor, zaman)
+- **PUQ AI E-posta workflow'u:** detaylı anomali raporu + görüntü eki
+- **PUQ AI SMS workflow'u:** kritik anomali → kısa mesaj
+- **PUQ AI raporlama workflow'u:** günlük/haftalık özet (schedule tetiklemeli)
+- Webhook retry + log mekanizması (PG'ye logla)
+- OS native notification fallback (PUQ AI offline ise)
 - macOS packaging: `.dmg` oluşturma
 
-**Bağımlılıklar:** Phase 4 (dashboard olmadan native kısım test edilemez)
-**Deliverable:** Çalışan `.dmg` dosyası, tüm bildirim kanalları aktif
+**Bağımlılıklar:** Phase 4 (dashboard), PUQ AI hesabı + API token
+**Deliverable:** Çalışan `.dmg`, PUQ AI üzerinden en az 3 kanal bildirim aktif
 **Tahmini süre:** 2 hafta
 
 ---
@@ -140,7 +142,7 @@ Phase 1 ──────► Phase 2 ──────► Phase 4 ────
 | Gerçek kamera entegrasyonu | IP kamera / RTSP stream |
 | Multi-instance | Aynı anda birden fazla makine izleme |
 | Windows/Linux build | Cross-platform Tauri build |
-| PUQ AI entegrasyonu | Workflow otomasyonu için |
+| NovaVision CV pipeline | Görüntü işleme pipeline'ı alternatifi (no-code CV) |
 | Kullanıcı yönetimi | Rol tabanlı erişim (operatör, yönetici, admin) |
 | Anomali geçmişi analitiği | Trend grafikleri, raporlama |
 | Edge deployment | NVIDIA Jetson / Raspberry Pi'de çalıştırma |
