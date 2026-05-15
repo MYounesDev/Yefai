@@ -5,7 +5,68 @@
 
 ---
 
-## 1. NovaVision AI
+## 1. Supabase (Veritabanı)
+
+**URL:** https://supabase.com/
+**Tip:** Managed PostgreSQL + built-in pgvector, auth, real-time, dashboard
+
+### Bulgular
+- PostgreSQL 16 tabanlı, pgvector built-in (ek eklenti kurulumu gerektirmez)
+- Row-level security (RLS), built-in auth
+- Web dashboard ile tablo yönetimi ve sorgu
+- 500MB ücretsiz tier (demo için yeterli)
+- Python SDK (`supabase-py`), SQL client uyumluluğu
+
+### Yefai için Değerlendirme
+- **v1.0'da core veritabanı** — local PostgreSQL yerine managed Supabase
+- pgvector ekstra kurulum gerektirmediği için Phase 1 hızlanır
+- Dashboard üzerinden hızlı schema iteration ve veri keşfi
+- İleride auth özelliği eklenirse built-in auth kullanılabilir
+
+### Supabase Schema (Planlanan)
+```sql
+CREATE TABLE sets (id SERIAL PRIMARY KEY, name TEXT, image_count INT);
+CREATE TABLE images (id SERIAL PRIMARY KEY, set_id INT REFERENCES sets(id),
+  file_path TEXT, flank_wear FLOAT, adhesive_wear FLOAT, combination_wear FLOAT,
+  image_embedding vector(512));
+CREATE TABLE sensors (id SERIAL PRIMARY KEY, image_id INT REFERENCES images(id),
+  timestamp TIMESTAMP, accelerometer FLOAT[], acoustic FLOAT[], force_x FLOAT[],
+  force_y FLOAT[], force_z FLOAT[]);
+CREATE TABLE anomalies (id SERIAL PRIMARY KEY, image_id INT REFERENCES images(id),
+  score FLOAT, wear_type TEXT, detected_at TIMESTAMP);
+CREATE INDEX ON images USING hnsw (image_embedding vector_cosine_ops);
+```
+
+---
+
+## 2. TimesFM 2.5 — ERTELENDİ (v1.1+)
+
+**Model:** Google TimesFM 2.5 — Zero-shot zaman serisi foundation modeli
+**Paper:** arxiv:2310.10688
+**HF:** `google/timesfm-2.5-200m-pytorch`
+
+### Neden Ertelendi?
+- v1.0'da SADECE görüntü tabanlı anomali tespiti yapılacak
+- TimesFM sensör verisiyle prediction-based anomaly detection için
+- v1.0 kapsamını daraltmak ve hızlı demo çıkarmak için sonraya bırakıldı
+
+### v1.1+ Planı
+- Zero-shot inference ile başla (eğitimsiz, direkt kullan)
+- Son 50 sensör adımı → next-step tahmini → gerçek vs tahmin = anomali skoru
+- Vakit ve veri olursa fine-tune (MATWI sensör verisiyle)
+
+### Nasıl Çalışır (Referans)
+```python
+import timesfm
+model = timesfm.TimesFM_2p5_200M_torch.from_pretrained("google/timesfm-2.5-200m-pytorch")
+model.compile(timesfm.ForecastConfig(max_context=1024, max_horizon=256, ...))
+point, quantiles = model.forecast(horizon=1, inputs=[sensor_history])
+# forecast vs actual → anomaly score
+```
+
+---
+
+## 3. NovaVision AI
 
 **URL:** https://novavision.ai/
 **Tip:** No-code bilgisayar görüşü (computer vision) platformu
@@ -26,7 +87,7 @@
 
 ---
 
-## 2. Multimodal Embedding Yaklaşımları
+## 4. Multimodal Embedding Yaklaşımları
 
 ### CLIP (OpenAI) / OpenCLIP
 - **Model:** ViT-B/32, ViT-L/14
@@ -51,30 +112,33 @@
 
 ---
 
-## 3. Zero-Shot Anomali Tespiti
+## 5. Görüntü Anomali Tespiti (Anomalib)
 
-### TimesFM 2.5 (Google)
-- Zero-shot zaman serisi tahmini
-- Milyarlarca veri noktasıyla önceden eğitilmiş, ağırlıklar dondurulmuş
-- Context window ile çalışır: son N adım → next-step tahmini
-- Eğitim döngüsü YOK — direkt inference
-- HuggingFace'te mevcut: `google/timesfm-2.5-200m-pytorch`
-
-### Anomalib (Intel)
+### Anomalib PatchCore (Intel)
 - Endüstriyel anomali tespiti için açık kaynak kütüphane
-- PatchCore algoritması: memory bank tabanlı, birkaç "sağlam" örnekle çalışır
-- Hafif eğitim (few-shot) gerekebilir — TimesFM kadar zero-shot değil
+- PatchCore algoritması: memory bank tabanlı, birkaç "sağlam" örnekle eğitilir
+- Few-shot: train setindeki normal görüntülerle memory bank oluşturulur
+- Test setinde anomali skoru hesaplanır, eşik üstü → anomali
+- Aşınma tipi sınıflandırması: Flank wear, Adhesive wear, Combination
 - Alternatif: EfficientAD, FastFlow
 
-### Füzyon Stratejisi
-- Sensör anomali skoru (0-1) + Görüntü anomali skoru (0-1) → ağırlıklı ortalama
-- Eşik: 0.7 (konfigüre edilebilir)
-- Sensör ve görüntü aynı anda anomali → kesin anomali
-- Sadece biri anomali → uyarı seviyesi düşük
+### Neden Sadece Görüntü?
+- MATWI'de asıl sinyal görüntüde (aşınma gözle görünür, µm etiketli)
+- Sensör verisi yardımcı kanal, dashboard'da canlı grafik olarak gösterilir
+- v1.0 kapsamını daraltmak için sensör anomali tespiti (TimesFM) ertelendi
+- v1.1+'da sensör füzyonu eklenecek
+
+### Train/Test Akışı
+```
+MATWI (17 set) → %70 train, %30 test
+Train → Anomalib PatchCore.fit(normal_images) → memory bank
+Test → PatchCore.predict(image) → anomaly_score (0-1)
+score > threshold → ANOMALİ (aşınma tipi ile birlikte)
+```
 
 ---
 
-## 4. pgvector vs Alternatif Vektör Veritabanları
+## 6. pgvector (Supabase Built-in)
 
 | | pgvector | Pinecone | Qdrant | Weaviate |
 |---|---------|----------|--------|----------|
@@ -84,28 +148,33 @@
 | **Filtreleme** | SQL WHERE | Metadata filter | Payload filter | GraphQL filter |
 | **Yefai için** | ✅ Seçildi | ❌ | ❌ | ❌ |
 
-### pgvector Avantajları
-- PostgreSQL ile aynı yerde — ek servis yok
+### pgvector Avantajları (Supabase'de)
+- Supabase'de built-in — `CREATE EXTENSION vector` gerekmez, otomatik aktif
 - SQL ile hibrit sorgu: vektör + metadata tek query'de
-- Yerel (offline) çalışır, internet gerektirmez
-- pgvector 0.7+ ile HNSW indexing, paralel index build
+- Supabase dashboard üzerinden tablo yönetimi ve sorgu
+- HNSW indexing built-in
+- 500MB ücretsiz tier (demo için yeterli)
 
-### pgvector Kurulum
+### Supabase pgvector Kullanımı
 ```sql
-CREATE EXTENSION vector;
-CREATE TABLE embeddings (
+-- Supabase'de pgvector zaten aktif, direkt kullan
+CREATE TABLE images (
     id SERIAL PRIMARY KEY,
-    image_id INTEGER REFERENCES images(id),
-    embedding vector(512),  -- CLIP ViT-B/32
-    text_embedding vector(512),
-    created_at TIMESTAMP DEFAULT NOW()
+    set_id INTEGER REFERENCES sets(id),
+    file_path TEXT,
+    image_embedding vector(512)  -- CLIP ViT-B/32
 );
-CREATE INDEX ON embeddings USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX ON images USING hnsw (image_embedding vector_cosine_ops);
+
+-- Vektör arama
+SELECT * FROM images
+ORDER BY image_embedding <=> query_vector
+LIMIT 5;
 ```
 
 ---
 
-## 5. Tauri vs Electron
+## 7. Tauri vs Electron
 
 | | Tauri v2 | Electron |
 |---|---------|----------|
@@ -125,7 +194,7 @@ CREATE INDEX ON embeddings USING hnsw (embedding vector_cosine_ops);
 
 ---
 
-## 6. PUQ AI
+## 8. PUQ AI
 
 **URL:** https://docs.puq.ai/
 **Tip:** AI-first görsel workflow otomasyon platformu (Zapier/Make benzeri ama AI odaklı)
@@ -145,7 +214,7 @@ CREATE INDEX ON embeddings USING hnsw (embedding vector_cosine_ops);
 
 ---
 
-## 7. MATWI Veri Seti Özellikleri
+## 9. MATWI Veri Seti Özellikleri
 
 | Özellik | Değer |
 |---------|-------|

@@ -15,41 +15,42 @@
 
 ---
 
-## Phase 1: Veri Altyapısı & PostgreSQL
+## Phase 1: Veri Altyapısı & Supabase
 
-**Amaç:** MATWI veri setini işle, parse et, PostgreSQL + pgvector'e yükle.
+**Amaç:** MATWI veri setini işle, parse et, Supabase + pgvector'e yükle.
 
 **Kapsam:**
 - 17 zip dosyasını ayıkla, labels.csv ve sets.csv'den metadata çıkar
 - Sensör CSV'lerini parse et (Accelerometer, Acoustic, Force X/Y/Z)
-- Train/test split (%80/%20) — set bazında, aynı set bölünmez
-- PostgreSQL şeması: `sets`, `images`, `sensors`, `anomalies`, `embeddings`
-- pgvector eklentisi kurulumu ve embedding sütunu
+- Train/test split (%70/%30) — set bazında, aynı set bölünmez
+- Supabase şeması: `sets`, `images`, `sensors`, `anomalies`, `embeddings`
+- pgvector eklentisi (Supabase'de built-in) ve embedding sütunu
 - Görüntü-sensör timestamp eşleştirme (sync hatalarını logla)
 - Veri kalite raporu (kaç eşleşen çift, kaç eksik)
 
 **Bağımlılıklar:** Yok
-**Deliverable:** Dolu PostgreSQL veritabanı, veri kalite raporu
+**Deliverable:** Dolu Supabase veritabanı, veri kalite raporu
 **Tahmini süre:** 1-1.5 hafta
 
 ---
 
-## Phase 2: AI Inference Pipeline
+## Phase 2: AI Inference Pipeline (Görüntü Tabanlı)
 
-**Amaç:** TimesFM 2.5 ve Anomalib modellerini entegre et, inference pipeline kur.
+**Amaç:** Anomalib (PatchCore) ile görüntü üzerinden anomali tespiti, embedding üretimi. SADECE görüntü ile çalışılır.
 
 **Kapsam:**
-- TimesFM 2.5 model yükleme (HuggingFace'ten)
-- Context window: son 50 sensör adımı → next-step tahmini
-- Tahmin vs gerçek → anomali skoru hesaplama
-- Anomalib (PatchCore) model yükleme ve görüntü anomali tespiti
-- CLIP/SigLIP ile multimodal embedding üretimi
-- Toplu embedding: 1663 görüntü → pgvector
-- Birleşik anomali skoru (füzyon: sensör + görüntü)
+- Anomalib (PatchCore) ile train setinde eğitim (few-shot, normal örneklerle)
+- Test setinde anomali tespiti: aşınma seviyesi > eşik olan görüntüler işaretlenir
+- Aşınma tipi sınıflandırması: Flank wear, Adhesive wear, Combination
+- Embedding üretimi (görüntü → vektör, pgvector'e yaz)
+- Toplu embedding: 1663 görüntü → Supabase pgvector
 - Inference endpoint'leri (FastAPI)
+- Sensör verisi: dashboard'da canlı grafik olarak GÖSTERİLİR, anomali tespitinde KULLANILMAZ
+
+**NOT:** Sensör tabanlı anomali tespiti (TimesFM) v1.1+ için ertelenmiştir. Şu an sadece görüntü ile çalışılmaktadır.
 
 **Bağımlılıklar:** Phase 1 (veri gerekli)
-**Deliverable:** Çalışan inference API, embedding'ler pgvector'de
+**Deliverable:** Çalışan görüntü anomali tespit API'si, embedding'ler Supabase pgvector'de
 **Tahmini süre:** 1.5-2 hafta
 
 ---
@@ -108,7 +109,7 @@
 - **PUQ AI E-posta workflow'u:** detaylı anomali raporu + görüntü eki
 - **PUQ AI SMS workflow'u:** kritik anomali → kısa mesaj
 - **PUQ AI raporlama workflow'u:** günlük/haftalık özet (schedule tetiklemeli)
-- Webhook retry + log mekanizması (PG'ye logla)
+- Webhook retry + log mekanizması (Supabase'ye logla)
 - OS native notification fallback (PUQ AI offline ise)
 - macOS packaging: `.dmg` oluşturma
 
@@ -138,7 +139,8 @@ Phase 1 ──────► Phase 2 ──────► Phase 4 ────
 
 | Konu | Açıklama |
 |------|----------|
-| Model fine-tuning | Kendi veri setimizle TimesFM fine-tune |
+| TimesFM sensör anomali tespiti | Sensör verisiyle prediction-based anomaly detection (zero-shot önce, sonra fine-tune) |
+| Model fine-tuning | Anomalib ve TimesFM için kendi veri setimizle fine-tune |
 | Gerçek kamera entegrasyonu | IP kamera / RTSP stream |
 | Multi-instance | Aynı anda birden fazla makine izleme |
 | Windows/Linux build | Cross-platform Tauri build |

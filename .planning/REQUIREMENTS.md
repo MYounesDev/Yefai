@@ -12,19 +12,21 @@
 | ID | Gereksinim | Öncelik | UAT |
 |----|-----------|---------|-----|
 | FR-1.1 | 17 MATWI zip dosyası otomatik ayıklanır, labels.csv'den metadata parse edilir | P0 | Ayıklanan dosya sayısı = labels.csv'deki satır sayısı |
-| FR-1.2 | Train/test split (%80/%20) set bazında yapılır, aynı set bölünmez | P0 | Test setindeki hiçbir Set ID train'de yok |
+| FR-1.2 | Train/test split (%70/%30) set bazında yapılır, aynı set bölünmez | P0 | Test setindeki hiçbir Set ID train'de yok |
 | FR-1.3 | Sensör CSV'leri parse edilir: Accelerometer, Acoustic, Force X/Y/Z, timestamp | P0 | Her sensör dosyası 6 kolon olarak okunur |
 | FR-1.4 | Görüntüler ve sensör verisi timestamp ile eşleştirilir, senkronizasyon hataları loglanır | P1 | Eşleşen çift > %90, hatalar log'da |
 
-### FR-2: AI Inference Engine
+### FR-2: AI Inference Engine (Görüntü Tabanlı)
 
 | ID | Gereksinim | Öncelik | UAT |
 |----|-----------|---------|-----|
-| FR-2.1 | TimesFM 2.5 ile zero-shot zaman serisi tahmini yapılır | P0 | Tahmin edilen değer ile gerçek değer karşılaştırılıp anomali skoru üretilir |
-| FR-2.2 | Context window: son 50 adım → next-step tahmini | P0 | 50 adımdan az veri varsa uyarı, yoksa tahmin |
-| FR-2.3 | Anomalib (PatchCore) ile görüntü üzerinde zero-shot anomali tespiti | P0 | Aşınma seviyesi > eşik olan görüntüler işaretlenir |
-| FR-2.4 | Görüntü ve sensör anomali skorları birleştirilir (füzyon) | P1 | Birleşik anomali skoru 0-1 arası, eşik konfigüre edilebilir |
-| FR-2.5 | CLIP/SigLIP ile multimodal embedding üretilir (görüntü + metin) | P0 | Her görüntü için 512/768 boyutlu vektör |
+| FR-2.1 | Anomalib (PatchCore) ile train setinde eğitim yapılır | P0 | Train setinde normal örneklerle memory bank oluşturulur |
+| FR-2.2 | Test setinde görüntü anomali tespiti: aşınma seviyesi > eşik olanlar işaretlenir | P0 | Eşik üstü görüntüler anomali olarak etiketlenir |
+| FR-2.3 | Aşınma tipi sınıflandırması: Flank wear, Adhesive wear, Combination | P1 | En az %80 doğruluk |
+| FR-2.4 | Sensör verisi dashboard'da canlı grafik olarak gösterilir, anomali tespitinde KULLANILMAZ | P0 | Sensör grafikleri 1 saniyede güncellenir |
+| FR-2.5 | CLIP/SigLIP ile görüntü embedding'i üretilir | P0 | Her görüntü için 512/768 boyutlu vektör |
+
+> **NOT:** Sensör tabanlı anomali tespiti (TimesFM 2.5) v1.1+ için ertelenmiştir. v1.0'da SADECE görüntü ile anomali tespiti yapılır.
 
 ### FR-3: Gerçek Zamanlı Veri Akışı
 
@@ -72,12 +74,12 @@
 
 | ID | Gereksinim | Öncelik | UAT |
 |----|-----------|---------|-----|
-| FR-7.1 | PostgreSQL'de ilişkisel şema: sets, images, sensors, anomalies tabloları | P0 | Schema migration çalışır |
-| FR-7.2 | pgvector eklentisi ile embedding sütunları: text_embedding (768-dim), multimodal_embedding (768-dim) | P0 | `SELECT * FROM images ORDER BY embedding <=> query_vector LIMIT 5` |
+| FR-7.1 | Supabase'de ilişkisel şema: sets, images, sensors, anomalies tabloları | P0 | Schema migration çalışır |
+| FR-7.2 | pgvector eklentisi (Supabase built-in) ile embedding sütunları: text_embedding (768-dim), image_embedding (768-dim) | P0 | `SELECT * FROM images ORDER BY embedding <=> query_vector LIMIT 5` |
 | FR-7.3 | EmbeddingGemma 300M ile metin embedding'leri (metadata, label, açıklama) — lokal | P0 | 1663 kayıt için < 2 dakika |
-| FR-7.4 | Gemini Embedding 2 ile multimodal embedding (görüntü + akustik) — API | P0 | Toplu embedding, rate-limit yönetimi |
+| FR-7.4 | Gemini Embedding 2 ile multimodal embedding (görüntü + metin) — API | P0 | Toplu embedding, rate-limit yönetimi |
 | FR-7.5 | Hibrit arama: vektör similarity + metadata filtre (set, wear seviyesi, tarih) | P1 | "Set 5'teki flank wear görüntüleri" sorgusu |
-| FR-7.6 | PUQ AI webhook log'ları PostgreSQL'de saklanır (denetim için) | P2 | Her webhook call'u loglanır |
+| FR-7.6 | PUQ AI webhook log'ları Supabase'de saklanır (denetim için) | P2 | Her webhook call'u loglanır |
 
 ---
 
@@ -103,9 +105,9 @@
 | Risk | Olasılık | Etki | Mitigasyon |
 |------|---------|------|------------|
 | MATWI veri setinde sync hataları (eksik sensör/görüntü) | Yüksek | Orta | Hata loglama, eksik veriyi atlama |
-| TimesFM 2.5 model boyutu/inference süresi | Orta | Yüksek | ONNX quantized versiyonu, GPU opsiyonu |
+| Anomalib eğitim/inference süresi | Orta | Orta | GPU opsiyonu, batch inference |
 | Tauri + Next.js entegrasyon sorunları | Orta | Yüksek | Önce pure Tauri + HTML testi, sonra Next.js |
-| pgvector performansı büyük veride | Düşük | Orta | IVFFlat indexing, benchmark testi |
+| pgvector performansı büyük veride | Düşük | Orta | Supabase built-in pgvector, IVFFlat indexing |
 | Real-time WebSocket kopmaları | Orta | Orta | Auto-reconnect, buffer |
 | PUQ API downtime | Düşük | Yüksek | Webhook retry + log, kritik anomali için OS notification fallback |
 | Gemini Embedding 2 API rate limit | Orta | Düşük | Toplu embedding'i zamana yay, lokal EmbeddingGemma fallback |

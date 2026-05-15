@@ -35,7 +35,7 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 - [ ] Veri seti ayıklanmadı (17 zip dosyası)
 - [ ] Train/test split yapılmadı
 - [ ] Tauri entegrasyonu yok (şu an Next.js)
-- [ ] PostgreSQL + pgvector kurulmadı
+- [ ] Supabase + pgvector kurulmadı
 - [ ] AI modelleri entegre edilmedi
 - [ ] Bildirim sistemi yok
 
@@ -46,11 +46,10 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 | **Desktop Shell** | Tauri v2 | Rust tabanlı, hafif, cross-platform masaüstü uygulaması |
 | **Frontend** | Next.js 16 + React | Tauri WebView içinde çalışacak |
 | **Backend** | FastAPI (Python 3.11+) | AI inference, veri işleme, API gateway |
-| **Database** | PostgreSQL 16 + pgvector | Vektör embedding'leri, ilişkisel veri, zaman serisi |
-| **AI - Zaman Serisi** | Google TimesFM 2.5 | Zero-shot zaman serisi anomali tespiti |
-| **AI - Görüntü** | Anomalib (PatchCore) | Zero-shot görüntü anomali tespiti |
+| **Database** | Supabase + pgvector | Vektör embedding'leri, ilişkisel veri, managed PostgreSQL |
+| **AI - Görüntü Anomali** | Anomalib (PatchCore) | Few-shot görüntü anomali tespiti, train gerektirir |
 | **AI - Embedding (Metin)** | EmbeddingGemma 300M | Lokal, açık kaynak, 100+ dil, 768-dim |
-| **AI - Embedding (Multimodal)** | Gemini Embedding 2 | Görüntü + ses + metin, API, 3072-dim |
+| **AI - Embedding (Multimodal)** | Gemini Embedding 2 | Görüntü + metin, API, 3072-dim |
 | **AI - LLM** | Gemini / Claude API | RAG chatbot, analiz, raporlama |
 | **Streaming** | WebSocket + SSE | Gerçek zamanlı veri akışı |
 | **Bildirim & Otomasyon** | PUQ AI | Webhook tetiklemeli, Telegram/E-posta/SMS workflow'ları |
@@ -88,7 +87,7 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
                            │  SMS │ Slack │ Web   │
                            └─────────────────────┘
 │  ┌──────────────────────────────────────────┐  │
-│  │         PostgreSQL + pgvector             │  │
+│  │         Supabase + pgvector               │  │
 │  │  Metadata │ Embeddings │ Time Series     │  │
 │  └──────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
@@ -100,8 +99,9 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 |--------|---------|-------|
 | Tauri yerine Electron? | Daha hafif, Rust güvenliği, daha az bellek | Tauri v2 |
 | Next.js SPA olarak | Tauri WebView ile uyumlu, SSR gerekmez | `output: "export"` |
-| Zero-shot AI (eğitimsiz) | Hackathon/demo için hızlı, eğitim döngüsü yok | TimesFM + Anomalib |
-| pgvector vs Pinecone | Yerel çalışma, ek servis maliyeti yok, PostgreSQL zaten var | pgvector |
+| Few-shot görüntü anomali (Anomalib) | Hackathon/demo için hızlı, az train örneği yeterli | Anomalib PatchCore |
+| Supabase vs PostgreSQL | Managed pgvector, built-in auth, dashboard, row-level security | Supabase |
+| pgvector vs Pinecone | Supabase'de built-in, ek servis maliyeti yok | pgvector |
 | EmbeddingGemma vs CLIP (metin) | 300M lokal, Türkçe, sentence-transformers uyumlu | EmbeddingGemma (metin) + Gemini Embedding 2 (multimodal) |
 | Bildirim: kendimiz vs PUQ AI | Zorunlu entegrasyon, webhook ile tetiklenen workflow | PUQ AI (Telegram/E-posta/SMS) |
 | WebSocket vs polling | Gerçek zamanlı dashboard için gerekli | WebSocket + SSE fallback |
@@ -113,19 +113,20 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 
 ### Active
 - [ ] **R1:** Gerçek zamanlı sensör verisi akışı ve dashboard'da canlı grafik
-- [ ] **R2:** Multimodal anomali tespiti (görüntü + sensör füzyonu)
+- [ ] **R2:** Görüntü tabanlı anomali tespiti (Anomalib PatchCore)
 - [ ] **R3:** Anomali durumunda FastAPI → PUQ AI webhook → Telegram/E-posta/SMS bildirimi
 - [ ] **R4:** RAG tabanlı chatbot — veri seti üzerinde soru-cevap
 - [ ] **R5:** Chatbot yanıtlarında tıklanabilir ürün görselleri ve tablo verileri
 - [ ] **R6:** Streaming agent — anomali tespitinde otonom aksiyon zinciri (PUQ AI workflow tetikleme)
-- [ ] **R7:** PostgreSQL pgvector ile multimodal embedding saklama ve arama (EmbeddingGemma + Gemini Embedding 2)
+- [ ] **R7:** Supabase pgvector ile görüntü embedding saklama ve arama (EmbeddingGemma + Gemini Embedding 2)
 - [ ] **R8:** Tauri ile native dosya sistemi erişimi ve yerel bildirimler
-- [ ] **R9:** Train/test split — test verisi üzerinde canlı demo
-- [ ] **R10:** Anomali kaynağı tespiti (seri numarası, takım ID, zaman damgası)
+- [ ] **R9:** Train/test split (%70/%30) — test verisi üzerinde canlı demo
+- [ ] **R10:** Anomali kaynağı tespiti (seri numarası, takım ID, zaman damgası, aşınma tipi)
 - [ ] **R11:** PUQ AI workflow'ları: anomali alert, periyodik rapor, kritik durum escalasyonu
 
 ### Out of Scope
-- Model eğitimi (fine-tuning) — demo zero-shot çalışacak
+- Sensör tabanlı anomali tespiti (TimesFM) — v1.1+ için ertelendi
+- Model fine-tuning — demo zero/few-shot çalışacak
 - Multi-tenant bulut deployment — lokal masaüstü uygulaması
 - Mobil uygulama — sadece masaüstü
 - NovaVision entegrasyonu — no-code CV platformu, Yefai'nin custom AI pipeline'ı ile örtüşmüyor
