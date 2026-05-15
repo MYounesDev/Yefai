@@ -1,7 +1,8 @@
-# Gelecek Tahmini (Predictive Forecasting) Planı
+# Gelecek Tahmini (Predictive Forecasting) Planı — v1.0 Revizyonu
 
-> Yefai platformuna gelecek tahmini özelliğinin eklenmesi için yüksek seviye plan.
-> Amaç: Anomali olmadan ÖNCE, gelecekte ne zaman sorun çıkacağını tahmin etmek ve görselleştirmek.
+> Yefai v1.0 platformuna gelecek tahmini özelliğinin eklenmesi için plan.
+> Amaç: Anomali olmadan ÖNCE, mevcut aşınma hızından kritik eşiğe ne zaman ulaşılacağını tahmin etmek.
+> **v1.0 kısıtı:** TimesFM ertelenmiştir. SADECE görüntü tabanlı (Anomalib) veri ile çalışılır.
 
 ---
 
@@ -10,114 +11,119 @@
 ### Amaç
 
 Operatörlere **proaktif bilgilendirme** sağlamak:
-- "18-24 saat içinde flank wear bekleniyor"
-- "Bu takım %87 olasılıkla 1 gün içinde kritik seviyeye ulaşacak"
-- "Kesme hızını %10 azaltırsanız +24 saat kazanırsınız"
+- "Takım #12, mevcut aşınma hızıyla ~20 saat içinde kritik eşiğe (200 µm) ulaşacak"
+- "Bu takımda flank wear baskın (%87 olasılıkla)"
+- "Aşınma hızı son 3 kontrolde %15 arttı — planlı bakımı öne çekin"
+
+### v1.0 vs v1.1 Farkı
+
+| Özellik | v1.0 (bu plan) | v1.1+ (sonra) |
+|---------|---------------|---------------|
+| Veri kaynağı | Sadece görüntü (Anomalib) | Görüntü + sensör |
+| Tahmin yöntemi | Aşınma hızı × lineer projeksiyon | TimesFM zaman serisi tahmini |
+| Tahmin ufku | 1-3 kontrol aralığı (saat-gün) | 50 adım ileri |
+| Güven aralığı | Basit (sabit ±%15) | İstatistiksel (quantile) |
+| Senaryo analizi | Hız sabit/artan/azalan | ML tabanlı simülasyon |
+| Sensör füzyonu | Yok | Var |
 
 ### Kapsam
 
 **Dahil:**
-- ✅ Gelecek tahmini (1-50 adım ileri)
-- ✅ Aşınma tipi olasılıkları (flank, adhesive, crater, combination)
-- ✅ Zaman serisi görselleştirme (grafik + timeline)
-- ✅ Senaryo analizi ("ne olur?" simülasyonları)
-- ✅ Çoklu sensör füzyonu
-- ✅ Güven skoru hesaplama
-- ✅ Bildirim sistemi entegrasyonu
+- ✅ Aşınma ilerleme hızı takibi (µm/saat)
+- ✅ Kritik eşiğe kalan süre hesaplama
+- ✅ Aşınma tipi olasılıkları (Anomalib'den gelen)
+- ✅ Zaman serisi görselleştirme (geçmiş + projeksiyon)
+- ✅ Basit senaryo: "hız sabit kalırsa / hızlanırsa / yavaşlarsa"
+- ✅ Güven göstergesi (basit)
+- ✅ Bildirim sistemi entegrasyonu (Phase 5 ile)
 
 **Dahil Değil:**
+- ❌ TimesFM zaman serisi tahmini → v1.1
+- ❌ Sensör verisiyle tahmin → v1.1
+- ❌ İstatistiksel güven aralığı → v1.1
 - ❌ Otomatik sipariş sistemi
 - ❌ Makine kontrolü (hız değiştirme vb.)
 - ❌ ERP entegrasyonu
-- ❌ Stok yönetimi
 
 ### İş Değeri
-
 - **Plansız duruş önleme**: Arıza olmadan önce müdahale
 - **Maliyet tasarrufu**: Planlı bakım < Acil onarım
-- **Üretim verimliliği**: Kesintisiz üretim planlaması
 - **Karar desteği**: Veri odaklı bakım kararları
 
 ---
 
-## 🎯 Nasıl Yapılır?
+## 🎯 Nasıl Yapılır? (v1.0 Yöntemi)
 
-### 1. Zaman Serisi Tahmini
+### 1. Aşınma İlerleme Hızı Takibi
 
-**Kullanılacak: TimesFM 2.5**
+**Kullanılacak: Anomalib PatchCore + Supabase geçmiş verisi**
 
-- Mevcut implementasyonda sadece 1 adım ileri tahmin yapılıyor
-- **Değişiklik**: `horizon` parametresini 1'den 50'ye çıkar
-- Çıktı: 50 adım ilerisi için tahmin + güven aralığı (üst/alt sınır)
-- Aşınma hızını hesapla: kaç µm/saat artıyor?
-- Kritik eşiğe (200 µm) ne zaman ulaşacağını hesapla
+- Her görüntüden Anomalib anomali skoru (0-1) al
+- Anomali skorunu yaklaşık aşınma seviyesine (µm) eşle
+  - Kalibrasyon: skor 0.0 → 0 µm, skor 0.5 → 100 µm, skor 1.0 → 200+ µm
+- Aynı takımın son N kontrolündeki aşınma değerlerini Supabase'den çek
+- Lineer regresyon ile aşınma hızını hesapla: µm/saat veya µm/kontrol
+- Hesapla: `kalan_süre = (200 - mevcut_aşınma) / aşınma_hızı`
 
-### 2. Aşınma Tipi Tahmini
+### 2. Aşınma Tipi Tespiti
 
-**Kullanılacak: Jina CLIP v2**
+**Kullanılacak: Anomalib (mevcut sınıflandırma)**
 
-- Takım görüntüsünü analiz et
-- 4 aşınma tipinin olasılığını hesapla:
-  - Flank wear (yan aşınma)
-  - Adhesive wear (yapışma)
-  - Crater wear (krater)
-  - Combination wear (kombine)
-- Çıktı: Her tip için 0-1 arası olasılık
+- Anomalib zaten aşınma tipi sınıflandırması yapıyor (FR-2.3)
+- Mevcut etiketler: Flank wear, Adhesive wear, Combination
+- Ek olarak: Crater wear tespiti (MATWI veri setinde varsa)
 
-### 3. Sensör + Görüntü Füzyonu
+### 3. Kritik Eşik Projeksiyonu
 
 **Birleştirme:**
-- Zaman serisi tahmini → aşınma hızı
-- Görüntü analizi → aşınma tipi
+- Anomalib anomali skoru → yaklaşık aşınma seviyesi
+- Geçmiş kontroller → aşınma hızı
 - Mevcut durum → kalan süre hesaplama
-- Geçmiş doğruluk oranı → güven skoru
+- Hız değişim trendi → basit güven göstergesi
 
 **Çıktı:**
-- Tahmini arıza zamanı (saat cinsinden)
+- Tahmini kritik eşik zamanı (saat cinsinden)
 - En olası aşınma tipi
-- Güven skoru (%0-100)
+- Basit güven göstergesi (düşük/orta/yüksek — hızın kararlılığına göre)
 
-### 4. Senaryo Analizi
+### 4. Basit Senaryo Analizi (v1.0)
 
-**3 farklı senaryo oluştur:**
+**3 senaryo, sabit çarpanlarla:**
 
-1. **Mevcut hızda devam**: Hiçbir şey değişmezse ne olur?
-2. **Hız %10 azaltma**: Üretim yavaşlatılırsa ne kadar süre kazanılır?
-3. **Soğutma artırma**: Soğutma iyileştirilirse ne olur?
+1. **Mevcut hızda devam**: Aşınma hızı sabit → lineer projeksiyon
+2. **Kötümser**: Aşınma hızı %25 artsa → daha erken kritik
+3. **İyimser**: Aşınma hızı %25 azalsa (soğutma/bakım etkisi) → daha geç kritik
 
-Her senaryo için:
-- Tahmini arıza zamanı
-- Risk seviyesi (düşük/orta/yüksek/kritik)
-- Kazanılan zaman
+> v1.1'de TimesFM ile gerçek ML tabanlı senaryo simülasyonu yapılacak.
 
 ---
 
 ## 🛠️ Kullanılacak Teknolojiler
 
-### Backend (Python)
+### Backend (Python) — Hepsi Mevcut
 
-| Teknoloji | Amaç |
-|-----------|------|
-| **TimesFM 2.5** | Zaman serisi tahmini (horizon genişletme) |
-| **Anomalib** | Görüntü anomali tespiti (mevcut) |
-| **Jina CLIP v2** | Aşınma tipi sınıflandırma |
-| **NumPy/Pandas** | Veri işleme ve hesaplamalar |
-| **SciPy/Statsmodels** | Güven aralığı hesaplama |
+| Teknoloji | Amaç | Durum |
+|-----------|------|-------|
+| **Anomalib (PatchCore)** | Görüntü anomali tespiti + aşınma tipi | Phase 2'de geliyor |
+| **NumPy/SciPy** | Lineer regresyon, hız hesaplama | Standart |
+| **Supabase** | Geçmiş kontrolleri sorgulama | Phase 1'de geliyor |
 
-### Frontend (TypeScript/React)
+### Frontend (TypeScript/React) — Hepsi Mevcut
 
-| Teknoloji | Amaç |
-|-----------|------|
-| **Recharts** | Zaman serisi grafikleri |
-| **Plotly.js** | İnteraktif grafikler (opsiyonel) |
-| **Framer Motion** | Animasyonlar |
-| **React Query** | API veri yönetimi |
+| Teknoloji | Amaç | Durum |
+|-----------|------|-------|
+| **Recharts** | Zaman serisi grafikleri (geçmiş + projeksiyon) | Phase 4'te eklenecek |
+| **Framer Motion** | Animasyonlar | Mevcut stack |
+| **React Query** | API veri yönetimi | Phase 4'te eklenecek |
 
 ### Veritabanı
 
-**Yeni tablolar:**
-- `predictions`: Tahmin kayıtları
-- `prediction_outcomes`: Tahmin sonuçları (doğru/yanlış)
+**Yeni alan (yeni tablo gerekmez):**
+- `anomalies` tablosuna ek alanlar:
+  - `estimated_wear_um`: Tahmini aşınma seviyesi (µm)
+  - `wear_rate_um_per_hour`: Aşınma hızı
+  - `hours_to_critical`: Kritik eşiğe kalan saat
+  - `confidence`: Güven göstergesi (low/medium/high)
 
 ---
 
@@ -127,284 +133,239 @@ Her senaryo için:
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  🔮 GELECEK TAHMİNİ - Makine #5                 │
+│  🔮 TAHMIN - Makine #5 / Takım #12              │
 ├─────────────────────────────────────────────────┤
 │                                                 │
 │  📍 MEVCUT DURUM                                │
-│  • Takım Aşınması: 145 µm (Normal: <200 µm)    │
-│  • Çalışma Süresi: 847 saat                    │
+│  • Aşınma Seviyesi: 145 µm (Kritik: 200 µm)    │
+│  • Aşınma Hızı: 2.8 µm/saat                    │
+│  • Son Kontrol: 15 dk önce                      │
 │                                                 │
-│  ⚠️ TAHMİN EDİLEN SORUNLAR                      │
+│  ⚠️ TAHMİN                                      │
 │                                                 │
-│  1. 🔴 Flank Wear (Yan Aşınma)                  │
-│     • Olasılık: %87                            │
-│     • Tahmini Zaman: 18-24 saat içinde         │
-│     • Kritik Eşik: 200 µm                      │
+│  🔴 Kritik eşiğe ~20 saat kaldı                 │
+│     • Mevcut hızda: 20 saat                     │
+│     • Hızlanırsa: 16 saat                       │
+│     • Yavaşlarsa: 27 saat                       │
 │                                                 │
-│  2. 🟡 Adhesive Wear (Yapışma)                  │
-│     • Olasılık: %34                            │
-│     • Tahmini Zaman: 3-4 gün içinde            │
+│  Aşınma Tipi Olasılıkları:                      │
+│  Flank Wear        ████████████████████  87%    │
+│  Adhesive Wear     ██████████            34%    │
+│  Combination       ██████                18%    │
 │                                                 │
-│  💡 ÖNERİLER                                    │
-│  • Takım değişimi planlanmalı                  │
-│  • Kesme hızını %10 azaltmak +24 saat kazandırır│
+│  Güven: ORTA (son 3 ölçüm kararlı)              │
+│                                                 │
+│  💡 ÖNERİ: Takım değişimi planlanmalı           │
 │                                                 │
 └─────────────────────────────────────────────────┘
 ```
 
-### 2. Zaman Serisi Tahmin Grafiği
+### 2. Aşınma Projeksiyon Grafiği
 
 **Görsel öğeler:**
-- Mavi çizgi: Geçmiş gerçek veriler
-- Kırmızı kesikli çizgi: Gelecek tahmini
-- Açık kırmızı alan: Güven aralığı
+- Mavi çizgi: Geçmiş kontrollerdeki aşınma değerleri
+- Mavi noktalar: Gerçek ölçümler
+- Kırmızı kesikli çizgi: Lineer projeksiyon
 - Kırmızı yatay çizgi: Kritik eşik (200 µm)
-- Kırmızı dikey çizgi: Tahmini arıza anı
+- Kırmızı dikey noktalı çizgi: Tahmini kritik anı
 - Yeşil dikey çizgi: Şu anki zaman
 
-**Özellikler:**
-- Zoom & Pan (yakınlaştırma)
-- Hover ile detay gösterme
-- PNG/PDF export
-
-### 3. Aşınma Tipi Olasılık Grafiği
+### 3. Aşınma Hızı Trendi
 
 ```
-Flank Wear        ████████████████████████░░░░  87%
-Adhesive Wear     █████████████░░░░░░░░░░░░░░  34%
-Crater Wear       ████░░░░░░░░░░░░░░░░░░░░░░░  12%
-Combination       ██████░░░░░░░░░░░░░░░░░░░░░  18%
+Son 5 kontrol:
+Kontrol #8:  ████████████ 120 µm  (hız: 3.1 µm/saat)
+Kontrol #9:  █████████████ 135 µm  (hız: 2.9 µm/saat)
+Kontrol #10: █████████████ 142 µm  (hız: 2.8 µm/saat)
+Kontrol #11: █████████████ 145 µm  (hız: 2.8 µm/saat) ← Şimdi
+Kontrol #12: █████████████  ???    (tahmini: 156 µm)
 ```
 
-Renk kodları:
-- 🔴 Yüksek (>70%)
-- 🟠 Orta (40-70%)
-- 🟡 Düşük (20-40%)
-- 🟢 Çok Düşük (<20%)
-
-### 4. Senaryo Karşılaştırma Tablosu
-
-| Senaryo | Arıza Zamanı | Olasılık | Risk | Kazanç |
-|---------|--------------|----------|------|--------|
-| Mevcut hızda devam | 20 saat | %87 | 🔴 Yüksek | - |
-| Hız %10 azaltma | 44 saat | %65 |  Orta | +24 saat |
-| Soğutma artırma | 60 saat | %45 | 🟢 Düşük | +40 saat |
-
-### 5. Zaman Çizelgesi (Timeline)
-
-```
-ŞİMDİ
-  ↓
-  🟢 Aşınma: 145 µm
-  │
-  │  +6 saat
-  ├──────────────────
-  🟡 Aşınma: ~170 µm (Dikkat seviyesi)
-  │
-  │  +12 saat
-  ├──────────────────
-  🟠 Aşınma: ~190 µm (Uyarı seviyesi)
-  │
-  │  +18-24 saat
-  ├──────────────────
-  🔴 Aşınma: ~210 µm (KRİTİK - Arıza bekleniyor)
-```
-
-### 6. Çoklu Makine Heatmap
+### 4. Çoklu Makine Durum Özeti
 
 ```
 ┌──────────┬──────────┬──────────┬──────────┐
 │ Makine 1 │ Makine 2 │ Makine 3 │ Makine 4 │
 │   🟢     │   🟢     │   🟡     │   🟢     │
-│   12%    │   8%     │   45%    │   15%    │
-│  15 gün  │  20 gün  │  4 gün   │  12 gün  │
+│  45 µm   │  30 µm   │ 160 µm   │  60 µm   │
+│ ~5 gün   │ ~7 gün   │ ~14 saat │ ~4 gün   │
 └──────────┴──────────┴──────────┴──────────┘
 ┌──────────┬──────────┬──────────┬──────────┐
 │ Makine 5 │ Makine 6 │ Makine 7 │ Makine 8 │
 │   🔴     │   🟢     │   🟠     │   🟢     │
-│   87%    │   5%     │   68%    │   10%    │
-│  1 gün   │  25 gün  │  2 gün   │  18 gün  │
+│ 145 µm   │  20 µm   │ 180 µm   │  35 µm   │
+│ ~20 saat │ ~10 gün  │  ~8 saat │ ~6 gün   │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
-### 7. Bildirim Örneği (Telegram/Email)
+### 5. Bildirim Örneği (Phase 5 — Telegram/Email)
 
 ```
-🔴 GELECEK TAHMİNİ
+🔴 KRİTİK EŞİK UYARISI
 
 Makine: #5
 Takım: #12
 
-⏰ Tahmini Arıza: 18-24 saat içinde
-📊 Olasılık: %87
-🔧 Beklenen Sorun: Flank Wear
+⏰ Tahmini Kritik: ~20 saat içinde
+📊 Mevcut Aşınma: 145 µm / 200 µm
+📈 Aşınma Hızı: 2.8 µm/saat
+🔧 Beklenen Sorun: Flank Wear (%87)
 
-💡 Öneriler:
-• Takım değişimi planlanmalı
-• Kesme hızını %10 azaltmak +24 saat kazandırır
-• Soğutma sıvısı kontrolü önerilir
+💡 Öneri: Takım değişimi planlanmalı
 
 🔗 Detaylar için tıklayın
 ```
 
 ---
 
-## 🔗 Nasıl Entegre Edilir?
+## 🔗 Mevcut Sisteme Entegrasyon
 
-### Mevcut Sisteme Entegrasyon
+### Phase 2 (AI Inference) ile:
+- Anomalib çıktısına `estimated_wear_um` alanı ekle
+- Aşınma tipi olasılıklarını kaydet (zaten yapılıyor)
 
-**Phase 2 (AI Inference) ile:**
-- TimesFM'in `horizon` parametresini genişlet (1 → 50)
-- Jina CLIP v2 ile aşınma tipi sınıflandırma ekle
-- Füzyon fonksiyonu ekle (sensör + görüntü)
+### Phase 4 (Dashboard) ile:
+- **Yeni panel**: "Tahmin" sekmesi (mevcut dashboard içinde)
+- Aşınma projeksiyon grafiği (Recharts)
+- Çoklu makine durum kartları
+- Mevcut gerçek zamanlı grafiklerle yan yana
 
-**Phase 4 (Dashboard) ile:**
-- Yeni sekme: "Gelecek Tahmini"
-- Mevcut gerçek zamanlı grafiklerle yan yana göster
-- Tahmin paneli ekle
+### Phase 5 (Bildirim) ile:
+- Kritiklik seviyesine göre bildirim:
+  - <12 saat: Telegram + Email (acil)
+  - 12-48 saat: Sadece dashboard uyarısı
+  - >48 saat: Haftalık özette bilgi
 
-**Phase 5 (Bildirim) ile:**
-- Kritiklik seviyesine göre bildirim gönder:
-  - <24 saat: Telegram + SMS + Email
-  - 24-72 saat: Telegram + Email
-  - >72 saat: Sadece dashboard
-
-### Yeni API Endpoint'leri
+### Yeni API Endpoint'leri (FastAPI)
 
 ```
 GET  /api/predictions/{machine_id}
-     → Makine için gelecek tahmini
+     → Makine için tahmin: kalan süre, aşınma hızı, senaryolar
 
-GET  /api/predictions/{machine_id}/scenarios
-     → Senaryo analizleri
+GET  /api/predictions/{machine_id}/history
+     → Geçmiş kontroller ve aşınma trendi
 
-GET  /api/predictions/factory/heatmap
-     → Tüm makinelerin durumu
-
-POST /api/predictions/{prediction_id}/feedback
-     → Tahmin sonucunu kaydet (doğru/yanlış)
+GET  /api/predictions/factory/overview
+     → Tüm makinelerin özet durumu
 ```
 
-### Yeni Frontend Sayfaları
+### Yeni Frontend Rotaları (Next.js)
 
 ```
 /dashboard/prediction/{machineId}
   → Detaylı tahmin sayfası
 
 /dashboard/factory-overview
-  → Tüm makineler heatmap
-
-/dashboard/scenarios/{machineId}
-  → Senaryo karşılaştırma
+  → Tüm makineler durum kartları
 ```
 
 ---
 
 ## 📅 Implementasyon Adımları
 
-### Adım 1: Backend - TimesFM Horizon Genişletme
-**Süre:** 2 gün
-- TimesFM model fonksiyonunu güncelle
-- Güven aralığı hesaplama ekle
-- Test yaz
-
-### Adım 2: Backend - Aşınma Tipi Sınıflandırma
-**Süre:** 2 gün
-- Jina CLIP v2 entegrasyonu
-- 4 aşınma tipi için sınıflandırma
-- Test yaz
-
-### Adım 3: Backend - Füzyon ve Tahmin Servisi
-**Süre:** 3 gün
-- Sensör + görüntü füzyonu
-- Senaryo analizi fonksiyonu
-- Güven skoru hesaplama
-- Veritabanı şeması ve kayıt
-
-### Adım 4: Frontend - Tahmin Bileşenleri
-**Süre:** 4 gün
-- Ana tahmin paneli
-- Zaman serisi grafiği (Recharts)
-- Aşınma tipi bar chart
-- Senaryo karşılaştırma tablosu
-- Timeline bileşeni
-- Heatmap bileşeni
-
-### Adım 5: API Entegrasyonu
+### Adım 1: Backend — Aşınma Hızı Hesaplama
 **Süre:** 1 gün
+**Hangi fazda:** Phase 2 sonuna ek
+- Anomalib skor → µm eşleme fonksiyonu
+- Aynı takımın geçmiş kontrollerini Supabase'den çekme
+- Lineer regresyon ile hız hesaplama
+- Kritik eşiğe kalan süre hesaplama
+
+### Adım 2: Backend — Tahmin API'si
+**Süre:** 1 gün
+**Hangi fazda:** Phase 4 başı
+- `/api/predictions/{machine_id}` endpoint'i
+- `/api/predictions/factory/overview` endpoint'i
+- Basit senaryo hesaplama (sabit çarpanlı)
+
+### Adım 3: Frontend — Tahmin Bileşenleri
+**Süre:** 2 gün
+**Hangi fazda:** Phase 4 içinde
+- Aşınma projeksiyon grafiği (Recharts)
+- Tahmin paneli komponenti
+- Çoklu makine durum kartları
+- Aşınma tipi bar chart
+
+### Adım 4: API Entegrasyonu
+**Süre:** 0.5 gün
+**Hangi fazda:** Phase 4 içinde
 - React Query hooks
-- API endpoint'leri bağla
-- Hata yönetimi
+- API endpoint'lerini bağla
 
-### Adım 6: Bildirim Entegrasyonu
-**Süre:** 2 gün
-- Tahmin bildirimi formatla
-- Kritiklik seviyesine göre kanal seçimi
-- Telegram/Email/SMS entegrasyonu
+### Adım 5: Bildirim Entegrasyonu
+**Süre:** 1 gün
+**Hangi fazda:** Phase 5 içinde
+- Kritiklik seviyesine göre bildirim formatı
+- PUQ AI webhook payload'ı
 
-### Adım 7: Test ve Doğrulama
-**Süre:** 2 gün
-- Unit testler
-- Integration testler
-- Frontend testler
-- End-to-end test
-
-**Toplam Süre:** ~16 gün (2.5 hafta)
+**Toplam Ek Süre:** ~5.5 gün (mevcut fazların içine dağıtılmış)
+**Mevcut sürelere etkisi:** Phase 2 +1 gün, Phase 4 +2.5 gün, Phase 5 +1 gün
 
 ---
 
-## 🎯 Başarı Kriterleri
+## 🎯 Başarı Kriterleri (v1.0)
 
 ### Teknik
-- ✅ TimesFM 50 adım ileri tahmin yapabiliyor
-- ✅ Aşınma tipi olasılıkları toplamı %100
-- ✅ Güven skoru 0-1 arası
-- ✅ API yanıt süresi < 2 saniye
+- ✅ Anomalib skorundan aşınma seviyesi tahmini yapılabiliyor
+- ✅ Aşınma hızı hesaplanabiliyor (son N kontrol üzerinden)
+- ✅ Kritik eşiğe kalan süre gösteriliyor
+- ✅ API yanıt süresi < 500ms
 - ✅ Grafik render süresi < 500ms
 
 ### Kullanıcı Deneyimi
 - ✅ Tahmin paneli anlaşılır ve okunabilir
-- ✅ Grafikler interaktif (zoom, hover)
-- ✅ Bildirimler zamanında geliyor
+- ✅ Grafikler interaktif (hover ile detay)
+- ✅ Durum kartları renk kodlu (yeşil/sarı/kırmızı)
 - ✅ Mobil responsive
 
-### İş Değeri
-- ✅ Tahmin doğruluğu > %80
-- ✅ Yanlış alarm oranı < %20
-- ✅ Operatörler tahminlere güveniyor
-- ✅ Plansız duruş azalıyor
+### v1.0 için makul hedefler
+- ✅ Aşınma ilerleme yönü doğru tahmin ediliyor (>%90)
+- ✅ Operatör yaklaşan kritik durumu görebiliyor
+- ❌ Hassas zaman tahmini → v1.1 (TimesFM ile)
+- ❌ İstatistiksel güven aralığı → v1.1
 
 ---
 
-## 🚀 Roadmap'e Ekleme
-
-**Öneri: Phase 2.5 olarak ekle**
+## 🚀 Faz Yapısına Yerleştirme
 
 ```
-Phase 2: AI Inference Pipeline
+Phase 1: Veri Altyapısı
     ↓
-Phase 2.5: Gelecek Tahmini (YENİ)
+Phase 2: AI Inference (+ aşınma hızı hesaplama, +1 gün)
     ↓
 Phase 3: RAG Chatbot
     ↓
-Phase 4: Dashboard (tahmin paneli dahil)
+Phase 4: Dashboard (+ tahmin paneli, +2.5 gün)
     ↓
-Phase 5: Tauri + Bildirim
+Phase 5: Tauri + Bildirim (+ tahmin bildirimi, +1 gün)
 ```
 
-**Alternatif: Phase 4'e dahil et**
-- Phase 4 süresini 1.5 haftadan 3 haftaya çıkar
-- Dashboard ile birlikte geliştirilir
+**Phase 2.5 olarak ayrı faz YOK.** Tahmin özelliği mevcut fazlara dağıtılmıştır. Bu sayede:
+- Yeni faz eklenmez, roadmap sadeleşir
+- Her faz kendi sorumluluk alanındaki tahmin parçasını yapar
+- Toplam süre artışı ~5.5 gün (kabul edilebilir)
 
 ---
 
 ## 📝 Notlar
 
-- **Otomasyon yok**: Sadece bilgilendirme ve görselleştirme
-- **Karar kullanıcıda**: Sistem öneri verir, operatör karar verir
-- **Geri bildirim döngüsü**: Tahminlerin doğruluğu kaydedilir, model iyileştirmesi için kullanılır
-- **Demo için ideal**: Hackathon/sunum için çok etkileyici özellik
+- **v1.0'da beklenti yönetimi önemli**: Bu bir "trend göstergesi", hassas tahmin değil
+- **TimesFM ile farkı**: v1.0 lineer projeksiyon yapar, v1.1'de TimesFM non-lineer paternleri yakalar
+- **Demo avantajı**: Aşınma trend grafiği + "X saat kaldı" göstergesi hackathon'da etkileyici
+- **Veri kalitesi kritik**: Aşınma hızı hesabı için aynı takımın en az 3-4 kontrol noktası gerekli
 
 ---
 
-*Son güncelleme: 2026-05-15*
+## 🔮 v1.1'e Geçiş Yolu
+
+Bu plan v1.1'de şunlarla yükseltilecek:
+- TimesFM 2.5 ile gerçek zaman serisi tahmini (horizon=50)
+- Sensör verisi füzyonu (accelerometer + force + acoustic)
+- İstatistiksel güven aralığı (quantile regression)
+- ML tabanlı senaryo simülasyonu
+
+v1.0'daki tüm API endpoint'leri ve frontend bileşenleri v1.1'de genişletilecek şekilde tasarlanır (geriye dönük uyumlu).
+
+---
+
+*Son güncelleme: 2026-05-15 — v1.0 scope'una uyarlandı (TimesFM yok)*
