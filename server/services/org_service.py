@@ -270,7 +270,7 @@ class OrgService:
         if await self._is_sole_manager(org_id, user_id):
             raise ValueError("Cannot remove the only manager. Transfer ownership first.")
 
-        result = (
+        (
             self.supabase.table("org_members")
             .delete()
             .eq("org_id", org_id)
