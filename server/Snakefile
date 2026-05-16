@@ -14,10 +14,9 @@
 PROJECT_ROOT = ".."
 DATA_DIR = f"{PROJECT_ROOT}/data"
 MODELS_DIR = f"{PROJECT_ROOT}/models"
-SERVER_DIR = "."
 
 STATS_FILE = f"{DATA_DIR}/normalization_stats.json"
-LABELS_CSV = f"{SERVER_DIR}/dataset/labels.csv"
+LABELS_CSV = "dataset/labels.csv"
 MATWI_DIR = f"{DATA_DIR}/MATWI"
 DATASET_DIR = f"{DATA_DIR}/anomalib_format"
 CHECKPOINT = f"{MODELS_DIR}/checkpoint.ckpt"
@@ -35,7 +34,7 @@ rule unzip_data:
     Skips if already extracted."""
     input:
         zip_files=expand(
-            f"{SERVER_DIR}/dataset/Set{{n}}.zip",
+            "dataset/Set{n}.zip",
             n=range(1, 18),
         ),
     output:

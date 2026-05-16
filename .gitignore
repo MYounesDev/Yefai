@@ -14,3 +14,4 @@ notebooks/
 .agent/skills/
 server/.venv/
 server/~/
+server/.snakemake/
