@@ -21,3 +21,5 @@ data/MATWI/
 data/anomalib_format/
 data/normalization_stats.json
 data/anomalib_inference_results.csv
+
+temp/

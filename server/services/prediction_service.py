@@ -99,12 +99,13 @@ class PredictionService:
         self.scenario_projector = ScenarioProjector(critical_threshold_um)
         self.trend_analyzer = WearTrendAnalyzer(min_periods=3)
 
-    async def get_prediction(self, machine_id: str) -> dict:
+    async def get_prediction(self, machine_id: str, org_id: str) -> dict:
         """
         Get wear prediction for a specific machine.
 
         Args:
             machine_id: Machine/set identifier
+            org_id: Organization identifier
 
         Returns:
             Dictionary with prediction data including scenarios and projections
@@ -113,6 +114,7 @@ class PredictionService:
         response = (
             self.supabase.table("anomalies")
             .select("*")
+            .eq("org_id", org_id)
             .eq("machine_id", machine_id)
             .order("created_at", desc=False)
             .execute()
@@ -189,15 +191,23 @@ class PredictionService:
             "status": status,
         }
 
-    async def get_factory_overview(self) -> dict:
+    async def get_factory_overview(self, org_id: str) -> dict:
         """
-        Get overview of all machines in factory.
+        Get overview of all machines in factory for a specific organization.
+
+        Args:
+            org_id: Organization identifier
 
         Returns:
             Dictionary with list of machines and their status
         """
-        # Get all unique machine IDs
-        response = self.supabase.table("anomalies").select("machine_id").execute()
+        # Get all unique machine IDs for this org
+        response = (
+            self.supabase.table("anomalies")
+            .select("machine_id")
+            .eq("org_id", org_id)
+            .execute()
+        )
 
         if not response.data:
             return {"machines": []}
@@ -209,7 +219,7 @@ class PredictionService:
         machines = []
         for machine_id in machine_ids:
             try:
-                prediction = await self.get_prediction(machine_id)
+                prediction = await self.get_prediction(machine_id, org_id)
                 machines.append(
                     {
                         "machine_id": machine_id,
@@ -232,18 +242,19 @@ class PredictionService:
 
         return {"machines": machines}
 
-    async def recalculate_prediction(self, machine_id: str) -> dict:
+    async def recalculate_prediction(self, machine_id: str, org_id: str) -> dict:
         """
         Manually trigger recalculation of prediction.
 
         Args:
             machine_id: Machine identifier
+            org_id: Organization identifier
 
         Returns:
             Updated prediction data
         """
-        logger.info(f"Recalculating prediction for machine {machine_id}")
-        return await self.get_prediction(machine_id)
+        logger.info(f"Recalculating prediction for machine {machine_id} in org {org_id}")
+        return await self.get_prediction(machine_id, org_id)
 
     def _determine_status(self, hours_to_critical: float, current_wear_um: float) -> StatusLevel:
         """Determine status level based on hours to critical."""

@@ -7,6 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from supabase import Client
 
+from auth.dependencies import get_org_context, require_permission
+from auth.models import OrgContext
+from auth.permissions import Permission
 from db.client import get_supabase_client
 from services.prediction_service import PredictionService
 
@@ -84,6 +87,8 @@ def get_prediction_service(
 @router.get("/{machine_id}", response_model=PredictionResponse)
 async def get_prediction(
     machine_id: str,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_PREDICTIONS)),
     service: PredictionService = Depends(get_prediction_service),
 ) -> Any:
     """
@@ -97,7 +102,7 @@ async def get_prediction(
         Prediction data with scenarios and projections
     """
     try:
-        result = await service.get_prediction(machine_id)
+        result = await service.get_prediction(machine_id, org.org_id)
 
         if "error" in result:
             raise HTTPException(status_code=404, detail=result["error"])
@@ -113,6 +118,8 @@ async def get_prediction(
 
 @router.get("/factory/overview", response_model=FactoryOverviewResponse)
 async def get_factory_overview(
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_DASHBOARD)),
     service: PredictionService = Depends(get_prediction_service),
 ) -> Any:
     """
@@ -122,7 +129,7 @@ async def get_factory_overview(
         List of machines with their status and key metrics
     """
     try:
-        result = await service.get_factory_overview()
+        result = await service.get_factory_overview(org.org_id)
         return result
 
     except Exception as e:
@@ -133,6 +140,8 @@ async def get_factory_overview(
 @router.post("/recalculate/{machine_id}", response_model=PredictionResponse)
 async def recalculate_prediction(
     machine_id: str,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.RECALCULATE_PREDICTION)),
     service: PredictionService = Depends(get_prediction_service),
 ) -> Any:
     """
@@ -146,7 +155,7 @@ async def recalculate_prediction(
         Updated prediction data
     """
     try:
-        result = await service.recalculate_prediction(machine_id)
+        result = await service.recalculate_prediction(machine_id, org.org_id)
 
         if "error" in result:
             raise HTTPException(status_code=404, detail=result["error"])
