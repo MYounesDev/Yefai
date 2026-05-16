@@ -1,7 +1,8 @@
 # Yedek Parça Krizi Mock Planı — Yefai v1.0
 
-> Amaç: Sunumdaki üçüncü problem olan **“Yedek Parça Krizi”**ni, MATWI veri setinde stok/BOM/satın alma verisi olmadığı halde, mevcut GSD planını bozmadan **sentetik/mock envanter + ticket katmanı** olarak eklemek.
+> Amaç: Sunumdaki üçüncü problem olan **"Yedek Parça Krizi"**ni, MATWI veri setinde stok/BOM/satın alma verisi olmadığı halde, mevcut GSD planını bozmadan **sentetik/mock envanter + ticket + otomatik sipariş + alternatif tedarikçi katmanı** olarak eklemek.
 > Bu katman model eğitim datasına karışmaz; anomali/tahmin çıktılarının üstüne iş kararı simülasyonu olarak bağlanır.
+> v1.0 kapsamında: kriz tespiti, alarm, otomatik mock sipariş, alternatif tedarikçi önerme. Gerçek ERP entegrasyonu ve dinamik stok optimizasyonu v1.1+.
 
 ---
 
@@ -101,8 +102,10 @@ reports/labels_eda_summary.json veya labels.csv üzerinden yeniden EDA
 
 ```text
 data/mock/spare_parts_catalog.csv
+data/mock/suppliers.csv
 data/mock/inventory_snapshots.csv
 data/mock/part_tickets.csv
+data/mock/purchase_orders.csv
 reports/mock_spare_parts_quality.md
 ```
 
@@ -150,6 +153,44 @@ reports/mock_spare_parts_quality.md
 | `status` | `planned`, `waiting_part`, `ordered`, `stockout`, `closed` |
 | `risk_level` | `none`, `watch`, `at_risk`, `crisis` |
 | `stockout_risk_score` | 0-100 |
+| `auto_po_id` | Otomatik oluşturulan PO referansı (opsiyonel) |
+| `recommended_supplier_id` | Önerilen alternatif tedarikçi (opsiyonel) |
+
+### 3.4 `suppliers.csv`
+
+| Kolon | Açıklama |
+|---|---|
+| `supplier_id` | Sentetik tedarikçi ID |
+| `supplier_name` | Örn. KES-Tedarik A.Ş., GlobalTool GmbH |
+| `part_id` | Tedarik ettiği parça |
+| `is_primary` | Birincil tedarikçi mi (true/false) |
+| `lead_time_days_p50` | Beklenen tedarik süresi |
+| `lead_time_days_p90` | Kötümser tedarik süresi |
+| `reliability_score` | 0-100 güvenilirlik |
+| `unit_cost` | Bu tedarikçiden birim fiyat |
+| `min_order_qty` | Minimum sipariş adedi |
+| `in_stock_probability` | Stokta bulunma olasılığı (0-1) |
+
+### 3.5 `purchase_orders.csv`
+
+Otomatik sipariş simülasyonu ile oluşturulan, satın alma ekranına kadar gelen ama gerçekleştirilmeyen mock PO'lar.
+
+| Kolon | Açıklama |
+|---|---|
+| `po_id` | Mock satın alma sipariş ID |
+| `ticket_id` | Hangi ticket'tan tetiklendi |
+| `part_id` | Sipariş edilen parça |
+| `supplier_id` | Seçilen tedarikçi |
+| `order_qty` | Sipariş adedi |
+| `unit_cost` | Birim fiyat |
+| `total_cost` | Toplam maliyet |
+| `created_at` | PO oluşturulma zamanı |
+| `expected_delivery` | Beklenen teslim tarihi |
+| `status` | `draft`, `ready_for_review`, `approved` (manuel onay simülasyonu) |
+| `urgency` | `normal`, `rush`, `critical` |
+| `alternative_supplier_id` | Daha iyi lead time'lı alternatif varsa ID'si |
+
+**Not:** v1.0'da PO `ready_for_review` durumunda satın alma ekranında gösterilir, manuel onay bekler. Gerçek satın alma işlemi yapılmaz. Bu demo sınırıdır.
 
 ---
 
@@ -187,7 +228,112 @@ stockout_risk_score =
 
 ---
 
-## 5. GSD Fazlarına Yerleştirme
+## 5. Otomatik Sipariş Simülasyonu (v1.0)
+
+Kriz tespit edildiğinde (`risk_level >= at_risk`), sistem otomatik olarak mock satın alma siparişi (PO) hazırlar. PO **satın alma ekranına kadar gelir, işlem manuel onay bekler** — gerçek satın alma yapılmaz.
+
+### Tetikleme Kuralları
+
+| Risk Seviyesi | Aksiyon |
+|---|---|
+| `crisis` (≥80) | Otomatik PO oluştur, `urgency=critical`, satın alma ekranında kırmızı vurgu |
+| `at_risk` (60-79) | Otomatik PO oluştur, `urgency=rush` |
+| `watch` (35-59) | PO önerisi hazırla ama otomatik oluşturma, dashboard'da "önerilen sipariş" olarak göster |
+| `none` (<35) | İşlem yok |
+
+### PO Oluşturma Akışı
+
+```text
+1. Kriz tespit → ticket.status = stockout, ticket.risk_level >= at_risk
+2. Envanter kontrolü: on_hand < required_qty → stok açığı hesaplanır
+3. Birincil tedarikçi seçilir (suppliers tablosundan is_primary=true)
+4. PO oluşturulur: part_id, supplier_id, order_qty, unit_cost, total_cost
+5. expected_delivery = now + supplier.lead_time_days_p90
+6. PO status = ready_for_review
+7. Ticket güncellenir: ticket.auto_po_id = po.po_id
+8. Dashboard'da satın alma ekranında PO kartı gösterilir
+9. PUQ AI bildirimi: "Kritik stok açığı — satın alma siparişi hazır, onay bekliyor"
+```
+
+### Satın Alma Ekranı (Dashboard)
+
+PO `ready_for_review` durumunda dashboard'da gösterilecek alanlar:
+
+- Parça adı, gerekli adet, birim fiyat, toplam maliyet
+- Tedarikçi adı, lead time (p50/p90), güvenilirlik skoru
+- Beklenen teslim tarihi vs ihtiyaç tarihi karşılaştırması
+- "Alternatif tedarikçi" butonu (varsa)
+- "Onayla" / "İptal" butonları (manuel — demo sınırı)
+
+**Demo notu:** Onayla/İptal butonları mock çalışır. Onay → PO status `approved` olur, dashboard'da yeşil onay bildirimi gösterilir. Gerçek satın alma API çağrısı yapılmaz.
+
+---
+
+## 6. Alternatif Tedarikçi Önerme (v1.0)
+
+Kriz durumunda birincil tedarikçinin lead time'ı kritik eşiğe yetişmiyorsa, sistem alternatif tedarikçileri tarar ve önerir.
+
+### Alternatif Tarama Mantığı
+
+```text
+1. Kriz tespit edildi, birincil tedarikçi belirlendi
+2. Eğer supplier.lead_time_days_p90 > (needed_by - now):
+   → Birincil tedarikçi yetişemiyor
+3. Aynı part_id için diğer supplier'lar taranır (is_primary=false)
+4. Her alternatif için:
+   - Teslim yetişme skoru = (needed_by - now) / supplier.lead_time_days_p90
+   - Güvenilirlik × maliyet × stok olasılığı ile sıralama
+5. En iyi alternatif dashboard'da ve bildirimde gösterilir
+```
+
+### Alternatif Skorlaması
+
+```text
+alt_supplier_score =
+  0.40 × delivery_feasibility +     // yetişme olasılığı
+  0.25 × reliability_score +         // güvenilirlik
+  0.20 × cost_competitiveness +      // maliyet rekabeti
+  0.15 × in_stock_probability        // stokta bulunma
+```
+
+### Dashboard Gösterimi
+
+| Durum | Gösterim |
+|---|---|
+| Alternatif var, daha iyi lead time | Yeşil rozet: "Alternatif: XTedarik — 5 gün daha erken" |
+| Alternatif var ama daha pahalı | Sarı rozet: "Alternatif mevcut ama %30 daha maliyetli" |
+| Alternatif yok (tek tedarikçi) | Kırmızı rozet: "Tek kaynak — alternatif yok, kriz riski yüksek" |
+| Alternatif var, lead time benzer | Gri rozet: "Alternatif var ama süre avantajı yok" |
+
+### PUQ AI Bildirimi
+
+Kriz bildirimine alternatif tedarikçi alanı eklenir:
+
+```json
+{
+  "crisis_level": "critical",
+  "part_id": "PT-042",
+  "part_name": "Spindle Bearing XR-9",
+  "on_hand": 0,
+  "needed_by": "2026-05-17T02:00:00Z",
+  "primary_supplier": {
+    "name": "GlobalTool GmbH",
+    "lead_time_p90_days": 21,
+    "delivery_feasible": false
+  },
+  "alternative_supplier": {
+    "name": "HızlıParça A.Ş.",
+    "lead_time_p90_days": 5,
+    "delivery_feasible": true,
+    "cost_diff_pct": 15
+  },
+  "recommendation": "Alternatif tedarikçiye yönlendirme önerilir"
+}
+```
+
+---
+
+## 7. GSD Fazlarına Yerleştirme
 
 **Yeni faz açılmayacak.** Plan mevcut fazlara dağıtılır.
 
@@ -195,84 +341,100 @@ stockout_risk_score =
 
 Ek görevler:
 
-- Mock spare part generator script’i yazılır.
+- Mock spare part generator script'i yazılır.
 - `labels.csv` satırlarından `machine_id/tool_id` mock eşlemesi türetilir.
-- `spare_parts_catalog`, `inventory_snapshots`, `part_tickets` tabloları Supabase şemasına eklenir.
-- `reports/mock_spare_parts_quality.md` üretilir: kritik sınıf dağılımı, stok açığı dağılımı, ticket dağılımı.
+- `spare_parts_catalog`, `suppliers`, `inventory_snapshots`, `part_tickets`, `purchase_orders` tabloları Supabase şemasına eklenir.
+- `reports/mock_spare_parts_quality.md` üretilir: kritik sınıf dağılımı, stok açığı dağılımı, ticket dağılımı, tedarikçi dağılımı.
 
-Süre etkisi: **+1 gün**
+Süre etkisi: **+1.5 gün** (suppliers + purchase_orders tabloları eklendi)
 
 ### Phase 2 — AI Inference Pipeline
 
-Ek görev:
+Ek görevler:
 
-- Inference çıktısına parça eşlemesi için `recommended_part_id` / `part_family` alanı opsiyonel eklenir.
+- Inference çıktısına parça eşlemesi için `recommended_part_id` / `part_family` alanı eklenir.
+- **Otomatik PO oluşturma servisi:** Kriz tespitinde mock PO hazırlayan FastAPI endpoint'i (`POST /api/spare-parts/auto-order`)
+- **Alternatif tedarikçi tarama servisi:** Lead time yetişmeyen durumda alternatif supplier öneren endpoint (`GET /api/spare-parts/alternative-suppliers/{part_id}`)
 - Model eğitimi değişmez; mock inventory label olarak kullanılmaz.
 
-Süre etkisi: **+0.5 gün**
+Süre etkisi: **+1 gün** (önceden 0.5 gündü)
 
 ### Phase 4 — Dashboard & Anomali Yönetimi
 
 Ek görevler:
 
-- Sunumdaki üçüncü kart için “Yedek Parça Krizi” paneli eklenir.
+- Sunumdaki üçüncü kart için "Yedek Parça Krizi" paneli eklenir.
 - Anomali detay panelinde stok durumu gösterilir: eldeki stok, siparişte, lead time, risk skoru.
 - Kriz ticket listesi eklenir: `waiting_part`, `stockout`, `ordered`.
+- **Satın alma ekranı:** `ready_for_review` durumundaki PO'ları listeleyen, onayla/iptal butonlu panel.
+- **Alternatif tedarikçi paneli:** PO detayında alternatif supplier karşılaştırma tablosu (lead time, maliyet, güvenilirlik).
 - Tahmin panelindeki `hours_to_critical`, inventory lead time ile karşılaştırılır.
 
-Süre etkisi: **+1 gün**
+Süre etkisi: **+2 gün** (önceden 1 gündü — satın alma ekranı + tedarikçi paneli eklendi)
 
 ### Phase 5 — Tauri + PUQ AI
 
 Ek görevler:
 
-- PUQ AI payload’a yedek parça alanları eklenir.
-- `crisis` seviyesinde Telegram/e-posta mesajında “stok yok / tedarik süresi kritik” uyarısı yer alır.
-- Offline fallback bildiriminde parça adı ve beklenen geliş tarihi gösterilir.
+- PUQ AI payload'a yedek parça alanları eklenir.
+- `crisis` seviyesinde Telegram/e-posta mesajında "stok yok / tedarik süresi kritik" uyarısı + alternatif tedarikçi önerisi yer alır.
+- **PO bildirimi:** "Satın alma siparişi hazır, onay bekliyor" mesajı + PO özeti.
+- Offline fallback bildiriminde parça adı, beklenen geliş tarihi ve alternatif tedarikçi bilgisi gösterilir.
 
-Süre etkisi: **+0.5 gün**
+Süre etkisi: **+1 gün** (önceden 0.5 gündü — PO ve alternatif tedarikçi bildirim alanları eklendi)
 
-Toplam ek süre: **~3 gün**. Yeni faz açılmadığı için roadmap yapısı korunur.
+Toplam ek süre: **~5.5 gün** (önceden ~3 gündü). Yeni faz açılmadığı için roadmap yapısı korunur.
 
 ---
 
-## 6. Kabul Kriterleri
+## 8. Kabul Kriterleri
 
 - [ ] MATWI `labels.csv` değiştirilmeden mock parça verisi üretilebiliyor.
-- [ ] `spare_parts_catalog.csv`, `inventory_snapshots.csv`, `part_tickets.csv` oluşuyor.
-- [ ] Mock kalite raporunda kritik sınıf ve ticket dağılımları görünüyor.
+- [ ] `spare_parts_catalog.csv`, `suppliers.csv`, `inventory_snapshots.csv`, `part_tickets.csv`, `purchase_orders.csv` oluşuyor.
+- [ ] Mock kalite raporunda kritik sınıf, ticket dağılımları ve tedarikçi dağılımı görünüyor.
 - [ ] En az 3 risk seviyesi örneği üretilebiliyor: `watch`, `at_risk`, `crisis`.
-- [ ] Dashboard’da üçüncü problem kartı veriyle besleniyor.
-- [ ] Bir kritik anomali için “parça stokta yok ve lead time yetişmiyor” senaryosu gösterilebiliyor.
-- [ ] RAG chatbot “Hangi kritik parçalar stokta yok?” sorusuna mock inventory context’iyle cevap verebiliyor.
-- [ ] PUQ AI webhook payload’ında `part_id`, `part_name`, `on_hand`, `needed_by`, `lead_time_days_p90`, `stockout_risk_score` alanları var.
+- [ ] `crisis` ve `at_risk` seviyesinde otomatik PO oluşturuluyor, `ready_for_review` durumunda satın alma ekranında gösteriliyor.
+- [ ] Dashboard'da üçüncü problem kartı veriyle besleniyor.
+- [ ] Bir kritik anomali için "parça stokta yok ve lead time yetişmiyor" senaryosu gösterilebiliyor.
+- [ ] Birincil tedarikçi yetişemediğinde alternatif tedarikçi önerisi dashboard'da ve PUQ AI bildiriminde gösteriliyor.
+- [ ] Tek tedarikçili parça için "alternatif yok" uyarısı dashboard'da kırmızı rozet olarak görünüyor.
+- [ ] RAG chatbot "Hangi kritik parçalar stokta yok?" sorusuna mock inventory context'iyle cevap verebiliyor.
+- [ ] Satın alma ekranında PO detayı (parça, tedarikçi, maliyet, lead time, alternatif) gösteriliyor.
+- [ ] PUQ AI webhook payload'ında `part_id`, `part_name`, `on_hand`, `needed_by`, `lead_time_days_p90`, `stockout_risk_score`, alternatif tedarikçi alanları var.
 
 ---
 
-## 7. Planı Bozmamak İçin Sınırlar
+## 9. Planı Bozmamak İçin Sınırlar
 
-- Mock inventory verisi **model eğitim label’ı değildir**.
+- Mock inventory verisi **model eğitim label'ı değildir**.
 - Mock ticket verisi **MATWI gerçekliği gibi sunulmaz**; demo/simülasyon katmanı olarak adlandırılır.
+- Mock PO'lar **gerçek satın alma yapmaz**; satın alma ekranında `ready_for_review` durumunda gösterilir, manuel onay simülasyonu yapılır.
+- Alternatif tedarikçi önerisi **mock supplier verisine dayanır**; gerçek tedarikçi veritabanı yoktur.
 - Phase 2 image anomaly başarı kriterleri değişmez.
 - Sensör tabanlı TimesFM yine v1.1+ kapsamındadır.
-- ERP/satın alma entegrasyonu v1.0 dışıdır; sadece mock ticket ve bildirim vardır.
+- Gerçek ERP/satın alma entegrasyonu ve dinamik stok optimizasyonu v1.1+ kapsamındadır.
 
 ---
 
-## 8. Demo Senaryosu
+## 10. Demo Senaryosu (Güncel)
 
 1. Görüntü akışında yüksek wear/anomali yakalanır.
-2. Tahmin modülü “kritik eşiğe 16 saat” hesaplar.
+2. Tahmin modülü "kritik eşiğe 16 saat" hesaplar.
 3. Parça eşleme modülü gerekli parçayı bulur: `Insert Tip A-12`.
 4. Inventory modülü kontrol eder:
    - `on_hand = 0`
    - `on_order = 1`
-   - `lead_time_p90 = 21 gün`
+   - `lead_time_p90 = 21 gün` (birincil tedarikçi: GlobalTool GmbH)
    - `needed_by = 16 saat`
 5. Sistem `crisis` ticket üretir.
-6. Dashboard üçüncü kartta “Yedek Parça Krizi” kırmızı görünür.
-7. PUQ AI Telegram/e-posta: “Üretim duruş riski — parça stokta yok, tedarik tarihi kritik eşiği geçiyor.”
+6. **Otomatik PO** oluşturulur: `PO-2026-0042`, urgency=critical, status=`ready_for_review`.
+7. Birincil tedarikçi yetişemiyor → **alternatif tedarikçi taranır**.
+8. Alternatif bulunur: HızlıParça A.Ş. — lead_time_p90 = 5 gün, %15 daha pahalı.
+9. Dashboard üçüncü kartta "Yedek Parça Krizi" kırmızı görünür.
+10. **Satın alma ekranında** PO kartı: parça, tedarikçi karşılaştırması, maliyet, "Onayla/İptal" butonları.
+11. PUQ AI Telegram/e-posta: "Üretim duruş riski — parça stokta yok. PO hazır, onay bekliyor. Alternatif tedarikçi: HızlıParça A.Ş. (5 gün)."
+12. Operatör satın alma ekranında "Onayla"ya basar → PO `approved`, yeşil onay bildirimi. (Demo sonu — gerçek satın alma yapılmaz.)
 
 ---
 
-*Son güncelleme: 2026-05-16 — yedek parça krizi mock katmanı araştırma ve dağılım planı eklendi.*
+*Son güncelleme: 2026-05-16 — otomatik sipariş simülasyonu (PO → satın alma ekranı) ve alternatif tedarikçi önerme v1.0 kapsamına eklendi.*
