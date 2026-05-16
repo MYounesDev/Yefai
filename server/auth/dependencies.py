@@ -13,7 +13,6 @@ Usage in routers:
 """
 
 import logging
-import os
 from collections.abc import Callable
 from typing import Any
 
@@ -30,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 def _is_test_mode() -> bool:
     settings = get_settings()
-    return settings.environment == "test" or bool(os.getenv("PYTEST_CURRENT_TEST"))
+    return settings.environment == "test"
 
 
 async def get_current_user(

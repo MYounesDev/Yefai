@@ -243,13 +243,9 @@ async def delete_channel(
     supabase: Client = Depends(get_supabase_client),
 ) -> dict[str, Any]:
     """Delete a notification channel (Manager only)."""
-    (
-        supabase.table("notification_channels")
-        .delete()
-        .eq("id", channel_id)
-        .eq("org_id", org.org_id)
-        .execute()
-    )
+    supabase.table("notification_channels").delete().eq("id", channel_id).eq(
+        "org_id", org.org_id
+    ).execute()
     # the client might return an empty list or None on delete
     # but normally returns the deleted row if we requested it.
     return {"message": "Channel deleted"}
