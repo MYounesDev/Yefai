@@ -30,7 +30,7 @@ class ResolveTicketRequest(BaseModel):
     resolution: str
 
 
-# ── Dependency ─────────────────────────────────────────────────
+# ── Dependency ────────��────────────────────────────────────────
 
 
 def _get_org_service(supabase: Client = Depends(get_supabase_client)) -> OrgService:
@@ -86,10 +86,10 @@ async def get_organization_admin(
     service: OrgService = Depends(_get_org_service),
 ):
     """Get org details + members + usage stats (admin view — no factory data)."""
-    result = await service.admin_get_organization(org_id)
-    if not result:
+    org_data = await service.admin_get_organization(org_id)
+    if not org_data:
         raise HTTPException(status_code=404, detail="Organization not found")
-    return result
+    return org_data
 
 
 @router.get("/users")
