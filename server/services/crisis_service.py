@@ -153,7 +153,7 @@ def _load_csv(path: Path) -> list[dict]:
 class CrisisService:
     def __init__(self, supabase: Client, prediction_service: PredictionService | None = None):
         self.supabase = supabase
-        self.prediction_service = prediction_service or PredictionService()
+        self.prediction_service = prediction_service or PredictionService(supabase)
 
     async def get_crisis_dashboard(self, org_id: str) -> dict[str, Any]:
         """Get org-wide crisis overview."""
@@ -165,14 +165,75 @@ class CrisisService:
             "critical_count": 2,
             "top_crisis_parts": [
                 {"part_id": "P-100", "score": 85, "risk_level": "critical"},
-                {"part_id": "P-101", "score": 72, "risk_level": "at_risk"}
+                {"part_id": "P-101", "score": 72, "risk_level": "at_risk"},
             ],
-            "risk_distribution": {
-                "safe": 100,
-                "watch": 18,
-                "at_risk": 5,
-                "critical": 2
-            }
+            "risk_distribution": {"safe": 100, "watch": 18, "at_risk": 5, "critical": 2},
+        }
+
+    async def calculate_crisis_score(self, org_id: str, part_id: str) -> dict[str, Any]:
+        """Calculate a crisis score for a specific part (mock implementation)."""
+        part = None
+        for row in _load_csv(CATALOG_PATH):
+            if str(row.get("part_id", "")) == str(part_id):
+                part = row
+                break
+
+        if part is None:
+            raise ValueError(f"Part not found: {part_id}")
+
+        inv = _get_inventory(part_id)
+        sup = _get_primary_supplier(part_id)
+
+        on_hand = int(inv.get("on_hand", 0) if inv else 0)
+        min_level = int(inv.get("min_level", 10) if inv else 10)
+        stock_gap = max(0.0, 1.0 - (on_hand / min_level if min_level > 0 else 1.0))
+
+        lead_time_p90 = int(sup.get("lead_time_p90", 14) if sup else 14)
+
+        criticality_map = {"A_vital": 1.0, "B_essential": 0.6, "C_desirable": 0.3}
+        criticality = criticality_map.get(part.get("criticality", "C_desirable"), 0.3)
+
+        reliability = float(sup.get("reliability_score", 0.8) if sup else 0.8)
+        supplier_risk = 1.0 - reliability
+
+        stock_gap_contrib = stock_gap * 100 * 0.30
+        lead_time_contrib = min(1.0, lead_time_p90 / 30.0) * 100 * 0.25
+        criticality_contrib = criticality * 100 * 0.20
+        supplier_risk_contrib = supplier_risk * 100 * 0.15
+
+        total = round(
+            stock_gap_contrib + lead_time_contrib + criticality_contrib + supplier_risk_contrib,
+            1,
+        )
+
+        if total > 70:
+            risk_level = "crisis"
+        elif total > 40:
+            risk_level = "at_risk"
+        elif total > 20:
+            risk_level = "watch"
+        else:
+            risk_level = "none"
+
+        return {
+            "part_id": part.get("part_id", part_id),
+            "part_name": part.get("part_name", ""),
+            "crisis_score": total,
+            "risk_level": risk_level,
+            "breakdown": {
+                "stock_gap_pct": round(stock_gap * 100, 1),
+                "on_hand": on_hand,
+                "min_level": min_level,
+                "lead_time_p90_days": lead_time_p90,
+                "criticality": part.get("criticality", ""),
+                "supplier_reliability": reliability,
+                "contributions": {
+                    "stock_gap": round(stock_gap_contrib, 1),
+                    "lead_time": round(lead_time_contrib, 1),
+                    "criticality": round(criticality_contrib, 1),
+                    "supplier_risk": round(supplier_risk_contrib, 1),
+                },
+            },
         }
 
     async def create_auto_order(self, org_id: str, ticket_id: str) -> dict[str, Any]:
@@ -187,10 +248,10 @@ class CrisisService:
         )
         if not ticket_res.data:
             raise ValueError(f"Ticket not found: {ticket_id}")
-            
+
         part_id = ticket_res.data.get("part_id")
         quantity = ticket_res.data.get("required_quantity", 1)
-        
+
         # Find best supplier
         supplier_res = (
             self.supabase.table("supplier_parts")
@@ -201,16 +262,16 @@ class CrisisService:
             .limit(1)
             .execute()
         )
-        
+
         supplier_id = None
         unit_cost = 100.0
-        
+
         if supplier_res.data:
             supplier_id = supplier_res.data[0].get("supplier_id")
             unit_cost = supplier_res.data[0].get("unit_cost", 100.0)
-            
+
         po_id = f"PO-{str(uuid.uuid4())[:8].upper()}"
-        
+
         po_data = {
             "po_id": po_id,
             "org_id": org_id,
@@ -218,21 +279,23 @@ class CrisisService:
             "supplier_id": supplier_id,
             "quantity": quantity,
             "unit_price": unit_cost,
-            "status": "pending"
+            "status": "pending",
         }
-        
+
         po_res = self.supabase.table("purchase_orders").insert(po_data).execute()
-        
+
         if not po_res.data:
             raise ValueError("Failed to create Purchase Order")
-            
+
         return po_res.data[0]
 
     async def get_alternative_suppliers(self, org_id: str, part_id: str) -> list[dict[str, Any]]:
         """Get alternative suppliers for a part."""
         res = (
             self.supabase.table("supplier_parts")
-            .select("supplier_id, unit_cost, lead_time_days, is_preferred, suppliers(name, reliability_score)")
+            .select(
+                "supplier_id, unit_cost, lead_time_days, is_preferred, suppliers(name, reliability_score)"
+            )
             .eq("part_id", part_id)
             .eq("org_id", org_id)
             .execute()

@@ -1,15 +1,7 @@
-# Chat router placeholder — Phase 3A
-import asyncio
-import logging
-from typing import Any
-
-from fastapi import APIRouter, HTTPException
-
-from ai.puqai.schemas import NotificationRequest
-from services.notification_service import NotificationService
-from services.vector_search_service import VectorSearchService
 """Chat router — manages conversational RAG sessions and messages."""
 
+# Chat router placeholder — Phase 3A
+import asyncio
 import logging
 from typing import Any
 
@@ -17,12 +9,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from supabase import Client
 
+from ai.puqai.schemas import NotificationRequest
 from auth.dependencies import get_org_context, require_permission
 from auth.models import OrgContext
 from auth.permissions import Permission
 from db.client import get_supabase_client
 from services.chat_service import ChatService
-
+from services.notification_service import NotificationService
+from services.vector_search_service import VectorSearchService
 
 logger = logging.getLogger(__name__)
 
@@ -97,9 +91,7 @@ async def create_session(
 ) -> dict[str, Any]:
     """Create a new chat session."""
     try:
-        session = await service.create_session(
-            org.org_id, org.user.id, body.title or "New Chat"
-        )
+        session = await service.create_session(org.org_id, org.user.id, body.title or "New Chat")
         return session
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -114,9 +106,7 @@ async def get_session_messages(
 ) -> dict[str, Any]:
     """Get a chat session and all its messages."""
     try:
-        messages = await service.get_session_messages(
-            session_id, org.org_id, org.user.id
-        )
+        messages = await service.get_session_messages(session_id, org.org_id, org.user.id)
         return {"session_id": session_id, "messages": messages}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
@@ -138,7 +128,6 @@ async def send_message(
         return assistant_message
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
-
 
 
 @router.delete("/sessions/{session_id}")
@@ -340,4 +329,3 @@ async def chat_search(payload: dict[str, Any]) -> dict[str, Any]:
     except Exception as e:
         logger.error("Chat search failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e)) from e
-

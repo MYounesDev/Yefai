@@ -2,6 +2,7 @@
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from supabase import Client
 
@@ -122,12 +123,7 @@ class OrgService:
         update_data = {k: v for k, v in data.items() if v is not None}
         update_data["updated_at"] = datetime.utcnow().isoformat()
 
-        result = (
-            self.supabase.table("organizations")
-            .update(update_data)
-            .eq("id", org_id)
-            .execute()
-        )
+        result = self.supabase.table("organizations").update(update_data).eq("id", org_id).execute()
 
         if not result.data:
             raise ValueError("Organization not found")
@@ -172,7 +168,7 @@ class OrgService:
         members = []
         for row in result.data or []:
             # Fetch profile for each member
-            profile = {}
+            profile: dict[str, Any] = {}
             if row.get("user_id"):
                 profile_result = (
                     self.supabase.table("profiles")
@@ -216,9 +212,9 @@ class OrgService:
             if existing.data.get("status") == "active":
                 raise ValueError(f"{email} is already a member of this organization")
             # Re-invite if disabled/invited
-            self.supabase.table("org_members").update(
-                {"status": "invited", "role": role}
-            ).eq("id", existing.data["id"]).execute()
+            self.supabase.table("org_members").update({"status": "invited", "role": role}).eq(
+                "id", existing.data["id"]
+            ).execute()
             return {"message": f"Re-invitation sent to {email}", "role": role}
 
         # Create invitation
@@ -344,9 +340,7 @@ class OrgService:
             "limit": limit,
         }
 
-    async def admin_create_organization(
-        self, name: str, plan: str, manager_email: str
-    ) -> dict:
+    async def admin_create_organization(self, name: str, plan: str, manager_email: str) -> dict:
         """Admin creates an org and invites initial manager."""
         slug = AuthService.generate_slug(name)
         org = await self.create_organization(name, slug, plan)
@@ -412,22 +406,14 @@ class OrgService:
 
     async def admin_get_platform_stats(self) -> dict:
         """Get platform-wide statistics."""
-        orgs_count = (
-            self.supabase.table("organizations")
-            .select("id", count="exact")
-            .execute()
-        )
+        orgs_count = self.supabase.table("organizations").select("id", count="exact").execute()
         active_orgs = (
             self.supabase.table("organizations")
             .select("id", count="exact")
             .eq("is_active", True)
             .execute()
         )
-        users_count = (
-            self.supabase.table("profiles")
-            .select("id", count="exact")
-            .execute()
-        )
+        users_count = self.supabase.table("profiles").select("id", count="exact").execute()
         tickets_open = (
             self.supabase.table("support_tickets")
             .select("id", count="exact")

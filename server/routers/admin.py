@@ -73,9 +73,7 @@ async def create_organization(
 ):
     """Create a new organization and invite the initial manager (admin only)."""
     try:
-        result = await service.admin_create_organization(
-            body.name, body.plan, body.manager_email
-        )
+        result = await service.admin_create_organization(body.name, body.plan, body.manager_email)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -119,9 +117,7 @@ async def list_support_tickets(
     if supabase is None:
         raise HTTPException(status_code=503, detail="Database not available")
 
-    query = supabase.table("support_tickets").select(
-        "*, organizations(name)"
-    )
+    query = supabase.table("support_tickets").select("*, organizations(name)")
 
     if ticket_status:
         query = query.eq("status", ticket_status)

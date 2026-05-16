@@ -1,12 +1,16 @@
 """Health check router."""
 
-from ai.novavision.config import get_novavision_settings
+from typing import Any
+
 from fastapi import APIRouter
+
+from ai.novavision.config import get_novavision_settings
 
 router = APIRouter(tags=["health"])
 
+
 @router.get("/health")
-def health_check() -> dict[str, str]:
+def health_check() -> dict[str, Any]:
     """Basic health check for the API."""
     novavision_settings = get_novavision_settings()
     return {

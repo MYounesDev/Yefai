@@ -1,11 +1,10 @@
-from contextlib import asynccontextmanager
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from ai.novavision.config import get_novavision_settings
 from errors import YefaiError
 from middleware.logging import RequestLoggingMiddleware
 from middleware.org_context import OrgContextMiddleware
@@ -28,6 +27,7 @@ from routers.spare_parts import router as spare_parts_router
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -36,6 +36,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Yefai API shutting down...")
 
+
 app = FastAPI(
     title="Yefai API",
     description="Predictive Maintenance Platform — Backend",
@@ -43,16 +44,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 @app.exception_handler(YefaiError)
 async def yefai_error_handler(request: Request, exc: YefaiError):
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "error": exc.detail,
-            "code": exc.status_code,
-            "path": str(request.url.path)
-        }
+        content={"error": exc.detail, "code": exc.status_code, "path": str(request.url.path)},
     )
+
 
 app.add_middleware(
     CORSMiddleware,

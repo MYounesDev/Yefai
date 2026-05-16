@@ -1,8 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from auth.dependencies import get_org_context, require_permission
-from auth.models import OrgContext
-from auth.permissions import Permission
 from ai.novavision.schemas import (
     DeployedModel,
     DeployRequest,
@@ -11,6 +8,9 @@ from ai.novavision.schemas import (
     InferenceResponse,
     InferenceResult,
 )
+from auth.dependencies import get_org_context, require_permission
+from auth.models import OrgContext
+from auth.permissions import Permission
 from services.novavision_service import NovaVisionService, get_novavision_service
 
 router = APIRouter(prefix="/api/novavision", tags=["novavision"])
@@ -41,7 +41,7 @@ def list_models(
 def get_model(
     app_id: str,
     org: OrgContext = Depends(get_org_context),
-    service: NovaVisionService = Depends(get_novavision_service)
+    service: NovaVisionService = Depends(get_novavision_service),
 ) -> DeployedModel:
     model = service.model(app_id)
     if model is None:
@@ -56,7 +56,7 @@ def delete_model(
     app_id: str,
     org: OrgContext = Depends(get_org_context),
     _: None = Depends(require_permission(Permission.MANAGE_ORG_SETTINGS)),
-    service: NovaVisionService = Depends(get_novavision_service)
+    service: NovaVisionService = Depends(get_novavision_service),
 ) -> DeployedModel:
     return service.delete_model(app_id)
 
@@ -78,7 +78,7 @@ async def start_inference(
 def get_inference_result(
     job_id: str,
     org: OrgContext = Depends(get_org_context),
-    service: NovaVisionService = Depends(get_novavision_service)
+    service: NovaVisionService = Depends(get_novavision_service),
 ) -> InferenceResult:
     result = service.inference_result(job_id)
     if result is None:
@@ -89,6 +89,6 @@ def get_inference_result(
 @router.get("/health", response_model=HealthResponse)
 async def health(
     org: OrgContext = Depends(get_org_context),
-    service: NovaVisionService = Depends(get_novavision_service)
+    service: NovaVisionService = Depends(get_novavision_service),
 ) -> HealthResponse:
     return await service.health()

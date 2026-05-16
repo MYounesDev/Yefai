@@ -22,12 +22,14 @@ class PUQAIClient:
 
 
 class NotificationService:
-    def __init__(self, supabase: Client | None = None, client: PuqAIWebhookClient | None = None) -> None:
+    def __init__(
+        self, supabase: Client | None = None, client: PuqAIWebhookClient | None = None
+    ) -> None:
         # Main file initialization priorities
         self._client = client or PuqAIWebhookClient()
         self._settings = get_puqai_settings()
         self._last_sent: dict[int, float] = {}
-        
+
         # ABC file initialization
         self.supabase = supabase
         self.puq_client = PUQAIClient()
@@ -106,11 +108,15 @@ class NotificationService:
     # ABC FILE LOGIC (Secondary Dispatch/Supabase)
     # ==========================================
 
-    async def send_anomaly_alert(self, org_id: str, anomaly_data: dict[str, Any]) -> list[dict[str, Any]]:
+    async def send_anomaly_alert(
+        self, org_id: str, anomaly_data: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Send anomaly alert through all enabled channels for the org."""
         return await self._dispatch(org_id, "anomaly_detected", anomaly_data)
 
-    async def send_crisis_alert(self, org_id: str, crisis_data: dict[str, Any]) -> list[dict[str, Any]]:
+    async def send_crisis_alert(
+        self, org_id: str, crisis_data: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Send crisis/spare parts alert."""
         return await self._dispatch(org_id, "crisis_alert", crisis_data)
 
@@ -118,7 +124,7 @@ class NotificationService:
         """Send test notification to verify channel config."""
         if not self.supabase:
             raise ValueError("Supabase client is not initialized.")
-            
+
         channel_res = (
             self.supabase.table("notification_channels")
             .select("*")
@@ -131,7 +137,9 @@ class NotificationService:
             raise ValueError("Channel not found")
 
         channel = channel_res.data
-        result = await self.puq_client.send(channel["channel_type"], {"message": "Test Notification"})
+        result = await self.puq_client.send(
+            channel["channel_type"], {"message": "Test Notification"}
+        )
 
         # Log
         log_data = {
@@ -140,16 +148,18 @@ class NotificationService:
             "event_type": "test",
             "payload": {"message": "Test Notification"},
             "status": result["status"],
-            "sent_at": "now()" if result["status"] == "sent" else None
+            "sent_at": "now()" if result["status"] == "sent" else None,
         }
         log_res = self.supabase.table("notification_logs").insert(log_data).execute()
-        
+
         if not log_res.data:
             raise ValueError("Failed to create log entry")
 
         return log_res.data[0]
 
-    async def _dispatch(self, org_id: str, event_type: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    async def _dispatch(
+        self, org_id: str, event_type: str, payload: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Core dispatch logic: fetches channels, sends via PUQ AI, and logs."""
         if not self.supabase:
             logger.warning("Supabase client not available for _dispatch.")
@@ -184,7 +194,7 @@ class NotificationService:
                 "payload": payload,
                 "status": status,
                 "error_message": error,
-                "sent_at": "now()" if status == "sent" else None
+                "sent_at": "now()" if status == "sent" else None,
             }
             log_res = self.supabase.table("notification_logs").insert(log_data).execute()
             if log_res.data:
@@ -198,7 +208,7 @@ class NotificationService:
         """Paginated notification logs for an org."""
         if not self.supabase:
             return {"logs": []}
-            
+
         offset = (page - 1) * limit
         query = self.supabase.table("notification_logs").select("*").eq("org_id", org_id)
         if event_type:

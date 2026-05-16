@@ -8,17 +8,11 @@ reports, and webhook log queries.
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-
-from ai.puqai.schemas import NotificationRequest, ReportRequest
-from services.notification_service import NotificationService
-
-from typing import Any
-
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from supabase import Client
 
+from ai.puqai.schemas import NotificationRequest, ReportRequest
 from auth.dependencies import get_org_context, require_permission
 from auth.models import OrgContext
 from auth.permissions import Permission
@@ -29,7 +23,6 @@ router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 
 logger = logging.getLogger(__name__)
-
 
 
 # Dependency
@@ -56,7 +49,9 @@ class TestNotificationRequest(BaseModel):
 # ── Dependency ─────────────────────────────────────────────────
 
 
-def _get_notification_service(supabase: Client = Depends(get_supabase_client)) -> NotificationService:
+def _get_notification_service(
+    supabase: Client = Depends(get_supabase_client),
+) -> NotificationService:
     if supabase is None:
         raise HTTPException(status_code=503, detail="Database not available")
     return NotificationService(supabase)
@@ -202,7 +197,7 @@ async def create_channel(
         "org_id": org.org_id,
         "channel_type": body.channel_type,
         "config": body.config,
-        "is_enabled": body.is_enabled
+        "is_enabled": body.is_enabled,
     }
     result = supabase.table("notification_channels").insert(data).execute()
     if not result.data:
@@ -248,7 +243,7 @@ async def delete_channel(
     supabase: Client = Depends(get_supabase_client),
 ) -> dict[str, Any]:
     """Delete a notification channel (Manager only)."""
-    result = (
+    (
         supabase.table("notification_channels")
         .delete()
         .eq("id", channel_id)

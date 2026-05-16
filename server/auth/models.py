@@ -1,11 +1,11 @@
 """Auth data models — roles, permissions, user context."""
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
 
-class Role(str, Enum):
+class Role(StrEnum):
     """User roles in the platform."""
 
     ADMIN = "admin"

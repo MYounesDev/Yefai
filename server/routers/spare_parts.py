@@ -1,6 +1,6 @@
 """Spare parts router — Phase 3B (Merged)
 
-Handles catalog, inventory, tickets, POs, and crisis management, 
+Handles catalog, inventory, tickets, POs, and crisis management,
 incorporating both mock CSV systems and Supabase integrations.
 """
 
@@ -9,12 +9,18 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from supabase import Client
 
 # Main file imports
 from ai.puqai.schemas import AutoOrderRequest, CrisisScoreResponse
-from services.crisis_service import calculate_crisis_score
+
+# ABC file imports
+from auth.dependencies import get_org_context, require_permission
+from auth.models import OrgContext
+from auth.permissions import Permission
+from db.client import get_supabase_client
+from services.crisis_service import CrisisService, calculate_crisis_score
 from services.purchase_order_service import (
     DuplicateOrderError,
     PurchaseOrder,
@@ -24,13 +30,6 @@ from services.purchase_order_service import (
     update_po_status,
 )
 from services.supplier_service import find_alternatives
-
-# ABC file imports
-from auth.dependencies import get_org_context, require_permission
-from auth.models import OrgContext
-from auth.permissions import Permission
-from db.client import get_supabase_client
-from services.crisis_service import CrisisService
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +41,13 @@ _MOCK_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "mock"
 CATALOG_PATH = _MOCK_DIR / "spare_parts_catalog.csv"
 INVENTORY_PATH = _MOCK_DIR / "inventory_snapshots.csv"
 
+
 def _load_csv(path: Path) -> list[dict]:
     if not path.exists():
         return []
     with open(path, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
+
 
 def _po_to_dict(po: PurchaseOrder) -> dict[str, Any]:
     return {
@@ -64,6 +65,7 @@ def _po_to_dict(po: PurchaseOrder) -> dict[str, Any]:
         "trigger": po.trigger,
     }
 
+
 def _supplier_to_dict(s) -> dict[str, Any]:
     return {
         "supplier_id": s.supplier_id,
@@ -76,7 +78,9 @@ def _supplier_to_dict(s) -> dict[str, Any]:
         "is_viable": s.is_viable,
     }
 
+
 # ── Dependencies (From ABC) ────────────────────────────────────
+
 
 def _get_crisis_service(supabase: Client = Depends(get_supabase_client)) -> CrisisService:
     if supabase is None:
@@ -86,6 +90,7 @@ def _get_crisis_service(supabase: Client = Depends(get_supabase_client)) -> Cris
 
 # ── Crisis Dashboard ───────────────────────────────────────────
 
+
 @router.get("/crisis")
 async def get_crisis_dashboard(
     org: OrgContext = Depends(get_org_context),
@@ -94,6 +99,7 @@ async def get_crisis_dashboard(
 ) -> dict[str, Any]:
     """Get org-wide crisis overview dashboard (From ABC)."""
     return await service.get_crisis_dashboard(org.org_id)
+
 
 @router.get("/crisis-score/{image_id}", response_model=CrisisScoreResponse)
 async def get_crisis_score(
@@ -120,6 +126,7 @@ async def get_crisis_score(
         logger.exception("Failed to calculate crisis score")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @router.get("/crisis/{part_id}")
 async def get_part_crisis_score(
     part_id: str,
@@ -136,6 +143,7 @@ async def get_part_crisis_score(
 
 # ── Catalog ────────────────────────────────────────────────────
 
+
 @router.get("/catalog")
 async def get_catalog(
     criticality: str | None = Query(None, description="Filter by criticality (A/B/C)"),
@@ -146,6 +154,7 @@ async def get_catalog(
     if criticality:
         rows = [r for r in rows if r.get("criticality", "").upper() == criticality.upper()]
     return {"items": rows[:limit], "count": min(len(rows), limit), "total": len(rows)}
+
 
 @router.get("/catalog/{part_id}")
 async def get_part_details(
@@ -170,6 +179,7 @@ async def get_part_details(
 
 # ── Inventory ──────────────────────────────────────────────────
 
+
 @router.get("/inventory")
 async def get_inventory(
     part_id: str | None = Query(None, description="Filter by part ID"),
@@ -183,6 +193,7 @@ async def get_inventory(
     if low_stock:
         rows = [r for r in rows if int(r.get("on_hand", 0)) < int(r.get("min_level", 10))]
     return {"items": rows[:limit], "count": min(len(rows), limit), "total": len(rows)}
+
 
 @router.get("/inventory/{part_id}")
 async def get_inventory_history(
@@ -207,6 +218,7 @@ async def get_inventory_history(
 
 # ── Tickets & Auto-Order ───────────────────────────────────────
 
+
 @router.post("/auto-order")
 async def auto_order(
     request: AutoOrderRequest,
@@ -229,6 +241,7 @@ async def auto_order(
         logger.exception("Failed to create auto order")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @router.get("/tickets")
 async def get_tickets(
     org: OrgContext = Depends(get_org_context),
@@ -242,9 +255,10 @@ async def get_tickets(
     query = supabase.table("part_tickets").select("*").eq("org_id", org.org_id)
     if status:
         query = query.eq("status", status)
-        
+
     result = query.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
     return {"tickets": result.data or []}
+
 
 @router.post("/tickets/{ticket_id}/auto-order")
 async def auto_order_ticket(
@@ -263,6 +277,7 @@ async def auto_order_ticket(
 
 # ── Purchase Orders ────────────────────────────────────────────
 
+
 @router.get("/purchase-orders")
 async def list_purchase_orders(
     status: str | None = Query(None, description="Filter by status"),
@@ -279,6 +294,7 @@ async def list_purchase_orders(
         logger.exception("Failed to list purchase orders")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @router.get("/purchase-orders/{po_id}")
 async def get_po(po_id: int) -> dict[str, Any]:
     """Get a single purchase order by ID (From Main)."""
@@ -286,6 +302,7 @@ async def get_po(po_id: int) -> dict[str, Any]:
     if po is None:
         raise HTTPException(status_code=404, detail=f"Purchase order #{po_id} not found")
     return {"po": _po_to_dict(po)}
+
 
 @router.patch("/purchase-orders/{po_id}/status")
 async def change_po_status(
@@ -307,6 +324,7 @@ async def change_po_status(
         logger.exception("Failed to update PO status")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @router.post("/purchase-orders/{po_id}/approve")
 async def approve_po(
     po_id: str,
@@ -325,6 +343,7 @@ async def approve_po(
     if not result.data:
         raise HTTPException(status_code=404, detail="Purchase order not found")
     return {"message": "Purchase order approved", "purchase_order": result.data[0]}
+
 
 @router.post("/purchase-orders/{po_id}/reject")
 async def reject_po(
@@ -347,6 +366,7 @@ async def reject_po(
 
 
 # ── Suppliers ──────────────────────────────────────────────────
+
 
 @router.get("/alternative-suppliers/{part_id}")
 async def get_alternative_suppliers(
@@ -373,6 +393,7 @@ async def get_alternative_suppliers(
         logger.exception("Failed to find alternative suppliers")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @router.get("/suppliers")
 async def get_suppliers(
     org: OrgContext = Depends(get_org_context),
@@ -381,18 +402,15 @@ async def get_suppliers(
 ) -> dict[str, Any]:
     """List all org suppliers (From ABC)."""
     result = (
-        supabase.table("supplier_parts")
-        .select("suppliers(*)")
-        .eq("org_id", org.org_id)
-        .execute()
+        supabase.table("supplier_parts").select("suppliers(*)").eq("org_id", org.org_id).execute()
     )
-    
+
     seen = set()
     suppliers = []
-    for row in (result.data or []):
+    for row in result.data or []:
         s = row.get("suppliers")
         if s and s["supplier_id"] not in seen:
             seen.add(s["supplier_id"])
             suppliers.append(s)
-            
+
     return {"suppliers": suppliers}

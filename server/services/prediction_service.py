@@ -203,10 +203,7 @@ class PredictionService:
         """
         # Get all unique machine IDs for this org
         response = (
-            self.supabase.table("anomalies")
-            .select("machine_id")
-            .eq("org_id", org_id)
-            .execute()
+            self.supabase.table("anomalies").select("machine_id").eq("org_id", org_id).execute()
         )
 
         if not response.data:

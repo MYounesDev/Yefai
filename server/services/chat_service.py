@@ -1,7 +1,6 @@
 """Chat and RAG service — session management, hybrid search, message processing."""
 
 import logging
-from typing import Any
 
 from supabase import Client
 
@@ -26,7 +25,7 @@ class MockLLMService:
 
         # Basic heuristic mapping based on source data
         source_types = [ctx.get("type", "unknown") for ctx in context]
-        
+
         if "anomaly" in source_types or any("wear" in str(ctx) for ctx in context):
             return (
                 f"Based on the data retrieved, there are wear anomalies detected. "
@@ -38,7 +37,7 @@ class MockLLMService:
                 "Looking at the spare parts inventory, we have relevant components, but "
                 "you should verify the lead times. Some parts might be on backorder."
             )
-        
+
         return (
             f"Here is what I found regarding your query: The top result relates to "
             f"'{context[0].get('file_name', context[0].get('id', 'Unknown'))}'. "
@@ -107,27 +106,33 @@ class ChatService:
         """Combine embedding similarity search + keyword search."""
         # 1. Embedding search via embedding_service
         try:
-            vector_results = self.embedding_service.search_by_text(query, top_k=top_k, org_id=org_id)
+            vector_results = self.embedding_service.search_by_text(
+                query, top_k=top_k, org_id=org_id
+            )
         except RuntimeError:
             vector_results = []
-        
+
         # In a real implementation, we would combine this with full-text search
         # on anomalies, purchase orders, etc.
         # For now, we return the vector search results mapped to standard context dicts.
-        
+
         context = []
         for res in vector_results:
-            context.append({
-                "type": "image_anomaly",
-                "id": res.get("image_name"),
-                "similarity": res.get("similarity"),
-                "wear": res.get("wear"),
-                "set": res.get("set")
-            })
-            
+            context.append(
+                {
+                    "type": "image_anomaly",
+                    "id": res.get("image_name"),
+                    "similarity": res.get("similarity"),
+                    "wear": res.get("wear"),
+                    "set": res.get("set"),
+                }
+            )
+
         return context
 
-    async def send_message(self, session_id: str, org_id: str, user_id: str, user_message: str) -> dict:
+    async def send_message(
+        self, session_id: str, org_id: str, user_id: str, user_message: str
+    ) -> dict:
         """
         Process user message and generate LLM response using RAG.
         """
@@ -145,12 +150,10 @@ class ChatService:
             raise ValueError("Session not found or access denied")
 
         # 1. Save user message
-        self.supabase.table("chat_messages").insert({
-            "session_id": session_id,
-            "role": "user",
-            "content": user_message
-        }).execute()
-        
+        self.supabase.table("chat_messages").insert(
+            {"session_id": session_id, "role": "user", "content": user_message}
+        ).execute()
+
         # 2. Retrieve context via hybrid search
         context = await self.hybrid_search(org_id, user_message)
 
@@ -159,17 +162,23 @@ class ChatService:
 
         # 4. Save assistant response
         metadata = {"sources": context}
-        assistant_result = self.supabase.table("chat_messages").insert({
-            "session_id": session_id,
-            "role": "assistant",
-            "content": llm_response,
-            "metadata": metadata
-        }).execute()
-        
+        assistant_result = (
+            self.supabase.table("chat_messages")
+            .insert(
+                {
+                    "session_id": session_id,
+                    "role": "assistant",
+                    "content": llm_response,
+                    "metadata": metadata,
+                }
+            )
+            .execute()
+        )
+
         # Update session timestamp
-        self.supabase.table("chat_sessions").update({
-            "updated_at": "now()"
-        }).eq("id", session_id).execute()
+        self.supabase.table("chat_sessions").update({"updated_at": "now()"}).eq(
+            "id", session_id
+        ).execute()
 
         if not assistant_result.data:
             raise ValueError("Failed to save assistant response")
@@ -186,8 +195,8 @@ class ChatService:
             .eq("user_id", user_id)
             .execute()
         )
-        
+
         if not result.data:
             raise ValueError("Session not found or access denied")
-        
+
         return True

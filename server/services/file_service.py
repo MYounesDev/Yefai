@@ -8,7 +8,6 @@ This handles:
 
 import logging
 import time
-from typing import Any
 
 from supabase import Client
 
@@ -72,9 +71,9 @@ class FileService:
 
         # Update profile
         try:
-            self.supabase.table("profiles").update(
-                {"avatar_url": public_url}
-            ).eq("id", user_id).execute()
+            self.supabase.table("profiles").update({"avatar_url": public_url}).eq(
+                "id", user_id
+            ).execute()
         except Exception as e:
             logger.warning("Failed to update profile avatar_url: %s", e)
 
@@ -100,7 +99,9 @@ class FileService:
             raise ValueError(f"Invalid file type. Allowed: {', '.join(self.ALLOWED_DOC_TYPES)}")
 
         if len(file_data) > self.ORG_FILE_MAX_SIZE:
-            raise ValueError(f"File too large. Maximum: {self.ORG_FILE_MAX_SIZE // (1024 * 1024)} MB")
+            raise ValueError(
+                f"File too large. Maximum: {self.ORG_FILE_MAX_SIZE // (1024 * 1024)} MB"
+            )
 
         timestamp = int(time.time())
         safe_filename = filename.replace(" ", "_")
@@ -143,11 +144,7 @@ class FileService:
         limit: int = 20,
     ) -> dict:
         """List files for an organization, optionally filtered by category."""
-        query = (
-            self.supabase.table("files")
-            .select("*", count="exact")
-            .eq("org_id", org_id)
-        )
+        query = self.supabase.table("files").select("*", count="exact").eq("org_id", org_id)
 
         if category:
             query = query.eq("category", category)
@@ -178,7 +175,7 @@ class FileService:
             raise ValueError("File not found")
 
         bucket = result.data["bucket"]
-        path = result.data["storage_path"]
+        path = str(result.data["storage_path"])
 
         # Delete from storage
         try:

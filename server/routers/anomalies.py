@@ -33,7 +33,7 @@ async def list_anomalies(
 ) -> dict[str, Any]:
     """Paginated anomaly list."""
     query = supabase.table("anomalies").select("*").eq("org_id", org.org_id)
-    
+
     if severity:
         query = query.eq("severity", severity)
     if wear_type:
@@ -42,7 +42,7 @@ async def list_anomalies(
         query = query.eq("machine_id", machine_id)
     if status:
         query = query.eq("status", status)
-        
+
     result = query.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
     return {"anomalies": result.data or []}
 
@@ -79,15 +79,11 @@ async def update_anomaly_status(
     """Update anomaly status and add notes."""
     if body.status not in ["new", "reviewed", "resolved"]:
         raise HTTPException(status_code=400, detail="Invalid status")
-        
-    data = {
-        "status": body.status,
-        "reviewed_by": org.user.id,
-        "reviewed_at": "now()"
-    }
+
+    data = {"status": body.status, "reviewed_by": org.user.id, "reviewed_at": "now()"}
     if body.notes is not None:
         data["notes"] = body.notes
-        
+
     result = (
         supabase.table("anomalies")
         .update(data)
@@ -97,5 +93,5 @@ async def update_anomaly_status(
     )
     if not result.data:
         raise HTTPException(status_code=404, detail="Anomaly not found")
-        
+
     return {"message": "Anomaly updated", "anomaly": result.data[0]}

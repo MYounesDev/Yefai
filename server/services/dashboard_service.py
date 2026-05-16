@@ -19,7 +19,7 @@ class DashboardService:
         crisis_service: CrisisService | None = None,
     ):
         self.supabase = supabase
-        self.prediction_service = prediction_service or PredictionService()
+        self.prediction_service = prediction_service or PredictionService(supabase)
         self.crisis_service = crisis_service or CrisisService(supabase, self.prediction_service)
 
     async def get_overview(self, org_id: str) -> dict[str, Any]:
@@ -32,11 +32,13 @@ class DashboardService:
             .execute()
         )
         anomalies = anomalies_res.data or []
-        
+
         total_anomalies = len(anomalies)
-        active_anomalies = len([a for a in anomalies if a.get("status") in ("new", "reviewed")])
-        
-        total_wear = sum([float(a.get("wear") or 0) for a in anomalies])
+        active_anomalies = len(
+            [a for a in anomalies if str(a.get("status", "")) in ("new", "reviewed")]
+        )
+
+        total_wear = sum((float(a.get("wear") or 0) for a in anomalies), 0.0)
         avg_wear_um = total_wear / total_anomalies if total_anomalies > 0 else 0.0
 
         recent_anomalies = sorted(anomalies, key=lambda x: x.get("created_at", ""), desc=True)[:5]
@@ -44,7 +46,7 @@ class DashboardService:
         # 2. Crisis Overview
         # We can simulate calling crisis_service.get_crisis_dashboard
         crisis_summary = await self.crisis_service.get_crisis_dashboard(org_id)
-        
+
         # 3. Machines Overview
         try:
             machines_overview = await self.prediction_service.get_factory_overview(org_id)
@@ -58,7 +60,7 @@ class DashboardService:
                 "active_anomalies": active_anomalies,
                 "avg_wear_um": round(avg_wear_um, 2),
                 "crisis_count": crisis_summary.get("critical_count", 0),
-                "uptime_percent": 99.9  # Mock uptime
+                "uptime_percent": 99.9,  # Mock uptime
             },
             "machines": machines,
             "recent_anomalies": recent_anomalies,
@@ -66,8 +68,8 @@ class DashboardService:
                 "total_parts": crisis_summary.get("total_parts", 0),
                 "at_risk": crisis_summary.get("at_risk_count", 0),
                 "critical": crisis_summary.get("critical_count", 0),
-                "pending_pos": 0  # To be fetched if needed
-            }
+                "pending_pos": 0,  # To be fetched if needed
+            },
         }
 
     async def get_health_status(self) -> dict[str, Any]:
@@ -81,6 +83,7 @@ class DashboardService:
 
         # Check embedding model
         from services.embedding_service import EmbeddingService
+
         emb_service = EmbeddingService()
         emb_loaded = emb_service.model_loaded
 
@@ -94,7 +97,10 @@ class DashboardService:
             "database": {"status": db_status, "latency_ms": 15},
             "anomalib": {"status": anomalib_status, "model_loaded": True},
             "novavision": {"status": novavision_status, "mode": "mock"},
-            "embeddings": {"status": "healthy" if emb_loaded else "standby", "model_loaded": emb_loaded},
+            "embeddings": {
+                "status": "healthy" if emb_loaded else "standby",
+                "model_loaded": emb_loaded,
+            },
             "puqai": {"status": "mock"},
-            "last_check": "now"
+            "last_check": "now",
         }

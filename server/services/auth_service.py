@@ -5,7 +5,6 @@ import re
 
 from supabase import Client, create_client
 
-from auth.models import OrgMembership, Role
 from db.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -18,7 +17,9 @@ class AuthService:
         self.supabase = supabase
         self.settings = get_settings()
         # Instantiate a fresh client for auth ops to not mutate global service role client
-        self.auth_client = create_client(self.settings.supabase_url, self.settings.supabase_service_key)
+        self.auth_client = create_client(
+            self.settings.supabase_url, self.settings.supabase_service_key
+        )
 
     async def sign_up(self, email: str, password: str, full_name: str) -> dict:
         """Register a new user via Supabase Auth and create their profile.

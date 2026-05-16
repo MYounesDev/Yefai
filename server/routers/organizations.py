@@ -8,7 +8,6 @@ from supabase import Client
 
 from auth.dependencies import get_current_user, get_org_context
 from auth.models import CurrentUser, OrgContext, Role
-from auth.permissions import Permission
 from db.client import get_supabase_client
 from services.org_service import OrgService
 
@@ -88,12 +87,12 @@ async def update_organization(
 ):
     """Update organization info (Manager only)."""
     if org.role != Role.MANAGER:
-        raise HTTPException(status_code=403, detail="Only managers can update organization settings")
+        raise HTTPException(
+            status_code=403, detail="Only managers can update organization settings"
+        )
 
     try:
-        result = await service.update_organization(
-            org_id, body.model_dump(exclude_none=True)
-        )
+        result = await service.update_organization(org_id, body.model_dump(exclude_none=True))
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

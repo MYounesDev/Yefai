@@ -1,13 +1,13 @@
 """Permission system — maps roles to permissions, provides check functions."""
 
-from enum import Enum
+from enum import StrEnum
 
 from fastapi import HTTPException, status
 
 from auth.models import Role
 
 
-class Permission(str, Enum):
+class Permission(StrEnum):
     """Fine-grained permissions that are granted to roles."""
 
     # Dashboard
