@@ -12,6 +12,11 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pandas>=2.0.0",
     "numpy>=1.26.0",
+    "torch>=2.4.0",
+    "torchvision>=0.19.0",
+    "transformers>=4.45.0",
+    "pillow>=10.0.0",
+    "anomalib>=1.1.0",
 ]
 
 [project.optional-dependencies]
@@ -45,7 +50,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["etl", "db", "routers"]
+known-first-party = ["etl", "db", "routers", "services", "ai", "ai.anomalib", "ai.embeddings"]
 
 [tool.ruff.format]
 line-ending = "lf"
