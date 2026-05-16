@@ -5,6 +5,24 @@
 
 ---
 
+## v1.0 Backend Kapsamı (BU FAZLAR)
+
+| FR Grubu | Kapsam | Hangi Faz |
+|----------|--------|-----------|
+| FR-1: Veri Seti Yönetimi | ✅ Tam | Phase 1 |
+| FR-2: AI Inference Engine | ✅ Tam | Phase 2A, 2B |
+| FR-3: Gerçek Zamanlı Veri Akışı | ❌ Frontend | Dashboard aşaması |
+| FR-4: RAG Chatbot | ⚠️ API only | Phase 3A (UI yok) |
+| FR-5: Anomali Yönetimi & PUQ AI | ⚠️ Backend only | Phase 3B (dashboard UI yok) |
+| FR-6: Desktop Uygulama (Tauri) | ❌ Frontend | Desktop aşaması |
+| FR-7: Veritabanı & Embedding | ✅ Tam | Phase 1, 2A |
+| FR-8: Yedek Parça Krizi | ✅ Tam | Phase 1, 3B |
+
+> ⚠️ = Backend endpoint'leri var, UI/dashboard kısmı yok. Frontend aşamasında eklenecek.
+> ❌ = Tamamen frontend/desktop kapsamında, bu fazlarda yok.
+
+---
+
 ## Functional Requirements
 
 ### FR-1: Veri Seti Yönetimi
@@ -15,7 +33,7 @@
 | FR-1.2 | Train/test split (%70/%30) set bazında yapılır, aynı set bölünmez | P0 | Test setindeki hiçbir Set ID train'de yok |
 | FR-1.3 | Sensör CSV'leri parse edilir: Accelerometer, Acoustic, Force X/Y/Z, timestamp | P0 | Her sensör dosyası 6 kolon olarak okunur |
 | FR-1.4 | Görüntüler ve sensör verisi timestamp ile eşleştirilir, senkronizasyon hataları loglanır | P1 | Eşleşen çift > %90, hatalar log'da |
-| FR-1.5 | MATWI'de stok/BOM verisi olmadığı için mock yedek parça kataloğu, envanter snapshot'ı ve ticket datası üretilir | P0 | `spare_parts_catalog.csv`, `inventory_snapshots.csv`, `part_tickets.csv` ve kalite raporu oluşur |
+| FR-1.5 | MATWI'de stok/BOM verisi olmadığı için mock yedek parça kataloğu, tedarikçi listesi, envanter snapshot'ı, ticket datası ve purchase order üretilir | P0 | `spare_parts_catalog.csv`, `suppliers.csv`, `inventory_snapshots.csv`, `part_tickets.csv`, `purchase_orders.csv` ve kalite raporu oluşur |
 
 ### FR-2: AI Inference Engine (Görüntü Tabanlı)
 
@@ -82,7 +100,7 @@
 | FR-7.4 | ~~Gemini Embedding 2~~ KALDIRILDI — Jina CLIP v2 tek model olarak hem görüntü hem metin embedding'i yapar | — | — |
 | FR-7.5 | Hibrit arama: vektör similarity + metadata filtre (set, wear seviyesi, tarih) | P1 | "Set 5'teki flank wear görüntüleri" sorgusu |
 | FR-7.6 | PUQ AI webhook log'ları Supabase'de saklanır (denetim için) | P2 | Her webhook call'u loglanır |
-| FR-7.7 | Mock yedek parça tabloları: `spare_parts_catalog`, `inventory_snapshots`, `part_tickets` | P0 | Kriz senaryosu için parça, stok, lead time ve ticket sorgulanabilir |
+| FR-7.7 | Mock yedek parça tabloları: `spare_parts_catalog`, `suppliers`, `inventory_snapshots`, `part_tickets`, `purchase_orders` | P0 | Kriz senaryosu için parça, tedarikçi, stok, lead time, ticket ve PO sorgulanabilir |
 
 ### FR-8: Yedek Parça Krizi Mock Katmanı
 
@@ -93,7 +111,9 @@
 | FR-8.3 | Stok krizi skoru hesaplanır: stok açığı, lead time farkı, kritiklik, supplier riski, anomali şiddeti | P0 | Skor 0-100 ve risk seviyesi (`none/watch/at_risk/crisis`) döner |
 | FR-8.4 | Dashboard'da “Yedek Parça Krizi” paneli gösterilir | P0 | Panelde parça adı, eldeki stok, siparişte, ihtiyaç tarihi, lead time, risk seviyesi görünür |
 | FR-8.5 | RAG chatbot mock inventory üzerinde soru-cevap yapabilir | P1 | "Hangi kritik parçalar stokta yok?" sorusu tablo yanıtı döner |
-| FR-8.6 | PUQ AI bildiriminde stok krizi alanları yer alır | P1 | Telegram/e-posta payload'ında parça, stok, lead time ve kriz skoru var |
+| FR-8.6 | PUQ AI bildiriminde stok krizi alanları yer alır | P1 | Telegram/e-posta payload'ında parça, stok, lead time, alternatif tedarikçi ve kriz skoru var |
+| FR-8.7 | Kriz (`crisis`/`at_risk`) durumunda otomatik mock PO oluşturulur, satın alma ekranında gösterilir | P0 | PO `ready_for_review` durumunda dashboard'da parça, tedarikçi, maliyet, lead time ile görünür; manuel onay/iptal çalışır |
+| FR-8.8 | Birincil tedarikçi lead time'ı kritik eşiğe yetişmediğinde alternatif tedarikçi önerilir | P0 | Alternatif supplier lead time, maliyet farkı ve güvenilirlik skoru ile dashboard ve bildirimde gösterilir; tek tedarikçili parçada "alternatif yok" uyarısı verilir |
 
 ---
 
@@ -130,4 +150,4 @@
 
 ---
 
-*Last updated: 2026-05-15*
+*Last updated: 2026-05-16 — Backend kapsam tablosu eklendi, frontend FR'leri işaretlendi*

@@ -254,4 +254,42 @@ LIMIT 5;
 
 ---
 
-*Last updated: 2026-05-15*
+## 10. Paralel Faz Mimarisi (v1.0 Backend)
+
+### Karar
+v1.0 backend 6 faza bölündü, 2 kişi paralel çalışabilir şekilde tasarlandı.
+
+### Faz Yapısı
+```
+Phase 1: Veri Altyapısı & Supabase (birlikte)
+    │
+    ├── Phase 2A: Anomalib + Embedding (Kişi A)  ∥
+    │       │
+    │   Phase 3A: RAG Pipeline (Kişi A)          ∥
+    │
+    ├── Phase 2B: NovaVision Inference (Kişi B)  ∥
+    │       │
+    │   Phase 3B: PUQ AI + Kriz Otomasyonu (B)   ∥
+    │
+    └── Phase 4: FastAPI Lifespan & Entegrasyon (birlikte)
+```
+
+### Neden Bu Yapı?
+- **2A ∥ 2B:** Anomalib eğitimi (CPU/GPU, lokal) ile NovaVision API (I/O, cloud) farklı kaynaklar kullanır, birbirini beklemez
+- **3A ∥ 3B:** RAG (LLM + embedding) ile bildirim otomasyonu (webhook + iş mantığı) tamamen farklı domain'ler
+- **Phase 2B mock ile başlar:** Phase 2A'dan model .pt gelene kadar NovaVision entegrasyonu mock response ile yazılır, model hazır olunca sadece upload + test yeterli
+
+### Manual Gates
+| Gate | Açıklama | Faz |
+|------|----------|-----|
+| G1 | Supabase projesi + pgvector | Phase 1 öncesi |
+| G2 | NovaVision API erişimi | Phase 2B öncesi |
+| G3 | PUQ AI hesabı + webhook URL'leri | Phase 3B öncesi |
+| G4 | Gemini/Claude API key | Phase 3A öncesi |
+
+### Frontend Kapsam Dışı
+Next.js dashboard, Tauri desktop shell, WebSocket streaming bu fazların dışındadır. Backend hazır olunca frontend aşaması başlar.
+
+---
+
+*Last updated: 2026-05-16 — Paralel faz mimarisi kararı eklendi*
