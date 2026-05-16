@@ -80,6 +80,19 @@ def train_patchcore(
         num_workers=4,
     )
 
+    if norm_stats_path is not None and norm_stats_path.exists():
+        from torchvision.transforms import Compose, Normalize, Resize, ToTensor
+
+        custom_transform = Compose(
+            [
+                Resize((256, 256), antialias=True),
+                ToTensor(),
+                Normalize(mean=mean, std=std),
+            ]
+        )
+        datamodule.train_transform = custom_transform
+        datamodule.eval_transform = custom_transform
+        logger.info("Applied dataset-specific transform with MATWI normalization")
     datamodule.setup()
 
     model = Patchcore(
