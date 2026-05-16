@@ -76,7 +76,15 @@ warn_return_any = false
 warn_unused_configs = true
 ignore_missing_imports = true
 explicit_package_bases = true
-exclude = ["tests/", "../.agent/", "../.planning/", "../client/", "../graphify-out/", "../llm_docs/"]
+exclude = [
+    "tests/",
+    "../.agent/",
+    "../.planning/",
+    "../client/",
+    "../graphify-out/",
+    "../llm_docs/",
+    "ai/anomalib/",  # Phase 2A - not yet implemented
+]
 # Disable strict checks for dynamic Supabase responses
 disable_error_code = ["union-attr", "index", "arg-type", "assignment", "return-value", "call-overload"]
 
