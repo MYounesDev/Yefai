@@ -47,6 +47,17 @@ def train_patchcore(
 
     mean, std = load_norm_stats(norm_stats_path)
 
+    from torchvision.transforms import v2
+
+    input_augmentations = v2.Compose(
+        [
+            v2.Resize((256, 256), antialias=True),
+            v2.ToImage(),
+            v2.ToDtype(torch.float32, scale=True),
+            v2.Normalize(mean=mean, std=std),
+        ]
+    )
+
     if device == "auto":
         if torch.cuda.is_available():
             device = "cuda"
@@ -63,24 +74,11 @@ def train_patchcore(
         normal_dir="train/good",
         abnormal_dir="test/bad",
         normal_test_dir="test/good",
-        image_size=(256, 256),
+        augmentations=input_augmentations,
         train_batch_size=32,
         eval_batch_size=32,
         num_workers=4,
     )
-
-    if norm_stats_path is not None and norm_stats_path.exists():
-        from torchvision.transforms import Compose, Normalize, Resize
-
-        custom_transform = Compose(
-            [
-                Resize((256, 256), antialias=True),
-                Normalize(mean=mean, std=std),
-            ]
-        )
-        datamodule.train_transform = custom_transform
-        datamodule.eval_transform = custom_transform
-        logger.info("Applied dataset-specific transform with MATWI normalization")
 
     datamodule.setup()
 
