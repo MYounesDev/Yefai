@@ -13,6 +13,7 @@ Usage in routers:
 """
 
 import logging
+import os
 from collections.abc import Callable
 from typing import Any
 
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 def _is_test_mode() -> bool:
     settings = get_settings()
-    return settings.environment == "test"
+    return settings.environment == "test" and bool(os.getenv("PYTEST_CURRENT_TEST"))
 
 
 async def get_current_user(
@@ -150,7 +151,7 @@ async def get_org_context(
     """
     if _is_test_mode():
         return OrgContext(
-            org_id=x_organization_id or "test-org",
+            org_id="test-org",
             role=Role.MANAGER,
             user=current_user,
         )
