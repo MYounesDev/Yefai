@@ -26,12 +26,25 @@ def classify_anomaly(wear_value: float) -> int | None:
 
 def find_image_path(labels_row: pd.Series, project_root: Path) -> Path | None:
     image_file = str(labels_row["ImageFile"])
+    set_num = int(labels_row["Set"]) if pd.notna(labels_row.get("Set")) else None
+
     candidates = [
         project_root / image_file,
         project_root / "data" / image_file,
         project_root / "llm_docs" / image_file,
         project_root / "llm_docs" / image_file.replace("MATWI/", ""),
     ]
+
+    if set_num is not None:
+        set_dir = f"Set{set_num}"
+        candidates.extend(
+            [
+                project_root / "data" / "MATWI" / set_dir / "images" / Path(image_file).name,
+                project_root / "data" / "MATWI" / set_dir / Path(image_file).name,
+                project_root / "data" / "MATWI" / "images" / Path(image_file).name,
+            ]
+        )
+
     for c in candidates:
         if c.exists():
             return c
