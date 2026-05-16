@@ -1,1 +1,1 @@
-"""AI integration modules for Yefai."""
+"""AI module for Yefai platform."""

@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ai.novavision.config import get_novavision_settings
+from routers import predictions
 from routers.anomalib import router as anomalib_router
 from routers.embeddings import router as embeddings_router
 from routers.novavision import router as novavision_router
@@ -28,6 +29,7 @@ app.add_middleware(
 app.include_router(anomalib_router)
 app.include_router(embeddings_router)
 app.include_router(novavision_router)
+app.include_router(predictions.router)
 
 
 @app.get("/health")

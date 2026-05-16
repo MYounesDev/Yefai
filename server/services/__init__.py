@@ -1,1 +1,1 @@
-"""Service layer modules."""
+"""Services module for Yefai platform."""
