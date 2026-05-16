@@ -1,0 +1,7 @@
+{
+  "model": "jinaai/jina-clip-v2",
+  "dim": 1024,
+  "total_images": 2388,
+  "written": 2388,
+  "failed": 0
+}
