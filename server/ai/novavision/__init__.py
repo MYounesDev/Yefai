@@ -1,0 +1,1 @@
+"""NovaVision local inference integration."""
