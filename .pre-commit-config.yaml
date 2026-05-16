@@ -20,7 +20,7 @@ repos:
 
       - id: pytest
         name: pytest
-        entry: bash -c 'cd server && uv run pytest ../tests/phase01/ -q'
+        entry: bash -c 'cd server && uv run pytest ../tests/ -q'
         language: system
         pass_filenames: false
         always_run: true
