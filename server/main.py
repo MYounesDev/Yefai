@@ -1,5 +1,13 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from routers.anomalib import router as anomalib_router
+from routers.embeddings import router as embeddings_router
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Yefai API",
@@ -15,6 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(anomalib_router)
+app.include_router(embeddings_router)
+
 
 @app.get("/health")
 def health():
@@ -22,4 +33,8 @@ def health():
         "status": "ok",
         "version": "0.1.0",
         "supabase": "configured",
+        "services": {
+            "anomalib": "Phase 2A",
+            "embeddings": "Phase 2A",
+        },
     }

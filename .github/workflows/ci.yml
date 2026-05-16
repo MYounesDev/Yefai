@@ -34,7 +34,7 @@ jobs:
         run: uv run mypy .
 
       - name: Pytest
-        run: uv run pytest ../tests/phase01/ -q
+        run: uv run pytest ../tests/ -q
 
   pre-commit:
     runs-on: ubuntu-latest
@@ -50,4 +50,6 @@ jobs:
         working-directory: server
         run: uv sync --dev
 
-      - uses: pre-commit/action@v3.0.1
+      - name: Run pre-commit hooks
+        run: uv run pre-commit run --all-files
+        working-directory: server
