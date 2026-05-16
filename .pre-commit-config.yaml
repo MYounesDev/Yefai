@@ -9,19 +9,5 @@ repos:
         args: [--config=server/pyproject.toml]
         files: ^server/
 
-  - repo: local
-    hooks:
-      - id: mypy
-        name: mypy
-        entry: bash -c 'cd server && uv run mypy .'
-        language: system
-        pass_filenames: false
-        files: ^server/
-
-      - id: pytest
-        name: pytest
-        entry: bash -c 'cd server && uv run pytest ../tests/ -q'
-        language: system
-        pass_filenames: false
-        always_run: true
-        files: ^(server|tests)/
+  # Note: mypy and pytest are run in CI/CD pipeline
+  # To run locally: cd server && uv run mypy . && uv run pytest ../tests/ -q
