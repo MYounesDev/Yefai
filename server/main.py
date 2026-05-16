@@ -72,9 +72,12 @@ app.add_middleware(OrgContextMiddleware)
 
 # ── Existing routers (unchanged) ──────────────────────────────
 app.include_router(anomalib_router)
+app.include_router(chat_router)
 app.include_router(embeddings_router)
 app.include_router(novavision_router)
 app.include_router(predictions.router)
+app.include_router(notifications_router)
+app.include_router(spare_parts_router)
 
 app.include_router(health_router)
 

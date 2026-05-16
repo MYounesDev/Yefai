@@ -22,6 +22,7 @@ dependencies = [
     "transformers>=4.45.0",
     "pillow>=10.0.0",
     "anomalib>=1.1.0",
+    "psycopg2-binary>=2.9.12",
 ]
 
 [project.optional-dependencies]

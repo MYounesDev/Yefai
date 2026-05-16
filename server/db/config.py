@@ -35,6 +35,10 @@ class Settings(BaseSettings):
 
     yefai_data_root: str = ""
 
+    llm_provider: str = "openai"
+    llm_model: str = "gpt-4o"
+    llm_api_key: str = ""
+
     # Comma-separated list of platform admin emails
     admin_emails: str = ""
 
