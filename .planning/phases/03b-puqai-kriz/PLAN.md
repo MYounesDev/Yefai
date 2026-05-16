@@ -21,6 +21,11 @@ Anomali tespitinde PUQ AI webhook tetikle, Telegram/E-posta/SMS bildirimleri gö
 - [ ] `PUQAI_ANOMALY_WEBHOOK`, `PUQAI_EMAIL_WEBHOOK`, `PUQAI_SMS_WEBHOOK` `.env` dosyasında
 - [ ] Test mesajı gönderilip alındığı doğrulandı
 
+> **ÖNEMLİ — PUQ AI vs Kod Sorumluluk Ayrımı:**
+> - **PUQ AI panelinde yapılacak:** Telegram bot bağlama, E-posta SMTP ayarları, SMS gateway entegrasyonu, alıcı listeleri, mesaj format şablonları. Tüm kanal konfigürasyonu puq.ai dashboard'undan yönetilir.
+> - **Kodda yapılacak:** Sadece webhook URL'lerine POST isteği atmak. Payload (anomali detayı, skor, görüntü URL'i) kod tarafında hazırlanır, iletim PUQ AI tarafından yapılır.
+> - Yani Telegram/E-posta/SMS gönderimi için herhangi bir Telegram Bot API, SMTP client, SMS gateway SDK'sı **yazılmaz**. Tek bağımlılık `httpx` ile webhook POST.
+
 ---
 
 ## Tasks
@@ -30,7 +35,7 @@ Anomali tespitinde PUQ AI webhook tetikle, Telegram/E-posta/SMS bildirimleri gö
 #### Task 1.1: PUQ AI webhook client
 - **Files:** `server/ai/puqai/client.py`, `server/ai/puqai/schemas.py`
 - **Description:**
-  - `httpx.AsyncClient` ile async HTTP client
+  - `httpx.AsyncClient` ile async HTTP client — sadece webhook URL'lerine POST atar, kanal entegrasyonu PUQ AI panelinde yapılır
   - Webhook payload formatı:
     ```json
     {
