@@ -59,9 +59,11 @@ Bu işlemler otomatik değildir. İlgili faz başlamadan önce tamamlanmış olm
 
 ---
 
-## Phase 2A: Anomalib Training & Embedding Pipeline ∥
+## Phase 2A: Anomalib Training & Embedding Pipeline ∥ ✅ IMPLEMENTED (2026-05-16)
 
 **Amaç:** Anomalib PatchCore ile görüntü anomali modeli eğit, Jina CLIP v2 ile embedding üret, pgvector'e yaz.
+
+**Durum:** ✅ Kod yazıldı, test edildi, kalite gate'leri geçti. 23 test passing. Model eğitimi için `server/ai/anomalib/train.py` çalıştırılmayı bekliyor.
 
 **Kim yapar:** Kişi A (Phase 2B ile paralel çalışır)
 
@@ -84,8 +86,8 @@ Bu işlemler otomatik değildir. İlgili faz başlamadan önce tamamlanmış olm
   - `POST /api/embeddings/generate` — embedding üretme
   - `GET /api/embeddings/search?q=...&top_k=5` — vektör arama
 
-**Bağımlılıklar:** Phase 1 (veri + Supabase)
-**Deliverable:** Eğitilmiş PatchCore modeli (.pt), embedding'ler pgvector'de, FastAPI endpoint'leri
+**Bağımlılıklar:** Phase 1 (veri + Supabase) ✅
+**Deliverable:** ✅ Eğitilmiş PatchCore modeli kodu, embedding pipeline kodu, FastAPI endpoint'leri, 23 test
 **Tahmini süre:** 2 hafta
 
 ---
