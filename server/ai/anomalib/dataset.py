@@ -37,11 +37,12 @@ def find_image_path(labels_row: pd.Series, project_root: Path) -> Path | None:
 
     if set_num is not None:
         set_dir = f"Set{set_num}"
+        image_name = Path(image_file).name
         candidates.extend(
             [
-                project_root / "data" / "MATWI" / set_dir / "images" / Path(image_file).name,
-                project_root / "data" / "MATWI" / set_dir / Path(image_file).name,
-                project_root / "data" / "MATWI" / "images" / Path(image_file).name,
+                project_root / "data" / "MATWI" / set_dir / "images" / image_name,
+                project_root / "data" / "MATWI" / set_dir / set_dir / "images" / image_name,
+                project_root / "data" / "MATWI" / set_dir / image_name,
             ]
         )
 

@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -97,14 +98,15 @@ def find_train_normal_images(labels: pd.DataFrame, project_root: Path) -> list[P
 
         image_file = str(row["ImageFile"])
         set_dir = f"Set{set_id}"
+        image_name = Path(image_file).name
         for candidate in [
             project_root / image_file,
             project_root / "data" / image_file,
             project_root / "llm_docs" / image_file,
             project_root / "llm_docs" / image_file.replace("MATWI/", ""),
-            project_root / "data" / "MATWI" / set_dir / "images" / Path(image_file).name,
-            project_root / "data" / "MATWI" / set_dir / Path(image_file).name,
-            project_root / "data" / "MATWI" / "images" / Path(image_file).name,
+            project_root / "data" / "MATWI" / set_dir / "images" / image_name,
+            project_root / "data" / "MATWI" / set_dir / set_dir / "images" / image_name,
+            project_root / "data" / "MATWI" / set_dir / image_name,
         ]:
             if candidate.exists():
                 image_paths.append(candidate)
@@ -159,8 +161,11 @@ def compute_normalization_stats(
     return stats
 
 
-def load_normalization_stats(stats_path: Path) -> dict:
-    return json.loads(stats_path.read_text())
+def load_normalization_stats(stats_path: Path) -> dict[str, Any]:
+    stats = json.loads(stats_path.read_text())
+    if not isinstance(stats, dict):
+        raise ValueError(f"Normalization stats must be a JSON object: {stats_path}")
+    return cast(dict[str, Any], stats)
 
 
 def main():
