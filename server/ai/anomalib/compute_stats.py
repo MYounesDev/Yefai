@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -159,8 +160,11 @@ def compute_normalization_stats(
     return stats
 
 
-def load_normalization_stats(stats_path: Path) -> dict:
-    return json.loads(stats_path.read_text())
+def load_normalization_stats(stats_path: Path) -> dict[str, Any]:
+    stats = json.loads(stats_path.read_text())
+    if not isinstance(stats, dict):
+        raise ValueError(f"Normalization stats must be a JSON object: {stats_path}")
+    return cast(dict[str, Any], stats)
 
 
 def main():

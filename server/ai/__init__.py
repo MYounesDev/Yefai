@@ -1,1 +1,1 @@
-# AI module — Phase 2A
+"""AI integration modules for Yefai."""
