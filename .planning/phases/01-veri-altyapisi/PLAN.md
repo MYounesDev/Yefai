@@ -121,12 +121,12 @@ assignee: "birlikte"
 
 ## Verification
 
-- [ ] Tüm zip'ler ayıklandı, 1663 görüntü erişilebilir
-- [ ] Train/test split set-bazlı, leakage yok
-- [ ] Supabase'de tüm tablolar var, pgvector aktif
-- [ ] Mock yedek parça verisi kriz senaryolarını kapsıyor
-- [ ] Veri kalite raporu eksikleri belgeliyor
-- [ ] FastAPI scaffold çalışır durumda
+- [x] Tüm zip'ler ayıklandı, 1803 görüntü erişilebilir
+- [x] Train/test split set-bazlı, leakage yok (build-time detection)
+- [x] Supabase'de tüm tablolar var, pgvector aktif
+- [x] Mock yedek parça verisi kriz senaryolarını kapsıyor (7 crisis, 5 at_risk)
+- [x] Veri kalite raporu eksikleri belgeliyor
+- [x] FastAPI scaffold çalışır durumda (/health 200)
 
 ## must_haves
 
