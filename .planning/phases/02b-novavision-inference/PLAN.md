@@ -180,3 +180,10 @@ NovaVision CLI ile local Docker container kur, Phase 2A'dan gelen .pt modelini a
 - `server/routers/novavision.py`
 - `server/services/novavision_service.py`
 - `tests/test_novavision_live.py`
+
+## Implementation status — 2026-05-16
+
+- Mock-mode NovaVision wrapper, deploy/model/inference service layer and FastAPI router implemented.
+- `/api/novavision/deploy`, `/api/novavision/models`, `/api/novavision/models/{app_id}`, `DELETE /api/novavision/models/{app_id}`, `/api/novavision/inference`, `/api/novavision/inference/{job_id}`, and `/api/novavision/health` are available in OpenAPI.
+- Live NovaVision behavior remains behind Manual Gate G2; no live deploy/inference success is claimed without token, local install, container and Phase 2A model artifact.
+- Verification report: `reports/novavision_phase02b.md`.
