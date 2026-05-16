@@ -33,6 +33,10 @@ class Settings(BaseSettings):
 
     yefai_data_root: str = ""
 
+    llm_provider: str = "openai"
+    llm_model: str = "gpt-4o"
+    llm_api_key: str = ""
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def supabase_connected(self) -> bool:

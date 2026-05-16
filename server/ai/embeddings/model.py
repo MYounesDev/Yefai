@@ -21,17 +21,28 @@ def get_device() -> str:
 
 
 def load_jina_model(device: str | None = None) -> Any:
-    import torch
+    import transformers.models.clip.modeling_clip as clip_modeling
     from transformers import AutoModel
 
     if device is None:
         device = get_device()
 
     logger.info("Loading Jina CLIP v2 on %s...", device)
+    if not hasattr(clip_modeling, "clip_loss") and hasattr(
+        clip_modeling, "image_text_contrastive_loss"
+    ):
+        # Jina CLIP v2 remote code imports the older Transformers symbol
+        # `clip_loss`; Transformers 5 exposes the same behavior as
+        # `image_text_contrastive_loss`.
+        clip_modeling.clip_loss = clip_modeling.image_text_contrastive_loss  # type: ignore[attr-defined]
+
+    # Jina's remote config checks torch dtype names with hasattr(torch, torch_dtype),
+    # so pass the dtype as a string rather than a torch.dtype object.
+    torch_dtype = "float16" if device != "cpu" else "float32"
     model = AutoModel.from_pretrained(
         MODEL_NAME,
         trust_remote_code=True,
-        torch_dtype=torch.float16 if device != "cpu" else torch.float32,
+        torch_dtype=torch_dtype,
         cache_dir=CACHE_DIR,
     )
     model.to(device)

@@ -6,8 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from ai.novavision.config import get_novavision_settings
 from routers import predictions
 from routers.anomalib import router as anomalib_router
+from routers.chat import router as chat_router
 from routers.embeddings import router as embeddings_router
+from routers.notifications import router as notifications_router
 from routers.novavision import router as novavision_router
+from routers.spare_parts import router as spare_parts_router
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -27,9 +30,12 @@ app.add_middleware(
 )
 
 app.include_router(anomalib_router)
+app.include_router(chat_router)
 app.include_router(embeddings_router)
 app.include_router(novavision_router)
 app.include_router(predictions.router)
+app.include_router(notifications_router)
+app.include_router(spare_parts_router)
 
 
 @app.get("/health")
@@ -42,9 +48,12 @@ def health():
         "services": {
             "anomalib": "Phase 2A",
             "embeddings": "Phase 2A",
+            "chat": "Phase 3A",
         },
         "novavision": {
             "mode": "mock" if novavision_settings.novavision_mock else "live",
             "inference_url": str(novavision_settings.novavision_inference_url),
         },
+        "notifications": "Phase 3B",
+        "spare_parts": "Phase 3B",
     }
