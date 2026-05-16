@@ -70,11 +70,12 @@ def train_patchcore(
     )
 
     if norm_stats_path is not None and norm_stats_path.exists():
-        from torchvision.transforms import Compose, Normalize, Resize
+        from torchvision.transforms import Compose, Normalize, Resize, ToTensor
 
         custom_transform = Compose(
             [
                 Resize((256, 256), antialias=True),
+                ToTensor(),
                 Normalize(mean=mean, std=std),
             ]
         )

@@ -112,7 +112,7 @@ def preprocess_image(image_path: Path, mean=None, std=None) -> Any:
 
     transform = transforms.Compose(
         [
-            transforms.Resize((256, 256)),
+            transforms.Resize((256, 256), antialias=True),
             transforms.ToTensor(),
             transforms.Normalize(mean=mean, std=std),
         ]
