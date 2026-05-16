@@ -30,7 +30,7 @@ RAG tabanlı chatbot ile geçmiş veriler, ürün detayları ve görseller üzer
 
 ### Aşama 1: AI Backend (BU FAZLAR) ✅ Aktif
 Backend odaklı: AI pipeline, FastAPI, Supabase. **Frontend yok.**
-6 faz, 2 kişi paralel çalışabilir. Detay: `ROADMAP.md`
+7 faz, 2 kişi paralel çalışabilir. Detay: `ROADMAP.md`
 
 ### Aşama 2: Frontend + Desktop (SONRA)
 Next.js dashboard, Tauri desktop shell, WebSocket streaming. Backend hazır olunca başlar.
@@ -43,17 +43,19 @@ Next.js dashboard, Tauri desktop shell, WebSocket streaming. Backend hazır olun
 - [x] Multimodal yaklaşım dokümanı (`docs/Multimodal-Veri-Setleri-ve-Yaklaşımları.md`)
 - [x] PUQ AI incelemesi (`server/docs/puqai-inceleme.md`)
 - [x] MATWI'de gerçek stok/BOM verisi olmadığı tespit edildi; yedek parça krizi için mock plan eklendi (`.planning/yedek-parca-krizi-mock-plan.md`)
-- [x] ROADMAP.md paralel 6-phase yapıya güncellendi (2026-05-16)
+- [x] ROADMAP.md paralel 7-phase yapıya güncellendi (2026-05-16)
 - [x] G1: Supabase projesi oluşturuldu — Yefai `jgufisddsdmappcnglcf`; REST HTTP 200, DB connect OK
-- [ ] G2: NovaVision API erişimi alınmadı
+- [~] G2: NovaVision local gate kısmi — `docker --version` ve `novavision --help` çalışıyor; token/local install/container/live model doğrulaması bekliyor
 - [ ] G3: PUQ AI hesabı + webhook URL'leri alınmadı
 - [ ] G4: LLM API key alınmadı
-- [ ] Veri seti ayıklanmadı (17 zip dosyası)
-- [ ] Train/test split yapılmadı
-- [ ] Mock yedek parça kataloğu, envanter snapshot'ı ve ticket datası üretilmedi
+- [x] Veri seti ayıklandı/parse edildi (17 set; Phase 1 summary: 1803 labeled images)
+- [x] Train/test split yapıldı — set-bazlı, leakage yok (1292 train / 511 test)
+- [x] Mock yedek parça kataloğu, envanter snapshot'ı, ticket datası ve mock PO üretildi
 - [x] Supabase + pgvector kuruldu — `vector` extension 0.8.0 doğrulandı
-- [ ] AI modelleri entegre edilmedi
+- [~] AI modelleri — Phase 2B NovaVision mock-mode API contract entegre edildi; Phase 2A model artifact ve live NovaVision deploy/inference bekliyor
 - [ ] Bildirim sistemi yok
+
+Durum göstergesi: `[x]` tamamlandı, `[ ]` başlamadı, `[~]` kısmi/mock veya manual gate bekliyor.
 
 ## Tech Stack
 
@@ -159,8 +161,8 @@ Bu doküman faz geçişlerinde ve milestone sınırlarında güncellenir.
 
 - **Her faz sonrası:** Gereksinimler güncellenir, çıkarılanlar Out of Scope'a taşınır
 - **Her milestone sonrası:** Tüm bölümler gözden geçirilir, Core Value kontrol edilir
-- **v1.0 Backend fazları:** ROADMAP.md'deki 6 faz, Phase 1→2A∥2B→3A∥3B→4 akışı
+- **v1.0 Backend fazları:** ROADMAP.md'deki 7 faz, Phase 1→2A∥2B→2.5∥3A∥3B→4 akışı
 
 ---
 
-*Last updated: 2026-05-16 — Paralel 6-phase backend yapısı, manual gate'ler eklendi, frontend kapsam dışı*
+*Last updated: 2026-05-16 — Phase 2B mock-mode NovaVision API contract durumu ve 7 fazlı backend akışı işlendi*

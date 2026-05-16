@@ -157,11 +157,11 @@ NovaVision CLI ile local Docker container kur, Phase 2A'dan gelen .pt modelini a
 
 ## Verification
 
-- [ ] Docker + NovaVision CLI kurulu, container çalışıyor
-- [ ] Mock mode'da tüm endpoint'ler test edilebiliyor
-- [ ] Model deploy pipeline'ı hatasız
-- [ ] Localhost REST API inference 2-5 saniyede sonuç dönüyor
-- [ ] Container lifecycle: start/stop/restart sorunsuz
+- [~] Docker + NovaVision CLI komutları yerelde mevcut; live container çalışması G2 token/local install bekliyor
+- [x] Mock mode'da tüm `/api/novavision/*` endpoint'leri test edilebiliyor
+- [~] Model deploy pipeline'ı mock contract seviyesinde hatasız; gerçek NovaVision deploy G2 + Phase 2A `.pt` artifact bekliyor
+- [~] Localhost REST API client kodu ve mock fallback hazır; gerçek localhost inference latency live container sonrası ölçülecek
+- [~] Container lifecycle helper hazır; gerçek start/stop/restart doğrulaması G2 live ortamına bağlı
 - [ ] Phase 2A modeli gerçek container'da inference veriyor (model gelince)
 
 ## must_haves
@@ -186,4 +186,7 @@ NovaVision CLI ile local Docker container kur, Phase 2A'dan gelen .pt modelini a
 - Mock-mode NovaVision wrapper, deploy/model/inference service layer and FastAPI router implemented.
 - `/api/novavision/deploy`, `/api/novavision/models`, `/api/novavision/models/{app_id}`, `DELETE /api/novavision/models/{app_id}`, `/api/novavision/inference`, `/api/novavision/inference/{job_id}`, and `/api/novavision/health` are available in OpenAPI.
 - Live NovaVision behavior remains behind Manual Gate G2; no live deploy/inference success is claimed without token, local install, container and Phase 2A model artifact.
+- Focused Phase 2B verification: `cd server && uv run pytest ../tests/phase02b ../tests/test_novavision_live.py -q` → `5 passed, 2 skipped`.
 - Verification report: `reports/novavision_phase02b.md`.
+
+Status marker: `[x]` verified, `[~]` implemented/partial but live/manual gate pending, `[ ]` not verified yet.
