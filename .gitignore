@@ -13,3 +13,5 @@ skills-lock.json
 notebooks/
 .agent/skills/
 server/.venv/
+server/~/
+server/.snakemake/
