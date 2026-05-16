@@ -23,7 +23,7 @@ Bu işlemler otomatik değildir. İlgili faz başlamadan önce tamamlanmış olm
 
 | Gate ID | Açıklama | Gerekli Faz | Nasıl Yapılır |
 |---------|----------|-------------|---------------|
-| **G1** | Supabase projesi oluştur + pgvector aktifleştir + connection string al | Phase 1 | supabase.com → New Project → Database → Extensions → pgvector'ü enable et → Settings → Database → Connection string'i `.env` dosyasına `SUPABASE_URL` ve `SUPABASE_SERVICE_KEY` olarak kaydet |
+| **G1** | ✅ TAMAMLANDI — Supabase projesi oluştur + pgvector aktifleştir + connection string al | Phase 1 | Yefai `jgufisddsdmappcnglcf`; `.env` hazır; REST HTTP 200; DB connect OK; `vector` 0.8.0 doğrulandı |
 | **G2** | Docker Desktop + NovaVision CLI kur + token al | Phase 2B | Docker kur (`brew install docker`), `pipx install novavision-cli`, novavision.ai'den token al, `novavision install local <TOKEN>` çalıştır. `.env`'e `NOVAVISION_TOKEN` olarak kaydet |
 | **G3** | PUQ AI hesabı oluştur + workflow webhook URL'lerini al | Phase 3B | puq.ai → Register → Workflow oluştur (Telegram, E-posta, SMS trigger) → Her workflow için webhook URL'sini `.env` dosyasına `PUQAI_ANOMALY_WEBHOOK`, `PUQAI_EMAIL_WEBHOOK`, `PUQAI_SMS_WEBHOOK` olarak kaydet |
 | **G4** | Gemini / Claude API key al | Phase 3A | aistudio.google.com veya console.anthropic.com → API key → `.env` dosyasına `LLM_API_KEY` ve `LLM_PROVIDER` (gemini/claude) olarak kaydet |

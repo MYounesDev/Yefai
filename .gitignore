@@ -6,3 +6,7 @@ venv/
 server/dataset/
 .omx/
 AGENTS.md
+.planning/graphs/
+.agents/skills/
+graphify-out/
+skills-lock.json

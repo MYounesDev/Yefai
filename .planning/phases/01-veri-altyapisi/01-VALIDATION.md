@@ -66,7 +66,7 @@ created: 2026-05-16
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Manual gate completion | FR-1.1, FR-1.2, FR-1.3 | External account/service setup cannot be automated safely | Verify: G1 — Supabase projesi, pgvector ve .env bağlantı bilgileri insan tarafından tamamlanmalı. |
+| Manual gate completion | FR-1.1, FR-1.2, FR-1.3 | External account/service setup cannot be automated safely | ✅ DONE: G1 — Yefai Supabase project configured; `.env` ready; REST HTTP 200; DB connect OK; `vector` 0.8.0 verified. |
 
 ---
 

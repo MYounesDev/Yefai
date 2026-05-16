@@ -44,14 +44,14 @@ Next.js dashboard, Tauri desktop shell, WebSocket streaming. Backend hazır olun
 - [x] PUQ AI incelemesi (`server/docs/puqai-inceleme.md`)
 - [x] MATWI'de gerçek stok/BOM verisi olmadığı tespit edildi; yedek parça krizi için mock plan eklendi (`.planning/yedek-parca-krizi-mock-plan.md`)
 - [x] ROADMAP.md paralel 6-phase yapıya güncellendi (2026-05-16)
-- [ ] G1: Supabase projesi oluşturulmadı
+- [x] G1: Supabase projesi oluşturuldu — Yefai `jgufisddsdmappcnglcf`; REST HTTP 200, DB connect OK
 - [ ] G2: NovaVision API erişimi alınmadı
 - [ ] G3: PUQ AI hesabı + webhook URL'leri alınmadı
 - [ ] G4: LLM API key alınmadı
 - [ ] Veri seti ayıklanmadı (17 zip dosyası)
 - [ ] Train/test split yapılmadı
 - [ ] Mock yedek parça kataloğu, envanter snapshot'ı ve ticket datası üretilmedi
-- [ ] Supabase + pgvector kurulmadı
+- [x] Supabase + pgvector kuruldu — `vector` extension 0.8.0 doğrulandı
 - [ ] AI modelleri entegre edilmedi
 - [ ] Bildirim sistemi yok
 

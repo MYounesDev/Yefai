@@ -17,10 +17,10 @@ assignee: "birlikte"
 **Mimari:** Görüntüler local diskten serve edilir. Supabase sadece metadata + pgvector embedding (~10MB).
 
 ## Prerequisites (Manual Gate)
-- [ ] **G1:** Supabase projesi oluşturuldu (supabase.com)
-- [ ] pgvector extension enable edildi
-- [ ] `SUPABASE_URL` ve `SUPABASE_SERVICE_KEY` `.env` dosyasına yazıldı
-- [ ] Supabase dashboard'dan bağlantı test edildi
+- [x] **G1:** Supabase projesi oluşturuldu (supabase.com) — Yefai `jgufisddsdmappcnglcf`
+- [x] pgvector extension enable edildi — `vector` 0.8.0 doğrulandı
+- [x] `SUPABASE_URL` ve `SUPABASE_SERVICE_KEY` `.env` dosyasına yazıldı — Yefai project env hazır
+- [x] Supabase dashboard/API bağlantısı test edildi — REST auth HTTP 200
 
 ---
 

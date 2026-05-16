@@ -14,5 +14,8 @@
     "ai_integration_phase": true
   },
   "parallelization": true,
-  "brave_search": false
+  "brave_search": false,
+  "graphify": {
+    "enabled": true
+  }
 }
