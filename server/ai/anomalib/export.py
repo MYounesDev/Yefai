@@ -14,35 +14,45 @@ def export_model(checkpoint_path: Path, output_dir: Path) -> Path:
     checkpoint = torch.load(str(checkpoint_path), map_location="cpu", weights_only=False)
 
     raw_state_dict = checkpoint.get("state_dict", checkpoint)
-    state_dict = {}
-    for key, value in raw_state_dict.items():
-        clean_key = key.removeprefix("model.").removeprefix("teacher.")
-        state_dict[clean_key] = value
-
-    logger.info(
-        "State dict keys: %d raw, %d cleaned (model. prefix stripped)",
-        len(raw_state_dict),
-        len(state_dict),
-    )
 
     model = Patchcore(
         backbone="wide_resnet50_2",
         layers=("layer2", "layer3"),
-        pre_trained=False,
+        pre_trained=True,
         coreset_sampling_ratio=0.1,
         num_neighbors=9,
     )
+
+    model_keys = set(model.state_dict().keys())
+
+    state_dict = {}
+    for key, value in raw_state_dict.items():
+        if key in model_keys:
+            state_dict[key] = value
+        else:
+            for prefix in ("model.model.", "model.", "teacher."):
+                stripped = key.removeprefix(prefix)
+                if stripped != key and stripped in model_keys:
+                    state_dict[stripped] = value
+                    break
+
+    logger.info(
+        "State dict: %d raw keys, %d matched after prefix resolution",
+        len(raw_state_dict),
+        len(state_dict),
+    )
+
     missing, unexpected = model.load_state_dict(state_dict, strict=False)
     if missing:
         logger.warning("Missing keys (%d): %s...", len(missing), str(missing[:3]))
     if unexpected:
         logger.warning("Unexpected keys (%d): %s...", len(unexpected), str(unexpected[:3]))
 
-    loaded_param_count = sum(1 for k in state_dict if k in model.state_dict())
+    loaded_param_count = len(state_dict)
     logger.info(
         "Loaded %d/%d parameters from checkpoint",
         loaded_param_count,
-        len(model.state_dict()),
+        len(model_keys),
     )
 
     if loaded_param_count < 10:
