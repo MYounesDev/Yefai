@@ -68,8 +68,6 @@ def _get_chat_service(supabase: Client = Depends(get_supabase_client)) -> ChatSe
 
 # ── Endpoints ──────────────────────────────────────────────────
 
-# ── Endpoints ──────────────────────────────────────────────────
-
 
 @router.get("/sessions")
 async def list_sessions(
