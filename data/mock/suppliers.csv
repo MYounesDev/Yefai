@@ -1,0 +1,11 @@
+supplier_id,supplier_name,reliability_score,lead_time_p50,lead_time_p90,is_primary
+SANDVIK,Sandvik Coromant,0.81,3,6,True
+KENNAMETAL,Kennametal GmbH,0.64,15,44,True
+ISCAR_TR,Iscar Turkey,0.65,10,27,True
+MITS_CARB,Mitsubishi Materials,0.88,1,1,True
+HAAS_PARTS,Haas Factory Outlet,0.87,7,12,True
+DMGMORI_SP,DMG MORI Spare Parts,0.91,3,4,False
+BOSCH_REX,Bosch Rexroth,0.83,7,14,False
+SKF_DIST,SKF Distributor,0.9,1,1,False
+LOCAL_TED,Local Tedarikci A.S.,0.75,14,39,False
+FAST_SUPP,Fast Supply Ltd.,0.73,2,2,False

@@ -1,0 +1,41 @@
+part_id,part_name,criticality,demand_pattern,unit_cost,lead_time_p50,lead_time_p90,min_stock,max_stock
+INSERT_CARBIDE_DCMT_00,Carbide Insert DCMT 11T304,B,smooth,599.0,19,38,1,23
+INSERT_CBN_RNGN_01,CBN Insert RNGN 120400,A,erratic,1134.38,21,45,4,6
+TOOLHOLDER_PCLNR_02,Tool Holder PCLNR 2525M12,C,smooth,5.11,5,10,1,26
+TOOLHOLDER_SVJCR_03,Tool Holder SVJCR 2525M16,A,intermittent,1669.37,44,64,3,20
+ENDMILL_10MM_04,Solid Carbide End Mill 10mm,B,intermittent,513.79,18,34,0,7
+ENDMILL_12MM_05,Solid Carbide End Mill 12mm,C,erratic,70.32,2,4,3,18
+DRILL_8MM_06,Carbide Drill 8mm,C,intermittent,19.16,4,6,3,11
+DRILL_10MM_07,Carbide Drill 10mm,C,lumpy,30.14,1,1,3,6
+TAP_M8_08,Spiral Tap M8x1.25,B,intermittent,475.78,19,46,1,16
+TAP_M10_09,Spiral Tap M10x1.5,C,lumpy,91.7,8,15,3,29
+REAMER_12H7_10,Machine Reamer 12H7,C,lumpy,113.36,5,10,0,17
+REAMER_16H7_11,Machine Reamer 16H7,A,lumpy,408.74,20,36,0,16
+COLLET_ER32_10_12,ER32 Collet 10mm,B,intermittent,199.13,14,30,0,9
+COLLET_ER32_12_13,ER32 Collet 12mm,C,erratic,137.67,9,18,1,5
+PULL_STUD_M16_14,Pull Stud M16,A,intermittent,1110.51,16,32,2,7
+VISE_JAW_SOFT_15,Soft Jaw Set Vise 150mm,B,intermittent,584.93,7,15,2,13
+COOLANT_NOZZLE_16,Flexible Coolant Nozzle,C,intermittent,68.7,3,4,0,24
+CHIP_CONVEYOR_BELT_17,Chip Conveyor Belt,C,erratic,25.2,7,12,2,8
+SPINDLE_BELT_18,Spindle Drive Belt,C,erratic,105.74,2,4,0,25
+BALL_SCREW_X_19,Ball Screw X-Axis,C,lumpy,32.05,7,16,0,5
+BALL_SCREW_Z_20,Ball Screw Z-Axis,B,intermittent,663.51,15,24,2,13
+LINEAR_GUIDE_25MM_21,Linear Guide Rail 25mm,B,erratic,252.06,14,34,0,24
+LINEAR_GUIDE_35MM_22,Linear Guide Rail 35mm,B,smooth,771.84,20,42,2,21
+SEAL_KIT_SPINDLE_23,Spindle Seal Kit,A,smooth,946.99,15,28,4,5
+HYDRAULIC_HOSE_24,Hydraulic Hose Assembly,C,erratic,81.99,6,9,3,27
+OIL_FILTER_25,Hydraulic Oil Filter Element,C,intermittent,110.59,8,14,1,10
+WAY_WIPER_26,Way Wiper Set,B,lumpy,648.76,15,25,4,7
+PROXIMITY_SENSOR_27,Inductive Proximity Sensor M12,C,erratic,7.41,3,6,3,11
+PRESSURE_SWITCH_28,Hydraulic Pressure Switch,B,erratic,340.05,8,18,2,29
+DRIVE_BELT_SERVO_29,Servo Motor Drive Belt,A,smooth,2656.55,16,25,1,20
+COUPLING_SERVO_30,Servo Motor Coupling,C,erratic,40.07,5,11,2,27
+BEARING_SK_6205_31,Deep Groove Ball Bearing 6205,B,intermittent,594.47,9,20,0,28
+BEARING_SK_7206_32,Angular Contact Bearing 7206,C,smooth,118.87,8,16,2,20
+O_RING_KIT_33,O-Ring Seal Kit NBR,A,erratic,214.17,27,52,2,20
+FILTER_AIR_34,Air Filter Element,C,intermittent,7.62,5,7,2,21
+CHUCK_JAWS_35,Hydraulic Chuck Jaw Set,B,erratic,431.61,12,19,4,23
+COOLANT_PUMP_SEAL_36,Coolant Pump Mechanical Seal,C,erratic,120.25,1,1,0,9
+TOOL_PRESETTER_STYLUS_37,Tool Presetter Stylus Tip,B,erratic,479.0,7,9,3,18
+WORK_LAMP_LED_38,LED Work Lamp IP67,C,intermittent,7.24,8,13,4,7
+POWER_SUPPLY_24V_39,24VDC Power Supply 10A,C,intermittent,49.33,7,11,2,22

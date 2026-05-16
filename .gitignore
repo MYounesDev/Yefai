@@ -10,3 +10,6 @@ AGENTS.md
 .agents/skills/
 graphify-out/
 skills-lock.json
+notebooks/
+.agent/skills/
+server/.venv/
