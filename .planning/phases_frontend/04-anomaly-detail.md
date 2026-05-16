@@ -1,6 +1,9 @@
 # Phase 4 — Anomaly Detail Page
 
 > Deep-dive page for a single anomaly: image viewer, sensor data charts, anomaly heatmap, wear analysis, and linked spare part info.
+> 
+> **Role Access:** Viewable by Manager, Operator, Technician, Viewer. Procurement sees read-only summary.
+> **Role-Gated Actions:** "Mark as Reviewed" → Manager, Technician only. "Trigger Notification" → Manager only. "Recalculate Prediction" → Manager, Technician. Viewer sees NO action buttons. Use `hasPermission()` to conditionally render each action.
 
 ## Page: `src/app/(dashboard)/anomalies/[id]/page.tsx`
 

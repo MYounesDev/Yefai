@@ -1,6 +1,9 @@
 # Phase 3 — Dashboard Core (Overview + Anomaly List)
 
 > The main dashboard overview page with real-time stats, anomaly feed, and system health. Plus the anomaly list page with filtering and sorting.
+> 
+> **Role Access:** Dashboard is visible to Manager, Operator, Technician, Viewer. Procurement sees a simplified summary. Admin cannot access.
+> **Org-Scoped:** All data on these pages is scoped to the active organization via `X-Organization-Id` header. The org name should appear in the page header.
 
 ## Pages
 
@@ -52,11 +55,13 @@ Horizontal bar showing service statuses from `getHealthStatus()`:
 
 #### Quick Actions
 
-Row of action buttons:
-- "Run Inference" (cyan) → opens modal with image upload
-- "View Predictions" → `/predictions`
-- "Check Spare Parts" → `/spare-parts`
-- "Open Chat" → `/chat`
+Row of action buttons — **role-aware visibility**:
+- "Run Inference" (cyan) → opens modal with image upload (**Manager, Technician only**)
+- "View Predictions" → `/predictions` (**hidden for Procurement**)
+- "Check Spare Parts" → `/spare-parts` (**hidden for Operator**)
+- "Open Chat" → `/chat` (**hidden for Procurement, Viewer**)
+
+Use `hasPermission(activeRole, 'view:...')` from `permissions.ts` to conditionally render buttons. For Viewer role, all action buttons should be hidden (they only view).
 
 ### 2. Anomaly List Page (`src/app/(dashboard)/anomalies/page.tsx`)
 
@@ -115,6 +120,8 @@ Dashboard overview with:
 
 - [ ] Dashboard overview page with stats, machine grid, anomaly feed, health panel
 - [ ] Anomaly list page with filters, table/cards, pagination
+- [ ] Role-based quick action visibility
+- [ ] Org name displayed in page header
 - [ ] Realistic mock data for anomalies and dashboard
 - [ ] React Query hooks for data fetching with loading/error states
 - [ ] Skeleton loading states for all data areas

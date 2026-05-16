@@ -1,6 +1,9 @@
 # Phase 6 — Spare Parts Crisis Dashboard
 
 > The third core problem: spare parts crisis management. Crisis dashboard, purchase order review screen, and supplier comparison.
+> 
+> **Role Access:** Full access for Manager and Procurement. Technician can view crisis dashboard and PO status (read-only). Viewer sees read-only. Operator CANNOT access these pages (redirect to dashboard).
+> **Role-Gated Actions:** "Approve/Reject PO" → Manager, Procurement only. "Compare Suppliers" / "Switch to Alternative" → Manager, Procurement. Technician and Viewer see data without action buttons.
 
 ## Pages
 

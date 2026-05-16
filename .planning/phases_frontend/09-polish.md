@@ -100,13 +100,32 @@ Test and fix all breakpoints:
 - Open Graph tags for landing page (for social sharing)
 - Favicon (generated or placeholder)
 
-### 10. Final Testing Checklist
+### 10. Auth, Role & Org QA
+
+Test the complete B2B SaaS flow:
+- **Login flow**: login → lands on dashboard (regular user) or admin panel (admin user)
+- **Org switching**: switch between 3 orgs → all data reloads, role badge updates, nav items change
+- **Role-based nav**: login as Operator → spare parts nav hidden. Login as Procurement → chat hidden.
+- **Role guards**: manually navigate to `/spare-parts` as Operator → 403 page shown
+- **Action visibility**: Viewer sees no action buttons anywhere. Procurement sees no "Mark Reviewed" button on anomaly detail.
+- **Admin panel**: login with admin email → sees admin panel with org management, cannot see org dashboard data
+- **Member management**: as Manager → can invite, change role, remove members
+- **Logout**: clears token, redirects to login, can't access protected routes
+
+### 11. Final Testing Checklist
 
 - [ ] All pages load without errors
 - [ ] Mock data displays correctly on every page
 - [ ] API calls fall back to mock gracefully (check console for `[DEV MOCK]` messages)
 - [ ] All navigation links work
 - [ ] Sidebar collapse/expand works
+- [ ] **Org switcher works — data reloads on switch**
+- [ ] **Role-based nav filtering works for all 6 roles**
+- [ ] **Role guards block unauthorized routes (403 page)**
+- [ ] **Action buttons hidden based on role permissions**
+- [ ] **Login/logout flow works end-to-end**
+- [ ] **Admin panel accessible only for admin role**
+- [ ] **Member management (invite, change role, remove) works**
 - [ ] All modals open/close properly
 - [ ] All buttons have click feedback
 - [ ] All forms validate
@@ -129,4 +148,5 @@ Test and fix all breakpoints:
 - [ ] Visual consistency audit
 - [ ] Error handling (toasts, offline, 404, boundary)
 - [ ] SEO meta tags
+- [ ] **Auth, role & org switching QA passed**
 - [ ] Final testing checklist passed

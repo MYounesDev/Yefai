@@ -1,7 +1,56 @@
 # Yefai Frontend — Build Prompt Overview
 
-> **Goal:** Build a world-class, production-grade Next.js frontend for the Yefai Predictive Maintenance Platform.  
+> **Goal:** Build a world-class, production-grade Next.js frontend for the **Yefai Predictive Maintenance Platform** — a **B2B SaaS** application with multi-organization support and role-based access control.  
 > The backend is NOT ready. All API calls go through `services/api.ts` — if the request fails AND we're in dev mode, the function transparently falls back to realistic mock data so every page works out of the box.
+
+---
+
+## B2B SaaS Architecture
+
+Yefai is a **multi-tenant B2B SaaS platform**. Each customer is an **Organization** (e.g., a factory). Users can belong to multiple organizations with different roles and switch between them.
+
+### Role Hierarchy & Permissions
+
+| Role | Scope | Description | Key Permissions |
+|------|-------|-------------|----------------|
+| **Admin** | Platform | App developers / platform operators. Default system role. | Create/manage organizations, assign Managers, view platform analytics. **Cannot** access organization data (anomalies, predictions, etc.) unless the org opens a tech support ticket. |
+| **Manager** | Organization | Organization owner / factory manager. | Full access within their org: view all dashboards, manage members (add/remove with any role including Manager), configure org settings, view/approve POs, access chatbot, manage notifications. |
+| **Operator** | Organization | Machine operator on the production floor. | View dashboard, anomalies, predictions, real-time alerts. Use RAG chatbot. Receive notifications. **Cannot** approve POs, manage members, or change settings. |
+| **Technician** | Organization | Maintenance engineer / technician. | Everything Operator can do, plus: mark anomalies as reviewed/resolved, view spare parts details, view PO status (but not approve/reject), add maintenance notes. |
+| **Procurement** | Organization | Purchasing / supply chain staff. | View spare parts crisis dashboard, approve/reject POs, manage suppliers, view inventory. Can view anomaly summaries (read-only) for context. **Cannot** manage members or system settings. |
+| **Viewer** | Organization | Read-only stakeholder (e.g., executive, auditor). | View-only access to all dashboards, reports, and charts. **Cannot** take any actions (no approve, no trigger, no mark). |
+
+### Permission Matrix
+
+| Feature | Admin | Manager | Operator | Technician | Procurement | Viewer |
+|---------|-------|---------|----------|------------|-------------|--------|
+| Platform org management | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| View dashboard & stats | ❌¹ | ✅ | ✅ | ✅ | 📊² | ✅ |
+| View anomalies | ❌¹ | ✅ | ✅ | ✅ | 📊² | ✅ |
+| Mark anomaly reviewed | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| View predictions | ❌¹ | ✅ | ✅ | ✅ | 📊² | ✅ |
+| Recalculate prediction | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| View spare parts/crisis | ❌¹ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Approve/reject POs | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Manage suppliers | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Use RAG chatbot | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| View notifications | ❌¹ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Trigger test notification | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Manage org members | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Org settings | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| System settings (platform) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+> ¹ Admin cannot access org data unless support ticket grants temporary access.  
+> ² Procurement sees summary/read-only versions of anomaly and prediction data for context.
+
+### Multi-Organization Switching
+
+- A user can belong to **multiple organizations** with **different roles** in each.
+- **Org Switcher** component in the sidebar/topbar allows instant switching.
+- When switching orgs, all data (dashboard, anomalies, predictions, etc.) reloads for the selected org.
+- Current org is stored in Zustand store and passed as `X-Organization-Id` header in API requests.
+- URL structure is org-aware: data queries are scoped by the active org.
+- The switcher shows: org name, org logo/avatar, user's role in that org, online status indicator.
 
 ---
 
@@ -47,8 +96,17 @@ client/
 │   ├── app/                 # Next.js App Router pages
 │   │   ├── (landing)/       # Landing page (public)
 │   │   │   └── page.tsx
-│   │   ├── (dashboard)/     # Dashboard layout group
-│   │   │   ├── layout.tsx   # Dashboard shell (sidebar, topbar)
+│   │   ├── (auth)/          # Auth pages (public)
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   ├── register/
+│   │   │   │   └── page.tsx
+│   │   │   ├── forgot-password/
+│   │   │   │   └── page.tsx
+│   │   │   └── accept-invite/
+│   │   │       └── page.tsx # Accept org invitation
+│   │   ├── (dashboard)/     # Dashboard layout group (org-scoped)
+│   │   │   ├── layout.tsx   # Dashboard shell (sidebar, topbar, org switcher, role guard)
 │   │   │   ├── dashboard/
 │   │   │   │   └── page.tsx # Main dashboard overview
 │   │   │   ├── anomalies/
@@ -69,20 +127,37 @@ client/
 │   │   │   │   └── page.tsx # RAG chatbot
 │   │   │   ├── notifications/
 │   │   │   │   └── page.tsx # Notification logs
+│   │   │   ├── members/
+│   │   │   │   └── page.tsx # Org member management (Manager only)
 │   │   │   └── settings/
-│   │   │       └── page.tsx # System settings
-│   │   ├── layout.tsx       # Root layout (providers, fonts)
+│   │   │       └── page.tsx # Org settings (Manager only)
+│   │   ├── (admin)/         # Platform admin panel (Admin role only)
+│   │   │   ├── layout.tsx   # Admin layout (different sidebar)
+│   │   │   ├── organizations/
+│   │   │   │   ├── page.tsx       # Org list + create
+│   │   │   │   └── [orgId]/
+│   │   │   │       └── page.tsx   # Org detail + assign manager
+│   │   │   ├── users/
+│   │   │   │   └── page.tsx       # All platform users
+│   │   │   ├── support-tickets/
+│   │   │   │   └── page.tsx       # Tech support tickets
+│   │   │   └── platform-settings/
+│   │   │       └── page.tsx       # Platform-wide settings
+│   │   ├── layout.tsx       # Root layout (providers, fonts, auth)
 │   │   └── globals.css      # Tailwind + custom CSS
 │   ├── components/
 │   │   ├── ui/              # Primitive UI (Button, Card, Badge, Input, Modal, Skeleton, etc.)
 │   │   ├── charts/          # Recharts wrappers (WearProjectionChart, AnomalyScoreChart, etc.)
 │   │   ├── 3d/              # Three.js / R3F components (HeroScene, MachineModel, ParticleField)
+│   │   ├── auth/            # AuthGuard, RoleGuard, OrgSwitcher, LoginForm, InviteAccept
 │   │   ├── dashboard/       # Dashboard-specific composites (Sidebar, TopBar, StatsCard, etc.)
+│   │   ├── admin/           # Admin panel composites (OrgTable, UserTable, TicketCard, etc.)
 │   │   ├── landing/         # Landing page sections (Hero, Features, Demo, CTA)
 │   │   └── shared/          # Layout wrappers, PageTransition, AnimatedCounter, etc.
 │   ├── services/
 │   │   ├── api.ts           # ★ Central API layer — axios + dev mock fallback
 │   │   └── mock/
+│   │       ├── auth.ts      # Mock auth, users, orgs, roles
 │   │       ├── dashboard.ts
 │   │       ├── anomalies.ts
 │   │       ├── predictions.ts
@@ -90,10 +165,12 @@ client/
 │   │       ├── chat.ts
 │   │       ├── notifications.ts
 │   │       └── suppliers.ts
-│   ├── hooks/               # Custom hooks (useAnomaly, usePrediction, useCrisisScore, etc.)
-│   ├── store/               # Zustand stores
-│   ├── types/               # TypeScript interfaces (API responses, domain models)
-│   ├── lib/                 # Utilities (cn, formatters, constants)
+│   ├── hooks/               # Custom hooks (useAuth, useOrg, useAnomaly, usePrediction, etc.)
+│   ├── store/               # Zustand stores (authStore, orgStore, uiStore)
+│   ├── types/               # TypeScript interfaces (User, Org, Role, API responses, domain models)
+│   ├── lib/
+│   │   ├── utils.ts         # cn, formatters, constants
+│   │   └── permissions.ts   # Role-permission mapping, hasPermission(), canAccess() helpers
 │   └── config/
 │       └── index.ts         # Environment config (API_BASE_URL, IS_DEV, etc.)
 ├── tailwind.config.ts
@@ -111,11 +188,22 @@ client/
 ```typescript
 import axios, { AxiosError } from 'axios';
 import { config } from '@/config';
+import { useAuthStore } from '@/store/authStore';
+import { useOrgStore } from '@/store/orgStore';
 
 const apiClient = axios.create({
   baseURL: config.API_BASE_URL,
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
+});
+
+// Interceptor: attach auth token + active org ID to every request
+apiClient.interceptors.request.use((cfg) => {
+  const token = useAuthStore.getState().token;
+  const activeOrgId = useOrgStore.getState().activeOrgId;
+  if (token) cfg.headers.Authorization = `Bearer ${token}`;
+  if (activeOrgId) cfg.headers['X-Organization-Id'] = activeOrgId;
+  return cfg;
 });
 
 // Generic wrapper: try real API → catch → if dev mode, return mock
@@ -143,6 +231,8 @@ async function apiCall<T>(
 4. **Pages and hooks** import ONLY from `services/api.ts` — never from mock files directly
 5. **`config.IS_DEV`** is derived from `process.env.NODE_ENV === 'development'`
 6. All mock data should look realistic — Turkish company names, real-looking sensor values, plausible timestamps
+7. **Auth token** is attached via interceptor from `authStore` — no manual passing needed
+8. **Active org ID** is attached via `X-Organization-Id` header — all org-scoped data is filtered server-side
 
 ---
 
@@ -150,14 +240,15 @@ async function apiCall<T>(
 
 | Phase | Document | Focus |
 |-------|----------|-------|
-| **Phase 1** | `01-foundation.md` | Project setup, design system, layout shell, providers, api.ts skeleton |
+| **Phase 1** | `01a-foundation.md` | Project setup, design system, layout shell, providers, api.ts skeleton |
+| **Phase 1.5** | `01b-auth-and-rbac.md` | Auth pages, multi-org switching, role guards, admin panel, member management |
 | **Phase 2** | `02-landing-page.md` | 3D landing page with hero scene, features, demo section, CTA |
 | **Phase 3** | `03-dashboard-core.md` | Dashboard layout, overview page, real-time stats, anomaly list |
 | **Phase 4** | `04-anomaly-detail.md` | Anomaly detail page, image viewer, sensor charts, anomaly score |
 | **Phase 5** | `05-predictions.md` | Wear prediction page, projection charts, factory overview, scenarios |
 | **Phase 6** | `06-spare-parts-crisis.md` | Spare parts crisis dashboard, PO review, supplier comparison |
 | **Phase 7** | `07-rag-chatbot.md` | RAG chatbot page, streaming messages, image cards, session history |
-| **Phase 8** | `08-notifications.md` | Notification center, webhook logs, settings page |
+| **Phase 8** | `08-notifications-settings.md` | Notification center, webhook logs, settings page |
 | **Phase 9** | `09-polish.md` | Final polish — page transitions, loading states, responsive QA, performance |
 
 ---

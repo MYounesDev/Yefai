@@ -1,6 +1,7 @@
 # Phase 1 — Foundation & Design System
 
 > Build the entire foundation: design system, layout, providers, API layer, and reusable UI components.
+> **Note:** This is a B2B SaaS app with multi-org support and RBAC. Auth pages, role guards, admin panel, and member management are in **Phase 1.5 (`01b-auth-and-rbac.md`)**. This phase sets up the skeleton; Phase 1.5 builds the auth system on top.
 
 ## Task
 
@@ -60,6 +61,10 @@ async function apiCall<T>(requestFn, mockFn, endpoint): Promise<T> {
 
 Define ALL these exported functions (each uses `apiCall` with real request + mock fallback):
 
+**Auth:** `login(email, password)`, `register(data)`, `logout()`, `getCurrentUser()`, `forgotPassword(email)`, `resetPassword(token, password)`, `acceptInvitation(inviteToken)`
+**Organizations:** `getMyOrganizations()`, `switchOrganization(orgId)`, `getOrganizationDetails(orgId)`, `updateOrganization(orgId, data)`
+**Members:** `getOrgMembers(orgId)`, `inviteMember(orgId, data)`, `updateMemberRole(orgId, userId, role)`, `removeMember(orgId, userId)`
+**Admin:** `adminListOrganizations(params)`, `adminCreateOrganization(data)`, `adminGetOrganization(orgId)`, `adminListUsers(params)`, `adminListSupportTickets(params)`, `adminResolveSupportTicket(ticketId, resolution)`, `adminGetPlatformStats()`
 **Dashboard:** `getDashboardOverview()`, `getHealthStatus()`
 **Anomalies:** `getAnomalies(params)`, `getAnomalyById(id)`, `runAnomalibPredict(formData)`, `getAnomalibTrainingStatus(jobId)`
 **Predictions:** `getPrediction(machineId)`, `getFactoryOverview()`, `recalculatePrediction(machineId)`
@@ -69,9 +74,15 @@ Define ALL these exported functions (each uses `apiCall` with real request + moc
 **Embeddings:** `searchEmbeddings(query, topK)`
 **NovaVision:** `getNovaVisionHealth()`, `getNovaVisionModels()`
 
+The axios instance must have an interceptor that attaches `Authorization: Bearer <token>` from `authStore` and `X-Organization-Id` from `orgStore` on every request.
+
 ### 7. Types (`src/types/`)
 
-Define interfaces: `DashboardOverview`, `Anomaly`, `AnomalyDetail`, `Prediction`, `WearScenario`, `MachineStatus`, `FactoryOverview`, `SparePart`, `InventorySnapshot`, `PartTicket`, `PurchaseOrder`, `Supplier`, `ChatMessage`, `ChatSession`, `SearchResult`, `NotificationLog`, `HealthStatus`
+Define interfaces:
+
+**Auth & Org:** `User`, `UserWithOrgs`, `OrgMembership`, `Organization`, `OrgSettings`, `OrgMember`, `SupportTicket`, `Role` (union type: `'admin' | 'manager' | 'operator' | 'technician' | 'procurement' | 'viewer'`), `Permission`
+
+**Domain:** `DashboardOverview`, `Anomaly`, `AnomalyDetail`, `Prediction`, `WearScenario`, `MachineStatus`, `FactoryOverview`, `SparePart`, `InventorySnapshot`, `PartTicket`, `PurchaseOrder`, `Supplier`, `ChatMessage`, `ChatSession`, `SearchResult`, `NotificationLog`, `HealthStatus`
 
 ### 8. UI Components (`src/components/ui/`)
 
@@ -89,18 +100,40 @@ All with Tailwind + Framer Motion:
 - **AnimatedCounter** — Spring animation on value change.
 - **PageTransition** — Fade-slide entrance for page content.
 
-### 9. Dashboard Layout (`src/app/(dashboard)/layout.tsx`)
+### 9. Zustand Stores (`src/store/`)
 
-- **Sidebar** (collapsible): logo, nav items (Dashboard, Anomalies, Predictions, Spare Parts, Chat, Notifications, Settings) with Lucide icons. Active = cyan accent bar. Smooth width animation.
-- **Top Bar** (sticky): breadcrumb, search bar, notification bell with badge, health indicator dots.
+- **`authStore.ts`** — `user`, `token`, `isAuthenticated`, `isLoading`, `login()`, `logout()`, `loadUser()`
+- **`orgStore.ts`** — `activeOrgId`, `activeOrg`, `activeRole`, `organizations`, `switchOrg()`, `setOrganizations()`
+- **`uiStore.ts`** — `sidebarCollapsed`, `theme`, `toggleSidebar()`
 
-### 10. Mock Data Stubs (`src/services/mock/`)
+### 10. Permissions (`src/lib/permissions.ts`)
 
-Create stub files: `dashboard.ts`, `anomalies.ts`, `predictions.ts`, `spareParts.ts`, `chat.ts`, `notifications.ts`, `suppliers.ts`. Export typed mock data. Realistic data filled in later phases.
+- Define `Permission` type and `ROLE_PERMISSIONS` mapping
+- Export `hasPermission(role, permission)`, `canAccessRoute(role, pathname)`, `getNavItems(role)`
+- Sidebar nav items are filtered by the user's active role via `getNavItems()`
+
+### 11. Dashboard Layout (`src/app/(dashboard)/layout.tsx`)
+
+- **Sidebar** (collapsible): logo, **Org Switcher** at top (current org + role badge, click to switch), **role-aware nav items** (only items the active role has permission for) with Lucide icons. Active = cyan accent bar. Smooth width animation. Bottom: user avatar + logout.
+- **Top Bar** (sticky): breadcrumb, search bar, notification bell with badge, health indicator dots, user menu dropdown (profile, my orgs, logout, "Admin Panel" if admin).
+
+### 12. Mock Data Stubs (`src/services/mock/`)
+
+Create stub files: `auth.ts`, `dashboard.ts`, `anomalies.ts`, `predictions.ts`, `spareParts.ts`, `chat.ts`, `notifications.ts`, `suppliers.ts`. Export typed mock data. Realistic data filled in later phases.
+
+The `auth.ts` mock should include:
+- A default user ("Ahmet Yılmaz") with 3 org memberships and different roles in each
+- An admin user for testing admin panel
+- `login()` mock that returns admin user if email contains "admin", otherwise returns regular user
 
 ## Deliverables
 
 - All deps installed, Tailwind configured, global CSS, root layout with providers
-- Complete `api.ts` with all endpoints + mock fallback
-- TypeScript types, UI components, dashboard layout, mock stubs
+- Complete `api.ts` with all endpoints (auth, org, admin, domain) + mock fallback
+- Axios interceptor for auth token + org ID headers
+- TypeScript types (auth + domain), permission module
+- Zustand stores (auth, org, ui)
+- UI components, dashboard layout with org switcher + role-aware nav
+- Mock stubs (including auth mock)
 - App compiles with `npm run dev`
+- **Next:** Proceed to Phase 1.5 for auth pages, role guards, admin panel, and member management

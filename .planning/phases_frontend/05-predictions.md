@@ -1,6 +1,9 @@
 # Phase 5 — Predictions (Wear Forecasting)
 
 > Wear prediction pages: per-machine detailed forecast and factory-wide overview. Core value prop of the platform.
+> 
+> **Role Access:** Viewable by Manager, Operator, Technician, Viewer. Procurement sees summary only.
+> **Role-Gated Actions:** "Recalculate" button → Manager, Technician only. Viewer sees all data but no action buttons.
 
 ## Pages
 

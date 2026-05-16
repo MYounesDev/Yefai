@@ -1,6 +1,8 @@
 # Phase 7 — RAG Chatbot
 
 > AI-powered chatbot page with streaming responses, image cards, and session history. The core "smart assistant" feature.
+> 
+> **Role Access:** Accessible to Manager, Operator, Technician only. Procurement and Viewer CANNOT access (RoleGuard → 403 page). Chat sessions are org-scoped — each org has its own chat history.
 
 ## Page: `src/app/(dashboard)/chat/page.tsx`
 

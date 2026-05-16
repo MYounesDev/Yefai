@@ -1,6 +1,9 @@
 # Phase 8 — Notifications & Settings
 
 > Notification center with webhook logs, and system settings page.
+> 
+> **Role Access:** Notification logs visible to all org roles. "Trigger Test Notification" → Manager only. Settings page → Manager only (RoleGuard). Other roles attempting to access `/settings` see 403.
+> **Note:** Settings on this page are **org-level settings** (managed by Manager). Platform-level settings are in the Admin panel (Phase 1.5).
 
 ## Pages
 
