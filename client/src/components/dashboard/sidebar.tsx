@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -205,5 +206,4 @@ export function Sidebar() {
   );
 }
 
-// We need to import useState
-import { useState } from 'react';
+

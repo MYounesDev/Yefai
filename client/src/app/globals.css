@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: 'Inter', 'Inter Fallback', sans-serif;
-  --font-heading: 'Space Grotesk', 'Space Grotesk Fallback', sans-serif;
+  --font-sans: var(--font-inter), 'Inter', sans-serif;
+  --font-heading: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
 
   /* Brand Colors */
   --color-background: #0A0E1A;
@@ -11,7 +11,9 @@
   --color-foreground: #F9FAFB;
   --color-muted: #9CA3AF;
 
+  --color-surface-3: #374151;
   --color-border: rgba(255,255,255,0.08);
+  --color-border-strong: rgba(255,255,255,0.18);
   --color-border-hover: rgba(255,255,255,0.15);
 
   /* Accents */

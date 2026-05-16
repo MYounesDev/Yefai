@@ -4,9 +4,9 @@ import { config } from '@/config';
 // ===== MOCK IMPORTS =====
 import { mockLogin, mockCurrentUser, mockOrganizations, mockOrgMembers, mockSupportTickets } from './mock/auth';
 import { mockDashboardOverview, mockHealthStatus, mockFactoryOverview } from './mock/dashboard';
-import { mockAnomalies, getAnomalyDetailById, mockCrisisScore } from './mock/anomalies';
-import { mockPredictions, getMockPrediction } from './mock/predictions';
-import { mockSparePartsCatalog, mockInventorySnapshots, mockPartTickets, mockPurchaseOrders } from './mock/spareParts';
+import { mockAnomalies, getAnomalyDetailById } from './mock/anomalies';
+import { getMockPrediction } from './mock/predictions';
+import { mockSparePartsCatalog, mockInventorySnapshots, mockPartTickets, mockPurchaseOrders, mockCrisisScore } from './mock/spareParts';
 import { mockSuppliers, getAlternativeSuppliers } from './mock/suppliers';
 import { mockChatSessions, getMockResponse } from './mock/chat';
 import { mockNotificationLogs } from './mock/notifications';

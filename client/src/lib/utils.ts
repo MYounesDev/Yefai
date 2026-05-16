@@ -62,6 +62,10 @@ export function statusColor(status: string): string {
   }
 }
 
+export function formatWear(um: number): string {
+  return `${um} µm`;
+}
+
 export function wearLevelColor(wear: number, threshold = 200): string {
   const pct = wear / threshold;
   if (pct > 0.9) return '#F43F5E';

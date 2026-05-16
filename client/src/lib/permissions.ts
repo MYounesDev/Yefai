@@ -107,13 +107,13 @@ export interface NavItem {
 
 export const ALL_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard', permission: 'view:dashboard' },
-  { label: 'Anomalies', href: '/anomalies', icon: 'AlertTriangle', permission: 'view:anomalies' },
-  { label: 'Predictions', href: '/predictions', icon: 'TrendingUp', permission: 'view:predictions' },
-  { label: 'Spare Parts', href: '/spare-parts', icon: 'Package', permission: 'view:spare_parts' },
-  { label: 'AI Chat', href: '/chat', icon: 'MessageSquare', permission: 'view:chat' },
-  { label: 'Notifications', href: '/notifications', icon: 'Bell', permission: 'view:notifications' },
-  { label: 'Members', href: '/members', icon: 'Users', permission: 'manage:members' },
-  { label: 'Settings', href: '/settings', icon: 'Settings', permission: 'manage:org_settings' },
+  { label: 'Anomalies', href: '/dashboard/anomalies', icon: 'AlertTriangle', permission: 'view:anomalies' },
+  { label: 'Predictions', href: '/dashboard/predictions', icon: 'TrendingUp', permission: 'view:predictions' },
+  { label: 'Spare Parts', href: '/dashboard/spare-parts', icon: 'Package', permission: 'view:spare_parts' },
+  { label: 'AI Chat', href: '/dashboard/chatbot', icon: 'MessageSquare', permission: 'view:chat' },
+  { label: 'Notifications', href: '/dashboard/notifications', icon: 'Bell', permission: 'view:notifications' },
+  { label: 'Members', href: '/dashboard/team', icon: 'Users', permission: 'manage:members' },
+  { label: 'Settings', href: '/dashboard/settings', icon: 'Settings', permission: 'manage:org_settings' },
 ];
 
 export function getNavItems(role: Role | null | undefined): NavItem[] {
