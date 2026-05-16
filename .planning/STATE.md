@@ -31,7 +31,8 @@ See: .planning/PROJECT.md
 |---|---|---|
 | Phase 1 — Veri Altyapısı & Supabase Setup | Complete | G1 tamamlandı; Supabase REST/DB/pgvector doğrulandı. |
 | Phase 2A — Anomalib Training & Embedding Pipeline | Executing / required for final integration | Phase 2B live testleri için `.pt` model artifact bekleniyor. |
-| Phase 2B — NovaVision Local Inference Pipeline | Mock contract implemented; live gate pending | Mock-mode wrapper/service/router/test altyapısı hazır. G2 token/local install/container ve Phase 2A model artifact olmadan live başarı iddiası yok. |
+| Phase 2B — NovaVision Local Inference Pipeline | Mock contract implemented; live gate pending | Mock-mode wrapper/service/router/test altyapısı hazır. |
+| Phase 02b.01 — NovaVision CLI Reality Fix | Planned | Kurulu NovaVision CLI'da `deploy` yok; canlı entegrasyon app_id tabanlı `start server` + `start app --id <APP_ID>` akışına düzeltilecek. |
 | Phase 2.5 — Wear Prediction Engine | Not started | Phase 2A skorları ve Phase 2B hattı netleşince başlanır. |
 | Phase 3A — RAG Pipeline | Not started | G4 ve Phase 2A embedding çıktıları gerekir. |
 | Phase 3B — PUQ AI + Kriz | Not started | G3 ve upstream inference/prediction çıktıları gerekir. |
@@ -48,7 +49,7 @@ See: .planning/PROJECT.md
   - `tests/test_novavision_live.py` live/manual-gate skeleton
   - `reports/novavision_phase02b.md`
 - 2026-05-16: Phase 2B focused test run from `server/` passed: `uv run pytest ../tests/phase02b ../tests/test_novavision_live.py -q` → `5 passed, 2 skipped`.
-- Live NovaVision remains pending until G2 is completed and Phase 2A `.pt` model path is available.
+- Live NovaVision remains pending until G2 is completed and a NovaVision platform `APP_ID` is available. Current installed CLI has no `deploy` command, so Phase 02b.01 was opened to replace the stale `.pt deploy` assumption with `novavision start app --id <APP_ID>`.
 
 ## Session Log
 

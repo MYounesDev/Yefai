@@ -24,7 +24,7 @@ Bu işlemler otomatik değildir. İlgili faz başlamadan önce tamamlanmış olm
 | Gate ID | Açıklama | Gerekli Faz | Nasıl Yapılır |
 |---------|----------|-------------|---------------|
 | **G1** | ✅ TAMAMLANDI — Supabase projesi oluştur + pgvector aktifleştir + connection string al | Phase 1 | Yefai `jgufisddsdmappcnglcf`; `.env` hazır; REST HTTP 200; DB connect OK; `vector` 0.8.0 doğrulandı |
-| **G2** | ⚠️ KISMİ — Docker ve NovaVision CLI komutları çalışıyor; token/local install/live container doğrulanmadı | Phase 2B | Kalan: novavision.ai'den token al, `novavision install local <TOKEN>` çalıştır, `.env` içine `NOVAVISION_TOKEN`, `NOVAVISION_MOCK=false`, `NOVAVISION_INFERENCE_URL` ekle, Phase 2A `.pt` artifact ile live testleri çalıştır |
+| **G2** | ⚠️ KISMİ — Docker ve NovaVision CLI komutları çalışıyor; token/local install/live container doğrulanmadı; kurulu CLI'da `deploy` komutu yok | Phase 2B / 02b.01 | Kalan: novavision.ai'den token al, `novavision install local <TOKEN>` çalıştır, NovaVision platformunda model/app oluşturup `APP_ID` al, `.env` içine `NOVAVISION_TOKEN`, `NOVAVISION_MOCK=false`, `NOVAVISION_INFERENCE_URL`, `NOVAVISION_DEFAULT_APP_ID=<APP_ID>` ekle, `novavision start server` + `novavision start app --id <APP_ID>` ile live testleri çalıştır |
 | **G3** | PUQ AI hesabı oluştur + workflow webhook URL'lerini al | Phase 3B | puq.ai → Register → Workflow oluştur (Telegram, E-posta, SMS trigger) → Her workflow için webhook URL'sini `.env` dosyasına `PUQAI_ANOMALY_WEBHOOK`, `PUQAI_EMAIL_WEBHOOK`, `PUQAI_SMS_WEBHOOK` olarak kaydet |
 | **G4** | Gemini / Claude API key al | Phase 3A | aistudio.google.com veya console.anthropic.com → API key → `.env` dosyasına `LLM_API_KEY` ve `LLM_PROVIDER` (gemini/claude) olarak kaydet |
 
@@ -120,7 +120,7 @@ Bu işlemler otomatik değildir. İlgili faz başlamadan önce tamamlanmış olm
 **Deliverable:** Local Docker container'da çalışan NovaVision inference, FastAPI endpoint'leri
 **Tahmini süre:** 1.5 hafta (model beklerken mock ile çalışır, model gelince 2 günde entegre olur)
 
-**Durum — 2026-05-16:** Mock-mode NovaVision backend contract uygulandı ve test edildi. Wrapper/service/router ayrımı, `/api/novavision/*` endpointleri, ana `/health` NovaVision özeti, mock-mode API testleri ve live/manual-gate test skeleton'ı mevcut. G2 token/local install/container ve Phase 2A `.pt` artifact olmadığı için live deploy/inference tamamlandı diye işaretlenmedi. Detay: `.planning/phases/02b-novavision-inference/SUMMARY.md` ve `reports/novavision_phase02b.md`.
+**Durum — 2026-05-16:** Mock-mode NovaVision backend contract uygulandı ve test edildi. Wrapper/service/router ayrımı, `/api/novavision/*` endpointleri, ana `/health` NovaVision özeti, mock-mode API testleri ve live/manual-gate test skeleton'ı mevcut. Sonradan gerçek CLI doğrulamasında kurulu NovaVision CLI'ın `deploy` komutu içermediği görüldü; canlı entegrasyon app_id tabanlı `novavision start server` + `novavision start app --id <APP_ID>` akışına revize edilmelidir. Bu düzeltme için alt plan açıldı: `.planning/phases/02b.01-novavision-inference/PLAN.md`.
 
 ---
 
