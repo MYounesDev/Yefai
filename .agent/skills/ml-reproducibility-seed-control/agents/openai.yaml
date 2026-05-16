@@ -1,0 +1,4 @@
+interface:
+  display_name: "ML Reproducibility & Seed Control"
+  short_description: "Seed management for determinism and reproducibility in ML workflows"
+  default_prompt: "I want to ensure full reproducibility in my PyTorch and scikit-learn project"

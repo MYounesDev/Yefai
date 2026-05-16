@@ -1,0 +1,4 @@
+interface:
+  display_name: "Software Testing TDD Architecture"
+  short_description: "Plan testing strategy, TDD, and quality gates"
+  default_prompt: "Use $software-testing-tdd-architecture to design a pragmatic test strategy and TDD workflow for this feature."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "ML Training Error Prevention"
+  short_description: "Pre-training ML sanity checks"
+  default_prompt: "Use $ml-training-error-prevention to review a machine learning or deep learning training pipeline before a long run and identify data, model, gradient, loss, and reproducibility risks."
