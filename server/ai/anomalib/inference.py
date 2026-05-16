@@ -1,7 +1,9 @@
+import json
 import logging
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from PIL import Image
 
@@ -9,6 +11,21 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 ANOMALY_THRESHOLD = 0.5
+IMAGENET_MEAN = [0.485, 0.456, 0.406]
+IMAGENET_STD = [0.229, 0.224, 0.225]
+
+
+def load_norm_from_meta(model_dir: Path) -> tuple[list[float], list[float]]:
+    meta_path = model_dir / "model_meta.json"
+    if meta_path.exists():
+        meta = json.loads(meta_path.read_text())
+        norm = meta.get("normalization", {})
+        mean = norm.get("mean", IMAGENET_MEAN)
+        std = norm.get("std", IMAGENET_STD)
+        logger.info("Loaded normalization from model_meta: mean=%s, std=%s", mean, std)
+        return mean, std
+    logger.info("No model_meta.json, using ImageNet normalization")
+    return IMAGENET_MEAN, IMAGENET_STD
 
 
 def compute_threshold_from_normal(
@@ -16,9 +33,9 @@ def compute_threshold_from_normal(
     normal_dir: Path,
     device: str,
     percentile: float = 95.0,
+    mean=None,
+    std=None,
 ) -> float:
-    import numpy as np
-
     image_paths = list(normal_dir.rglob("*.jpg")) + list(normal_dir.rglob("*.png"))
     if not image_paths:
         logger.warning("No normal images found for threshold computation at %s", normal_dir)
@@ -27,7 +44,7 @@ def compute_threshold_from_normal(
     scores = []
     for img_path in image_paths:
         try:
-            tensor = preprocess_image(img_path)
+            tensor = preprocess_image(img_path, mean=mean, std=std)
             result = predict_image(model, tensor, device)
             scores.append(result["anomaly_score"])
         except Exception as e:
@@ -85,14 +102,19 @@ def load_anomalib_model(model_path: Path, device: str = "auto"):
     return model, device
 
 
-def preprocess_image(image_path: Path) -> Any:  # returns torch.Tensor
+def preprocess_image(image_path: Path, mean=None, std=None) -> Any:
     from torchvision import transforms
+
+    if mean is None:
+        mean = IMAGENET_MEAN
+    if std is None:
+        std = IMAGENET_STD
 
     transform = transforms.Compose(
         [
             transforms.Resize((256, 256)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=mean, std=std),
         ]
     )
     image = Image.open(image_path).convert("RGB")
@@ -127,6 +149,7 @@ def run_inference_on_test_set(
     output_path: Path | None = None,
 ):
     model, device = load_anomalib_model(model_path)
+    mean, std = load_norm_from_meta(model_path.parent)
 
     test_images = list(test_dir.rglob("*.jpg")) + list(test_dir.rglob("*.png"))
     logger.info("Running inference on %d test images", len(test_images))
@@ -134,7 +157,7 @@ def run_inference_on_test_set(
     results = []
     for img_path in test_images:
         try:
-            tensor = preprocess_image(img_path)
+            tensor = preprocess_image(img_path, mean=mean, std=std)
             result = predict_image(model, tensor, device)
             result["image_path"] = str(img_path)
             result["image_name"] = img_path.name
