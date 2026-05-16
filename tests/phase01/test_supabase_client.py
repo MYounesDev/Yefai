@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 
 def test_config_file_exists():
     config_path = (
@@ -19,6 +17,7 @@ def test_client_file_exists():
 
 def test_config_settings_loads():
     from db.config import Settings
+
     settings = Settings()
     assert hasattr(settings, "supabase_url")
     assert hasattr(settings, "supabase_service_key")
@@ -29,6 +28,7 @@ def test_client_creates_without_env(monkeypatch):
     monkeypatch.setenv("SUPABASE_SERVICE_KEY", "")
 
     import db.client as c
+
     c._client = None
 
     client = c.get_supabase_client()

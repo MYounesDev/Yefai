@@ -1,7 +1,6 @@
-import logging
 import argparse
+import logging
 from pathlib import Path
-from typing import Optional, List, Dict
 
 import pandas as pd
 
@@ -12,7 +11,7 @@ BATCH_SIZE = 100
 
 
 def resolve_paths(
-    labels_path: Optional[str] = None,
+    labels_path: str | None = None,
 ) -> tuple[Path, Path]:
     script_dir = Path(__file__).resolve().parent
     server_root = script_dir.parent
@@ -24,7 +23,7 @@ def resolve_paths(
     return lp, output_dir
 
 
-def prepare_set_records(labels: pd.DataFrame) -> List[Dict]:
+def prepare_set_records(labels: pd.DataFrame) -> list[dict]:
     records = []
     for set_id in sorted(labels["Set"].unique()):
         set_df = labels[labels["Set"] == set_id]
@@ -38,7 +37,7 @@ def prepare_set_records(labels: pd.DataFrame) -> List[Dict]:
     return records
 
 
-def prepare_image_records(labels: pd.DataFrame) -> List[Dict]:
+def prepare_image_records(labels: pd.DataFrame) -> list[dict]:
     records = []
     for _, row in labels.iterrows():
         wear_type = row.get("wear_type", row.get("type", "unknown"))
@@ -77,8 +76,8 @@ def prepare_image_records(labels: pd.DataFrame) -> List[Dict]:
 
 
 def seed_local_csv(
-    set_records: List[Dict],
-    image_records: List[Dict],
+    set_records: list[dict],
+    image_records: list[dict],
     output_dir: Path,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -89,8 +88,8 @@ def seed_local_csv(
 
 
 def seed_supabase(
-    set_records: List[Dict],
-    image_records: List[Dict],
+    set_records: list[dict],
+    image_records: list[dict],
 ) -> bool:
     try:
         from db.client import get_supabase_client
@@ -120,10 +119,10 @@ def seed_supabase(
         return False
 
 
-def print_summary(set_records: List[Dict], image_records: List[Dict]) -> None:
+def print_summary(set_records: list[dict], image_records: list[dict]) -> None:
     total_sets = len(set_records)
     total_images = len(image_records)
-    wear_types: Dict[str, int] = {}
+    wear_types: dict[str, int] = {}
     for r in image_records:
         wt = r["wear_type"]
         wear_types[wt] = wear_types.get(wt, 0) + 1
@@ -145,6 +144,7 @@ def main():
     labels = pd.read_csv(labels_path)
 
     from etl.parse_labels import normalize_wear_type
+
     labels["wear_type"] = labels["type"].apply(normalize_wear_type)
 
     set_records = prepare_set_records(labels)

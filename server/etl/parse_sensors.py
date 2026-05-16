@@ -1,6 +1,6 @@
+import contextlib
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -11,7 +11,7 @@ EXPECTED_SENSOR_TYPES = ["Accelerometer", "Acoustic", "Force_X", "Force_Y", "For
 EXPECTED_COLUMN_COUNT = 6
 
 
-def parse_sensor_csv(csv_path: Path) -> Optional[pd.DataFrame]:
+def parse_sensor_csv(csv_path: Path) -> pd.DataFrame | None:
     try:
         df = pd.read_csv(csv_path)
     except Exception as e:
@@ -28,21 +28,19 @@ def parse_sensor_csv(csv_path: Path) -> Optional[pd.DataFrame]:
         )
 
     first_col = df.columns[0]
-    try:
+    with contextlib.suppress(Exception):
         df[first_col] = pd.to_datetime(df[first_col], errors="coerce")
-    except Exception:
-        pass
 
     return df
 
 
-def parse_set_sensors(set_dir: Path) -> Dict[str, pd.DataFrame]:
+def parse_set_sensors(set_dir: Path) -> dict[str, pd.DataFrame]:
     sensor_dir = set_dir / "sensordata"
     if not sensor_dir.exists():
         logger.warning("Sensor directory not found: %s", sensor_dir)
         return {}
 
-    results: Dict[str, pd.DataFrame] = {}
+    results: dict[str, pd.DataFrame] = {}
     for sensor_type in EXPECTED_SENSOR_TYPES:
         pattern = f"*{sensor_type}*.csv"
         matches = list(sensor_dir.glob(pattern))
@@ -56,15 +54,13 @@ def parse_set_sensors(set_dir: Path) -> Dict[str, pd.DataFrame]:
             df = parse_sensor_csv(csv_file)
             if df is not None:
                 results[key] = df
-                logger.info(
-                    "Parsed %s: %d rows × %d cols", key, len(df), df.shape[1]
-                )
+                logger.info("Parsed %s: %d rows × %d cols", key, len(df), df.shape[1])
 
     return results
 
 
-def parse_all_sensors(matwi_root: Path) -> Dict[int, Dict[str, pd.DataFrame]]:
-    all_sensors: Dict[int, Dict[str, pd.DataFrame]] = {}
+def parse_all_sensors(matwi_root: Path) -> dict[int, dict[str, pd.DataFrame]]:
+    all_sensors: dict[int, dict[str, pd.DataFrame]] = {}
     set_dirs = sorted(matwi_root.glob("Set*"))
 
     if not set_dirs:
@@ -87,7 +83,7 @@ def parse_all_sensors(matwi_root: Path) -> Dict[int, Dict[str, pd.DataFrame]]:
     return all_sensors
 
 
-def get_sensor_summary(all_sensors: Dict[int, Dict[str, pd.DataFrame]]) -> pd.DataFrame:
+def get_sensor_summary(all_sensors: dict[int, dict[str, pd.DataFrame]]) -> pd.DataFrame:
     rows = []
     for set_num, sensors in all_sensors.items():
         for key, df in sensors.items():

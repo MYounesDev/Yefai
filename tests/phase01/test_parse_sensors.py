@@ -1,11 +1,8 @@
-from pathlib import Path
-
 import pandas as pd
 
 from etl.parse_sensors import (
     parse_sensor_csv,
     parse_set_sensors,
-    parse_all_sensors,
     get_sensor_summary,
 )
 
@@ -56,7 +53,16 @@ def test_parse_set_sensors_missing_dir(tmp_path):
 
 
 def test_get_sensor_summary():
-    df_acc = pd.DataFrame({"t": [0, 1], "ch1": [1, 2], "ch2": [3, 4], "ch3": [5, 6], "ch4": [7, 8], "ch5": [9, 10]})
+    df_acc = pd.DataFrame(
+        {
+            "t": [0, 1],
+            "ch1": [1, 2],
+            "ch2": [3, 4],
+            "ch3": [5, 6],
+            "ch4": [7, 8],
+            "ch5": [9, 10],
+        }
+    )
     all_sensors = {1: {"Accelerometer/acc": df_acc}}
     summary = get_sensor_summary(all_sensors)
     assert len(summary) == 1

@@ -1,8 +1,7 @@
 import argparse
 import logging
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -145,7 +144,7 @@ def generate_suppliers(num_suppliers: int = NUM_SUPPLIERS) -> pd.DataFrame:
 
 def generate_inventory(catalog: pd.DataFrame) -> pd.DataFrame:
     records = []
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for _, part in catalog.iterrows():
         max_level = part["max_stock"]
@@ -219,9 +218,8 @@ def generate_tickets_and_pos(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     tickets = []
     pos = []
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     inv_map = {r["part_id"]: r for _, r in inventory.iterrows()}
-    cat_map = {r["part_id"]: r for _, r in catalog.iterrows()}
 
     for _, part in catalog.iterrows():
         pid = part["part_id"]
@@ -269,13 +267,27 @@ def generate_tickets_and_pos(
             pos.append(po)
 
     tickets_df = pd.DataFrame(tickets)
-    pos_df = pd.DataFrame(pos) if pos else pd.DataFrame(
-        columns=["part_id", "supplier_id", "quantity", "status", "crisis_score", "risk", "created_at"]
+    pos_df = (
+        pd.DataFrame(pos)
+        if pos
+        else pd.DataFrame(
+            columns=[
+                "part_id",
+                "supplier_id",
+                "quantity",
+                "status",
+                "crisis_score",
+                "risk",
+                "created_at",
+            ]
+        )
     )
 
     n_crisis = len(tickets_df[tickets_df["risk"] == "crisis"])
     n_at_risk = len(tickets_df[tickets_df["risk"] == "at_risk"])
-    logger.info("Generated %d ticket(s) — %d crisis, %d at_risk", len(tickets_df), n_crisis, n_at_risk)
+    logger.info(
+        "Generated %d ticket(s) — %d crisis, %d at_risk", len(tickets_df), n_crisis, n_at_risk
+    )
     logger.info("Generated %d purchase order(s)", len(pos_df))
     return tickets_df, pos_df
 
@@ -288,7 +300,7 @@ def export_all(output_dir: Path, **dfs: pd.DataFrame) -> None:
         logger.info("Exported %s (%d rows)", path, len(df))
 
 
-def generate_all(output_dir: Optional[Path] = None) -> Dict[str, pd.DataFrame]:
+def generate_all(output_dir: Path | None = None) -> dict[str, pd.DataFrame]:
     if output_dir is None:
         script_dir = Path(__file__).resolve().parent
         output_dir = script_dir.parent.parent / "data" / "mock"

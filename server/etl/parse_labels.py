@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-from typing import Optional, Tuple
 
 import pandas as pd
 
@@ -78,7 +77,7 @@ def parse_sets(sets_path: Path) -> pd.DataFrame:
     return df
 
 
-def parse_metadata(labels_path: Path, sets_path: Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def parse_metadata(labels_path: Path, sets_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     labels = parse_labels(labels_path)
     sets = parse_sets(sets_path)
 

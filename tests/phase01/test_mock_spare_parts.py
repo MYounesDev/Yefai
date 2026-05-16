@@ -1,8 +1,4 @@
-import tempfile
-from pathlib import Path
-
 import pandas as pd
-import pytest
 
 from etl.generate_mock_spare_parts import (
     generate_catalog,
@@ -11,7 +7,6 @@ from etl.generate_mock_spare_parts import (
     generate_tickets_and_pos,
     compute_crisis_score,
     risk_level,
-    generate_all,
     export_all,
 )
 
@@ -21,7 +16,12 @@ def test_generate_catalog():
     assert len(df) == 40
     assert set(df.columns) >= {"part_id", "part_name", "criticality", "demand_pattern"}
     assert set(df["criticality"].unique()) == {"A", "B", "C"}
-    assert set(df["demand_pattern"].unique()) <= {"intermittent", "erratic", "lumpy", "smooth"}
+    assert set(df["demand_pattern"].unique()) <= {
+        "intermittent",
+        "erratic",
+        "lumpy",
+        "smooth",
+    }
 
 
 def test_generate_suppliers():
@@ -35,14 +35,24 @@ def test_generate_inventory():
     catalog = generate_catalog(40)
     df = generate_inventory(catalog)
     assert len(df) == 40
-    assert set(df.columns) >= {"part_id", "on_hand", "on_order", "min_level", "max_level"}
+    assert set(df.columns) >= {
+        "part_id",
+        "on_hand",
+        "on_order",
+        "min_level",
+        "max_level",
+    }
 
 
 def test_compute_crisis_score():
-    score = compute_crisis_score(on_hand=0, min_level=5, lead_time_p90=30, criticality="A", reliability=0.6)
+    score = compute_crisis_score(
+        on_hand=0, min_level=5, lead_time_p90=30, criticality="A", reliability=0.6
+    )
     assert 70 <= score <= 100
 
-    score_low = compute_crisis_score(on_hand=10, min_level=3, lead_time_p90=3, criticality="C", reliability=0.95)
+    score_low = compute_crisis_score(
+        on_hand=10, min_level=3, lead_time_p90=3, criticality="C", reliability=0.95
+    )
     assert score_low <= 40
 
 

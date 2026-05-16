@@ -1,7 +1,6 @@
-import logging
 import argparse
+import logging
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import pandas as pd
 
@@ -16,7 +15,7 @@ DEFAULT_SPLIT = {
 
 def build_split_manifest(
     labels: pd.DataFrame,
-    splits: Dict[str, List[int]],
+    splits: dict[str, list[int]],
 ) -> pd.DataFrame:
     train_ids = set(splits.get("train", []))
     test_ids = set(splits.get("test", []))
@@ -49,9 +48,7 @@ def build_split_manifest(
     return manifest
 
 
-def validate_split_no_leakage(
-    manifest: pd.DataFrame, labels: pd.DataFrame
-) -> bool:
+def validate_split_no_leakage(manifest: pd.DataFrame, labels: pd.DataFrame) -> bool:
     train_sets = set(manifest[manifest["Split"] == "train"]["Set"])
     test_sets = set(manifest[manifest["Split"] == "test"]["Set"])
 
@@ -96,7 +93,7 @@ def validate_split_ratio(manifest: pd.DataFrame) -> bool:
 def generate_split(
     labels_path: Path,
     output_dir: Path,
-    splits: Dict[str, List[int]] | None = None,
+    splits: dict[str, list[int]] | None = None,
 ) -> pd.DataFrame:
     labels = pd.read_csv(labels_path)
 
@@ -134,7 +131,9 @@ def main():
     server_root = script_dir.parent
     project_root = server_root.parent
 
-    labels_path = Path(args.labels_path) if args.labels_path else server_root / "dataset" / "labels.csv"
+    labels_path = (
+        Path(args.labels_path) if args.labels_path else server_root / "dataset" / "labels.csv"
+    )
     output_dir = Path(args.output_dir) if args.output_dir else project_root / "data" / "manifests"
 
     generate_split(labels_path, output_dir)

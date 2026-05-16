@@ -53,7 +53,6 @@ def test_verify_against_labels(tmp_path):
 def test_verify_against_labels_missing(tmp_path):
     labels_csv = tmp_path / "labels.csv"
     labels_csv.write_text(
-        "ImageFile,wear,type,Set,ImageDateTime\n"
-        "img1.png,30,flank_wear,1,2022-01-01\n"
+        "ImageFile,wear,type,Set,ImageDateTime\nimg1.png,30,flank_wear,1,2022-01-01\n"
     )
     assert verify_against_labels({}, labels_csv) is False

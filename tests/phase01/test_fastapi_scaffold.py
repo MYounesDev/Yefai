@@ -16,13 +16,13 @@ def test_health_endpoint():
 
 
 def test_main_file_exists():
-    assert (Path(__file__).resolve().parent.parent.parent / "server" / "main.py").exists()
+    assert (
+        Path(__file__).resolve().parent.parent.parent / "server" / "main.py"
+    ).exists()
 
 
 def test_router_files_exist():
-    router_dir = (
-        Path(__file__).resolve().parent.parent.parent / "server" / "routers"
-    )
+    router_dir = Path(__file__).resolve().parent.parent.parent / "server" / "routers"
     expected = [
         "anomalib.py",
         "novavision.py",
@@ -36,7 +36,9 @@ def test_router_files_exist():
 
 
 def test_config_file_exists():
-    assert (Path(__file__).resolve().parent.parent.parent / "server" / "db" / "config.py").exists()
+    assert (
+        Path(__file__).resolve().parent.parent.parent / "server" / "db" / "config.py"
+    ).exists()
 
 
 def test_cors_enabled():

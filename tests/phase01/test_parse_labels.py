@@ -1,9 +1,12 @@
-from pathlib import Path
-
 import pandas as pd
 import pytest
 
-from etl.parse_labels import normalize_wear_type, parse_labels, parse_sets, parse_metadata
+from etl.parse_labels import (
+    normalize_wear_type,
+    parse_labels,
+    parse_sets,
+    parse_metadata,
+)
 
 
 def test_normalize_wear_type():
@@ -41,8 +44,8 @@ def test_parse_sets(tmp_path):
     csv_path = tmp_path / "sets.csv"
     csv_path.write_text(
         ",Vc,n,fz,Vf,Ae,Ap,material,crop,Coating,z\n"
-        "Set 1,?,?,?,?,1,1,CK45,\"2470, 1000, 3070, 1400\",,1\n"
-        "Set 2,120,2547,0.08,203,1,1,CK45,\"1150, 670, 1750, 1070\",,1\n"
+        'Set 1,?,?,?,?,1,1,CK45,"2470, 1000, 3070, 1400",,1\n'
+        'Set 2,120,2547,0.08,203,1,1,CK45,"1150, 670, 1750, 1070",,1\n'
     )
 
     df = parse_sets(csv_path)
@@ -53,13 +56,12 @@ def test_parse_sets(tmp_path):
 def test_parse_metadata(tmp_path):
     labels_csv = tmp_path / "labels.csv"
     labels_csv.write_text(
-        "ImageFile,wear,type,Set,ImageDateTime\n"
-        "img1.png,30,flank_wear,1,2022-01-01\n"
+        "ImageFile,wear,type,Set,ImageDateTime\nimg1.png,30,flank_wear,1,2022-01-01\n"
     )
     sets_csv = tmp_path / "sets.csv"
     sets_csv.write_text(
         ",Vc,n,fz,Vf,Ae,Ap,material,crop,Coating,z\n"
-        "Set 1,?,?,?,?,1,1,CK45,\"0,0,0,0\",,1\n"
+        'Set 1,?,?,?,?,1,1,CK45,"0,0,0,0",,1\n'
     )
 
     labels, sets = parse_metadata(labels_csv, sets_csv)

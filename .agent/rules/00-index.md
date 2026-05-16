@@ -17,6 +17,9 @@ Bu klasör `.planning/` altındaki Yefai v1.0 planlarından türetilmiş zorunlu
 2. Faz özelindeki `PLAN.md`, `*-RESEARCH.md`, `*-VALIDATION.md` dosyaları faz içinde bağlayıcıdır.
 3. Çelişki varsa kapsamı daraltan, mock/live ayrımını netleştiren ve veri sızıntısını önleyen kural kazanır.
 4. Emin olunmayan dış servis/API davranışları için gerçek entegrasyon iddiası yazma; mock/skeleton ve net hata mesajı kullan.
+5. **Paket yöneticisi olarak `uv` kullanılır** (`pip` değil).
+6. **Her commit öncesi kalite gate:** `ruff check` → `ruff format --check` → `mypy` → `pytest` (bkz. `.pre-commit-config.yaml`)
+7. **Commit mesajları conventional commit formatında** (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
 
 ## Kaynak plan dosyaları
 - `.planning/PROJECT.md`

@@ -1,0 +1,27 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.0
+    hooks:
+      - id: ruff
+        args: [--fix, --config=server/pyproject.toml]
+        files: ^server/
+      - id: ruff-format
+        args: [--config=server/pyproject.toml]
+        files: ^server/
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: bash -c 'cd server && uv run mypy .'
+        language: system
+        pass_filenames: false
+        files: ^server/
+
+      - id: pytest
+        name: pytest
+        entry: bash -c 'cd server && uv run pytest ../tests/phase01/ -q'
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^(server|tests)/

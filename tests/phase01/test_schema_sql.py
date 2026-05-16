@@ -1,7 +1,4 @@
-import sqlite3
 from pathlib import Path
-
-import pytest
 
 
 def test_migration_file_exists():

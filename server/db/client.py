@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from supabase import Client, create_client
 
@@ -7,10 +7,10 @@ from db.config import get_settings
 
 logger = logging.getLogger(__name__)
 
-_client: Optional[Client] = None
+_client: Client | None = None
 
 
-def get_supabase_client() -> Optional[Client]:
+def get_supabase_client() -> Client | None:
     global _client
     if _client is not None:
         return _client
@@ -39,15 +39,15 @@ def test_connection() -> bool:
         return False
 
     try:
-        response = client.table("sets").select("*", count="exact").execute()
-        logger.info("Supabase connection OK — %d set(s) in database", response.count)
+        client.table("sets").select("*").execute()
+        logger.info("Supabase connection OK — sets table accessible")
         return True
     except Exception as e:
         logger.error("Supabase connection test FAILED: %s", e)
         return False
 
 
-def run_migration_sql(sql_path: str, client: Optional[Client] = None) -> bool:
+def run_migration_sql(sql_path: str, client: Client | None = None) -> bool:
     if client is None:
         client = get_supabase_client()
 
@@ -55,7 +55,7 @@ def run_migration_sql(sql_path: str, client: Optional[Client] = None) -> bool:
         logger.warning("Migration skipped — Supabase client not available")
         return False
 
-    with open(sql_path, "r") as f:
+    with open(sql_path) as f:
         sql_content = f.read()
 
     statements = [s.strip() for s in sql_content.split(";") if s.strip()]

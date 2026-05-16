@@ -1,9 +1,8 @@
-import os
-import zipfile
 import argparse
 import logging
+import os
+import zipfile
 from pathlib import Path
-from typing import Dict, List
 
 import pandas as pd
 
@@ -18,13 +17,13 @@ def resolve_data_root() -> Path:
     return Path(__file__).resolve().parent.parent.parent / "data"
 
 
-def extract_zips(dataset_dir: Path, output_dir: Path) -> Dict[str, int]:
+def extract_zips(dataset_dir: Path, output_dir: Path) -> dict[str, int]:
     zip_files = sorted(dataset_dir.glob("Set*.zip"))
     if not zip_files:
         logger.warning("No Set*.zip files found in %s", dataset_dir)
         return {}
 
-    extracted_counts: Dict[str, int] = {}
+    extracted_counts: dict[str, int] = {}
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for zpath in zip_files:
@@ -51,7 +50,7 @@ def extract_zips(dataset_dir: Path, output_dir: Path) -> Dict[str, int]:
     return extracted_counts
 
 
-def verify_against_labels(extracted_counts: Dict[str, int], labels_path: Path) -> bool:
+def verify_against_labels(extracted_counts: dict[str, int], labels_path: Path) -> bool:
     if not labels_path.exists():
         logger.error("labels.csv not found at %s", labels_path)
         return False

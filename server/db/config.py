@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from pydantic import computed_field
@@ -34,7 +33,7 @@ class Settings(BaseSettings):
 
     yefai_data_root: str = ""
 
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def supabase_connected(self) -> bool:
         return bool(self.supabase_url and self.supabase_service_key)
