@@ -304,7 +304,10 @@ def _fire_puqai_webhook(
         from db.config import get_settings
 
         settings_obj = get_settings()
-        base_url = getattr(settings_obj, "public_base_url", "http://localhost:8001") or "http://localhost:8001"
+        base_url = (
+            getattr(settings_obj, "public_base_url", "http://localhost:8001")
+            or "http://localhost:8001"
+        )
         chart_url = f"{base_url}/api/predictions/{machine_id}/chart"
         message += f"\n\n📈 Asinma Grafigi: {chart_url}"
 
