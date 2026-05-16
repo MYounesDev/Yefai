@@ -12,7 +12,18 @@ def export_model(checkpoint_path: Path, output_dir: Path) -> Path:
     from anomalib.models import Patchcore
 
     checkpoint = torch.load(str(checkpoint_path), map_location="cpu", weights_only=False)
-    state_dict = checkpoint.get("state_dict", checkpoint)
+
+    raw_state_dict = checkpoint.get("state_dict", checkpoint)
+    state_dict = {}
+    for key, value in raw_state_dict.items():
+        clean_key = key.removeprefix("model.").removeprefix("teacher.")
+        state_dict[clean_key] = value
+
+    logger.info(
+        "State dict keys: %d raw, %d cleaned (model. prefix stripped)",
+        len(raw_state_dict),
+        len(state_dict),
+    )
 
     model = Patchcore(
         backbone="wide_resnet50_2",
@@ -21,7 +32,25 @@ def export_model(checkpoint_path: Path, output_dir: Path) -> Path:
         coreset_sampling_ratio=0.1,
         num_neighbors=9,
     )
-    model.load_state_dict(state_dict, strict=False)
+    missing, unexpected = model.load_state_dict(state_dict, strict=False)
+    if missing:
+        logger.warning("Missing keys (%d): %s...", len(missing), str(missing[:3]))
+    if unexpected:
+        logger.warning("Unexpected keys (%d): %s...", len(unexpected), str(unexpected[:3]))
+
+    loaded_param_count = sum(1 for k in state_dict if k in model.state_dict())
+    logger.info(
+        "Loaded %d/%d parameters from checkpoint",
+        loaded_param_count,
+        len(model.state_dict()),
+    )
+
+    if loaded_param_count < 10:
+        raise RuntimeError(
+            f"Only {loaded_param_count} parameters loaded — checkpoint may be corrupt "
+            "or state_dict key mismatch. Expected ~800+ parameters."
+        )
+
     model.eval()
 
     pt_path = output_dir / "patchcore_matwi.pt"

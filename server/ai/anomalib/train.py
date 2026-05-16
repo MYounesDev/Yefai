@@ -8,10 +8,19 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def train_patchcore(dataset_path: Path, output_dir: Path, device: str = "auto"):
+def train_patchcore(
+    dataset_path: Path,
+    output_dir: Path,
+    device: str = "auto",
+    seed: int = 42,
+):
+    import numpy as np
     from anomalib.data import Folder
     from anomalib.engine import Engine
     from anomalib.models import Patchcore
+
+    torch.manual_seed(seed)
+    np.random.seed(seed)
 
     if device == "auto":
         if torch.cuda.is_available():
@@ -21,7 +30,7 @@ def train_patchcore(dataset_path: Path, output_dir: Path, device: str = "auto"):
         else:
             device = "cpu"
 
-    logger.info("Training on device: %s", device)
+    logger.info("Training on device: %s (seed=%d)", device, seed)
 
     datamodule = Folder(
         name="matwi",
@@ -29,6 +38,7 @@ def train_patchcore(dataset_path: Path, output_dir: Path, device: str = "auto"):
         normal_dir="train/good",
         abnormal_dir="test/bad",
         normal_test_dir="test/good",
+        image_size=(256, 256),
         train_batch_size=32,
         eval_batch_size=32,
         num_workers=4,
@@ -46,20 +56,20 @@ def train_patchcore(dataset_path: Path, output_dir: Path, device: str = "auto"):
     engine = Engine(
         max_epochs=1,
         devices=1,
-        accelerator=device if device in ("cuda", "mps", "cpu") else "auto",
+        accelerator="auto" if device == "mps" else device,
         default_root_dir=str(output_dir / "logs"),
     )
 
-    logger.info("Starting PatchCore training...")
+    logger.info("Starting PatchCore training (feature extraction + memory bank)...")
     engine.fit(model=model, datamodule=datamodule)
 
     checkpoint_path = output_dir / "checkpoint.ckpt"
     engine.trainer.save_checkpoint(str(checkpoint_path))
     logger.info("Checkpoint saved: %s", checkpoint_path)
 
-    memory_bank_size = getattr(model.model, "memory_bank", None)
-    if memory_bank_size is not None:
-        mem_shape = memory_bank_size.shape if hasattr(memory_bank_size, "shape") else "N/A"
+    memory_bank = getattr(model.model, "memory_bank", None)
+    if memory_bank is not None:
+        mem_shape = memory_bank.shape if hasattr(memory_bank, "shape") else "N/A"
         logger.info("Memory bank shape: %s", mem_shape)
 
     model_meta = {
@@ -69,6 +79,8 @@ def train_patchcore(dataset_path: Path, output_dir: Path, device: str = "auto"):
         "coreset_sampling_ratio": 0.1,
         "num_neighbors": 9,
         "device": device,
+        "seed": seed,
+        "normalization": {"mean": [0.485, 0.456, 0.406], "std": [0.229, 0.224, 0.225]},
     }
     meta_path = output_dir / "model_meta.json"
     meta_path.write_text(json.dumps(model_meta, indent=2))

@@ -40,16 +40,30 @@ def find_image_path(labels_row: pd.Series, project_root: Path) -> Path | None:
 
 def resolve_image_paths(labels: pd.DataFrame, project_root: Path) -> pd.DataFrame:
     records = []
+    nan_wear_count = 0
+    nan_set_count = 0
     for _, row in labels.iterrows():
         img_path = find_image_path(row, project_root)
         if img_path is None:
             logger.warning("Image not found: %s", row["ImageFile"])
             continue
-        wear_val = float(row["wear"])
+
+        wear_raw = row["wear"]
+        if pd.isna(wear_raw):
+            nan_wear_count += 1
+            continue
+
+        set_raw = row["Set"]
+        if pd.isna(set_raw):
+            nan_set_count += 1
+            continue
+
+        wear_val = float(wear_raw)
+        set_val = int(set_raw)
         anomaly_label = classify_anomaly(wear_val)
         records.append(
             {
-                "Set": int(row["Set"]),
+                "Set": set_val,
                 "ImageFile": row["ImageFile"],
                 "wear": wear_val,
                 "anomaly_label": anomaly_label,
@@ -57,6 +71,12 @@ def resolve_image_paths(labels: pd.DataFrame, project_root: Path) -> pd.DataFram
                 "path": img_path,
             }
         )
+
+    if nan_wear_count > 0:
+        logger.warning("Skipped %d rows with NaN wear values", nan_wear_count)
+    if nan_set_count > 0:
+        logger.warning("Skipped %d rows with NaN Set values", nan_set_count)
+
     return pd.DataFrame(records)
 
 

@@ -11,6 +11,41 @@ logger = logging.getLogger(__name__)
 ANOMALY_THRESHOLD = 0.5
 
 
+def compute_threshold_from_normal(
+    model,
+    normal_dir: Path,
+    device: str,
+    percentile: float = 95.0,
+) -> float:
+    import numpy as np
+
+    image_paths = list(normal_dir.rglob("*.jpg")) + list(normal_dir.rglob("*.png"))
+    if not image_paths:
+        logger.warning("No normal images found for threshold computation at %s", normal_dir)
+        return ANOMALY_THRESHOLD
+
+    scores = []
+    for img_path in image_paths:
+        try:
+            tensor = preprocess_image(img_path)
+            result = predict_image(model, tensor, device)
+            scores.append(result["anomaly_score"])
+        except Exception as e:
+            logger.warning("Threshold computation skipped for %s: %s", img_path.name, e)
+
+    if not scores:
+        return ANOMALY_THRESHOLD
+
+    threshold = float(np.percentile(scores, percentile))
+    logger.info(
+        "Computed anomaly threshold: %.4f (percentile=%.1f, n=%d normal images)",
+        threshold,
+        percentile,
+        len(scores),
+    )
+    return threshold
+
+
 def load_anomalib_model(model_path: Path, device: str = "auto"):
     import torch
     from anomalib.models import Patchcore
@@ -24,7 +59,12 @@ def load_anomalib_model(model_path: Path, device: str = "auto"):
             device = "cpu"
 
     checkpoint = torch.load(str(model_path), map_location=device, weights_only=False)
-    state_dict = checkpoint.get("model_state_dict", checkpoint)
+
+    raw_state_dict = checkpoint.get("model_state_dict", checkpoint)
+    state_dict = {}
+    for key, value in raw_state_dict.items():
+        clean_key = key.removeprefix("model.").removeprefix("teacher.")
+        state_dict[clean_key] = value
 
     model = Patchcore(
         backbone="wide_resnet50_2",
@@ -33,7 +73,11 @@ def load_anomalib_model(model_path: Path, device: str = "auto"):
         coreset_sampling_ratio=0.1,
         num_neighbors=9,
     )
-    model.load_state_dict(state_dict, strict=False)
+    missing, unexpected = model.load_state_dict(state_dict, strict=False)
+    if missing:
+        logger.warning("Missing keys: %d (first: %s)", len(missing), str(missing[:2]))
+    if unexpected:
+        logger.warning("Unexpected keys: %d (first: %s)", len(unexpected), str(unexpected[:2]))
     model.to(device)
     model.eval()
 
