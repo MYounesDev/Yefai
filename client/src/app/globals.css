@@ -1,26 +1,201 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Inter', 'Inter Fallback', sans-serif;
+  --font-heading: 'Space Grotesk', 'Space Grotesk Fallback', sans-serif;
+
+  /* Brand Colors */
+  --color-background: #0A0E1A;
+  --color-surface: #111827;
+  --color-surface-2: #1F2937;
+  --color-foreground: #F9FAFB;
+  --color-muted: #9CA3AF;
+
+  --color-border: rgba(255,255,255,0.08);
+  --color-border-hover: rgba(255,255,255,0.15);
+
+  /* Accents */
+  --color-cyan: #06B6D4;
+  --color-cyan-dim: rgba(6,182,212,0.15);
+  --color-violet: #8B5CF6;
+  --color-violet-dim: rgba(139,92,246,0.15);
+  --color-amber: #F59E0B;
+  --color-amber-dim: rgba(245,158,11,0.15);
+  --color-rose: #F43F5E;
+  --color-rose-dim: rgba(244,63,94,0.15);
+  --color-emerald: #10B981;
+  --color-emerald-dim: rgba(16,185,129,0.15);
+
+  /* Glass */
+  --color-glass: rgba(17,24,39,0.6);
+  --color-glass-heavy: rgba(17,24,39,0.85);
+
+  /* Radius */
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Shadows */
+  --shadow-glow-cyan: 0 0 20px rgba(6,182,212,0.3);
+  --shadow-glow-violet: 0 0 20px rgba(139,92,246,0.3);
+  --shadow-glass: 0 8px 32px rgba(0,0,0,0.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ===== BASE ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== CUSTOM SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6,182,212,0.4);
+}
+
+/* ===== SELECTION ===== */
+::selection {
+  background: rgba(6,182,212,0.3);
+  color: #fff;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.glass-card {
+  background: var(--color-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.glass-card-heavy {
+  background: var(--color-glass-heavy);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #06B6D4, #8B5CF6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-amber {
+  background: linear-gradient(135deg, #F59E0B, #F43F5E);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glow-border-cyan {
+  border-color: rgba(6,182,212,0.4);
+  box-shadow: 0 0 12px rgba(6,182,212,0.2), inset 0 0 12px rgba(6,182,212,0.05);
+}
+
+.glow-border-rose {
+  border-color: rgba(244,63,94,0.5);
+  box-shadow: 0 0 12px rgba(244,63,94,0.25), inset 0 0 12px rgba(244,63,94,0.05);
+}
+
+.glow-border-amber {
+  border-color: rgba(245,158,11,0.4);
+  box-shadow: 0 0 12px rgba(245,158,11,0.2);
+}
+
+/* ===== ANIMATED GRADIENT MESH BACKGROUND ===== */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 50%, rgba(6,182,212,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 20%, rgba(139,92,246,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 50% at 50% 80%, rgba(16,185,129,0.03) 0%, transparent 60%);
+}
+
+/* ===== GRID PATTERN ===== */
+.bg-grid {
+  background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ===== KEYFRAMES ===== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(244,63,94,0.4); }
+  50% { box-shadow: 0 0 20px rgba(244,63,94,0.8), 0 0 40px rgba(244,63,94,0.4); }
+}
+
+@keyframes pulse-glow-cyan {
+  0%, 100% { box-shadow: 0 0 5px rgba(6,182,212,0.3); }
+  50% { box-shadow: 0 0 20px rgba(6,182,212,0.6), 0 0 40px rgba(6,182,212,0.3); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow-cyan {
+  animation: pulse-glow-cyan 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
 }
