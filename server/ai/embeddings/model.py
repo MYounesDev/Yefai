@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Any
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -6,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 MODEL_NAME = "jinaai/jina-clip-v2"
 EMBEDDING_DIM = 1024
-CACHE_DIR = "~/.cache/huggingface/"
+CACHE_DIR = str(Path.home() / ".cache" / "huggingface")
 
 
 def get_device() -> str:
