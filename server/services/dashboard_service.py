@@ -34,16 +34,19 @@ class DashboardService:
         anomalies = anomalies_res.data or []
 
         total_anomalies = len(anomalies)
-        active_anomalies = 0
-        for anomaly in anomalies:
-            status = anomaly.get("status")
-            if isinstance(status, str) and status in ("new", "reviewed"):
-                active_anomalies += 1
+        active_anomalies = sum(
+            isinstance((status := anomaly.get("status")), str) and status in ("new", "reviewed")
+            for anomaly in anomalies
+        )
 
         total_wear = sum((float(anomaly.get("wear") or 0) for anomaly in anomalies), 0.0)
         avg_wear_um = total_wear / total_anomalies if total_anomalies > 0 else 0.0
 
-        recent_anomalies = sorted(anomalies, key=lambda x: x.get("created_at", ""), desc=True)[:5]
+        recent_anomalies = sorted(
+            anomalies,
+            key=lambda x: x.get("created_at", ""),
+            reverse=True,
+        )[:5]
 
         # 2. Crisis Overview
         # We can simulate calling crisis_service.get_crisis_dashboard
