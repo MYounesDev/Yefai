@@ -11,9 +11,9 @@
 
 **Kapsam dışı:** Frontend (Next.js dashboard UI, Tauri desktop shell, WebSocket streaming)
 
-**Zaman hedefi:** 4-5 hafta (part-time, 2 kişi paralel)
-**Granularity:** Medium (6 faz)
-**Paralel yapı:** Phase 2A∥2B ve Phase 3A∥3B aynı anda farklı kişilerce yürütülebilir.
+**Zaman hedefi:** 4.5-5 hafta (part-time, 2 kişi paralel)
+**Granularity:** Medium (7 faz)
+**Paralel yapı:** Phase 2A∥2B ve Phase 3A∥3B∥2.5 aynı anda farklı kişilerce yürütülebilir.
 
 ---
 
@@ -117,6 +117,32 @@ Bu işlemler otomatik değildir. İlgili faz başlamadan önce tamamlanmış olm
 **Bağımlılıklar:** Phase 1, G2 (Docker + NovaVision CLI + token), Phase 2A (model .pt — son entegrasyon)
 **Deliverable:** Local Docker container'da çalışan NovaVision inference, FastAPI endpoint'leri
 **Tahmini süre:** 1.5 hafta (model beklerken mock ile çalışır, model gelince 2 günde entegre olur)
+
+---
+
+## Phase 2.5: Gelecek Tahmini (Wear Prediction Engine)
+
+**Amaç:** Anomalib skorlarından aşınma seviyesi tahmini, lineer regresyon ile aşınma hızı hesaplama, kritik eşiğe kalan süre, 3 senaryolu projeksiyon. Backend-only: veriyi üret, API'den sun.
+
+**Kim yapar:** Kişi B (Phase 2B bittikten sonra, Phase 3B'den önce)
+
+**Kapsam:**
+- Anomalib skor (0-1) → aşınma seviyesi (µm) kalibrasyonu
+- Lineer regresyon ile aşınma hızı hesaplama (µm/saat)
+- Kritik eşiğe (200 µm) kalan süre projeksiyonu
+- 3 senaryo: mevcut hız (baseline), hızlanırsa (+%25), yavaşlarsa (-%25)
+- Aşınma trend analizi: accelerating / stable / decelerating
+- Güven göstergesi: low / medium / high (r² ve veri noktası sayısına göre)
+- `anomalies` tablosuna yeni kolonlar: `estimated_wear_um`, `wear_rate_um_per_hour`, `hours_to_critical`, `confidence`
+- Phase 3B ile entegrasyon noktası: `hours_to_critical` vs lead time karşılaştırması
+- FastAPI endpoint'leri:
+  - `GET /api/predictions/{machine_id}` — detaylı tahmin
+  - `GET /api/predictions/factory/overview` — tüm makineler özet
+  - `POST /api/predictions/recalculate/{machine_id}` — yeniden hesapla
+
+**Bağımlılıklar:** Phase 2A (anomali skorları Supabase'de hazır olmalı)
+**Deliverable:** Aşınma tahmin API'si, 3 senaryolu projeksiyon verisi
+**Tahmini süre:** 1 hafta
 
 ---
 
@@ -239,11 +265,15 @@ MANUAL GATES (G1, G2, G3, G4) — önceden tamamlanmalı
           │
      ┌────┴────────┐
      ▼              ▼
-Phase 2A (Kişi A)   Phase 2B (Kişi B)    ← PARALEL
-Anomalib+Embedding  NovaVision Inference
+Phase 2A (Kişi A)   Phase 2B (Kişi B)       ← PARALEL
+Anomalib+Embedding  NovaVision Local
+     │              │
+     │              ▼
+     │         Phase 2.5 (Kişi B)           ← 2B bitince başlar
+     │         Gelecek Tahmini
      │              │
      ▼              ▼
-Phase 3A (Kişi A)   Phase 3B (Kişi B)    ← PARALEL
+Phase 3A (Kişi A)   Phase 3B (Kişi B)       ← PARALEL
 RAG Pipeline        PUQ AI + Kriz
      │              │
      └────┬─────────┘
@@ -258,15 +288,17 @@ RAG Pipeline        PUQ AI + Kriz
 |-------|----------|
 | **Phase 1 tek** | Veri altyapısı ortak, her ikisi de aynı fazda çalışır |
 | **2A ∥ 2B** | Farklı kod alanları, aynı Supabase'e yazarlar. Merge conflict riski düşük. |
-| **3A ∥ 3B** | Farklı servisler, aynı anda geliştirilebilir. Sadece Phase 4'te birleşir. |
+| **2.5 (Kişi B)** | Phase 2B bitince başlar. Phase 2A'daki skorları kullanır. Phase 3A ve 3B ile paralel yürüyebilir. |
+| **3A ∥ 3B ∥ 2.5** | Farklı servisler, aynı anda geliştirilebilir. Sadece Phase 4'te birleşir. |
 | **Phase anında bitir** | Bir faz tamamlanmadan diğerine geçilmez |
 | **A kişisi path:** | Phase 1 → 2A → 3A → 4 |
-| **B kişisi path:** | Phase 1 → 2B → 3B → 4 |
+| **B kişisi path:** | Phase 1 → 2B → 2.5 → 3B → 4 |
 
 ### Neden Bu Yapı?
 
-- **Phase 2A ve 2B paralel:** Anomalib eğitimi (CPU/GPU yoğun, lokal) ile NovaVision API entegrasyonu (I/O yoğun, cloud) birbirini beklemez. Phase 2B, model .pt dosyası gelene kadar mock ile çalışır.
-- **Phase 3A ve 3B paralel:** RAG (LLM + embedding) ile bildirim otomasyonu (webhook + iş mantığı) tamamen farklı domain'ler.
+- **Phase 2A ve 2B paralel:** Anomalib eğitimi (CPU/GPU yoğun, lokal) ile NovaVision Docker container (I/O yoğun, local) birbirini beklemez.
+- **Phase 2.5 (Kişi B):** Phase 2B daha kısa (1.5 hafta), Kişi B erken bitirince 2.5'e başlar. Phase 2A'daki anomali skorlarını kullanır, Phase 3B'deki kriz skorunun ihtiyacı olan `hours_to_critical` verisini üretir.
+- **Phase 3A, 3B ve 2.5 paralel:** RAG (LLM + embedding), bildirim otomasyonu (webhook + kriz) ve tahmin engine (regresyon + projeksiyon) farklı domain'ler.
 - **Aynı kişi kendi fazlarını sıralı yapar:** Kişi A: 2A→3A, Kişi B: 2B→3B. Bağımlılık zinciri net.
 
 ---
@@ -296,4 +328,9 @@ RAG Pipeline        PUQ AI + Kriz
 # 3. Phase 1 bittikten sonra paralel başlat:
 # Kişi A (terminal 1): /gsd-plan-phase 2A
 # Kişi B (terminal 2): /gsd-plan-phase 2B
+# Phase 2B bitince: /gsd-plan-phase 2.5
 ```
+
+---
+
+*Last updated: 2026-05-16 — Phase 2.5 (Gelecek Tahmini) eklendi, toplam 7 faz*
