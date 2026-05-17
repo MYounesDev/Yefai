@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yefai Architecture Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: #020617;
+      min-height: 100vh;
+      padding: 2rem;
+      color: white;
+    }
+    .container { max-width: 1320px; margin: 0 auto; }
+    .header { margin-bottom: 2rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+    .pulse-dot { width: 12px; height: 12px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em; }
+    .subtitle { color: #94a3b8; font-size: 0.875rem; margin-left: 1.75rem; line-height: 1.6; }
+    .diagram-container {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 1rem;
+      border: 1px solid #1e293b;
+      padding: 1.5rem;
+      overflow-x: auto;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.28);
+    }
+    svg { width: 100%; min-width: 1120px; display: block; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 2rem; }
+    .card { background: rgba(15, 23, 42, 0.5); border-radius: 0.75rem; border: 1px solid #1e293b; padding: 1.25rem; }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .card-dot.cyan { background: #22d3ee; }
+    .card-dot.emerald { background: #34d399; }
+    .card-dot.violet { background: #a78bfa; }
+    .card-dot.amber { background: #fbbf24; }
+    .card-dot.rose { background: #fb7185; }
+    .card h3 { font-size: 0.875rem; font-weight: 600; }
+    .card ul { list-style: none; color: #94a3b8; font-size: 0.75rem; line-height: 1.55; }
+    .card li { margin-bottom: 0.375rem; }
+    .footer { text-align: center; margin-top: 1.5rem; color: #475569; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>Yefai Predictive Maintenance Architecture</h1>
+      </div>
+      <p class="subtitle">MATWI görüntü/sensör verisi → FastAPI AI backend → Supabase pgvector + local disk → RAG, NovaVision, PUQ AI ve Next.js/Tauri dashboard akışı.</p>
+    </div>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1200 860" role="img" aria-label="Yefai predictive maintenance system architecture diagram">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+          </marker>
+          <marker id="arrowhead-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee" />
+          </marker>
+          <marker id="arrowhead-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#34d399" />
+          </marker>
+          <marker id="arrowhead-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa" />
+          </marker>
+          <marker id="arrowhead-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24" />
+          </marker>
+          <marker id="arrowhead-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+          <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2.2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Flow arrows: drawn before boxes so they remain behind components -->
+        <line x1="150" y1="128" x2="220" y2="128" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrowhead-cyan)"/>
+        <text x="185" y="118" fill="#94a3b8" font-size="9" text-anchor="middle">WebView</text>
+        <line x1="470" y1="128" x2="570" y2="128" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <text x="520" y="118" fill="#94a3b8" font-size="9" text-anchor="middle">REST / SSE</text>
+        <line x1="810" y1="128" x2="930" y2="128" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead-violet)"/>
+        <text x="870" y="118" fill="#94a3b8" font-size="9" text-anchor="middle">metadata + vectors</text>
+
+        <line x1="725" y1="170" x2="725" y2="245" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <text x="740" y="212" fill="#94a3b8" font-size="9">routers</text>
+        <line x1="595" y1="325" x2="500" y2="405" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <text x="528" y="358" fill="#94a3b8" font-size="9" text-anchor="middle">PatchCore</text>
+        <line x1="725" y1="345" x2="725" y2="405" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <text x="745" y="378" fill="#94a3b8" font-size="9">predict</text>
+        <line x1="855" y1="325" x2="950" y2="405" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <text x="915" y="360" fill="#94a3b8" font-size="9" text-anchor="middle">CLIP / RAG</text>
+
+        <line x1="405" y1="465" x2="300" y2="555" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrowhead-amber)"/>
+        <text x="350" y="500" fill="#94a3b8" font-size="9" text-anchor="middle">image + sensor files</text>
+        <line x1="560" y1="445" x2="615" y2="445" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrowhead-amber)"/>
+        <text x="588" y="435" fill="#94a3b8" font-size="9" text-anchor="middle">.pt</text>
+        <line x1="835" y1="445" x2="890" y2="445" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead-violet)"/>
+        <text x="862" y="435" fill="#94a3b8" font-size="9" text-anchor="middle">top-k</text>
+        <line x1="950" y1="465" x2="990" y2="555" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#arrowhead-violet)"/>
+        <text x="990" y="508" fill="#94a3b8" font-size="9">LLM ctx</text>
+
+        <line x1="710" y1="530" x2="710" y2="610" stroke="#fb923c" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="735" y="572" fill="#94a3b8" font-size="9">crisis workflow</text>
+        <line x1="785" y1="645" x2="930" y2="645" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="5,5" marker-end="url(#arrowhead-rose)"/>
+        <text x="857" y="635" fill="#fb7185" font-size="9" text-anchor="middle">webhook</text>
+        <path d="M 1010 610 C 1030 500, 980 315, 820 286" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="5,5" marker-end="url(#arrowhead-violet)"/>
+        <text x="1050" y="465" fill="#a78bfa" font-size="9">chat/search</text>
+
+        <line x1="220" y1="610" x2="220" y2="505" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="245" y="555" fill="#94a3b8" font-size="9">local serve</text>
+        <line x1="300" y1="610" x2="610" y2="505" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <text x="452" y="545" fill="#94a3b8" font-size="9">metadata joins</text>
+
+        <!-- Boundaries -->
+        <rect x="20" y="40" width="1120" height="660" rx="12" fill="rgba(251, 191, 36, 0.045)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="36" y="60" fill="#fbbf24" font-size="10" font-weight="600">Yefai v1.0 local-first predictive maintenance platform</text>
+
+        <rect x="40" y="80" width="450" height="100" rx="10" fill="rgba(8, 51, 68, 0.08)" stroke="#22d3ee" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="52" y="96" fill="#22d3ee" font-size="8">desktop client boundary</text>
+
+        <rect x="560" y="80" width="330" height="280" rx="10" fill="rgba(6, 78, 59, 0.08)" stroke="#34d399" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="572" y="96" fill="#34d399" font-size="8">FastAPI backend boundary</text>
+
+        <rect x="385" y="390" width="620" height="155" rx="10" fill="rgba(6, 78, 59, 0.05)" stroke="#34d399" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="397" y="406" fill="#34d399" font-size="8">AI / inference services</text>
+
+        <!-- Components: external/client -->
+        <rect x="55" y="102" width="95" height="52" rx="6" fill="#0f172a"/>
+        <rect x="55" y="102" width="95" height="52" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="102" y="123" fill="white" font-size="11" font-weight="600" text-anchor="middle">Operator</text>
+        <text x="102" y="139" fill="#94a3b8" font-size="9" text-anchor="middle">desktop user</text>
+
+        <rect x="220" y="92" width="250" height="72" rx="8" fill="#0f172a"/>
+        <rect x="220" y="92" width="250" height="72" rx="8" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+        <text x="345" y="116" fill="white" font-size="12" font-weight="600" text-anchor="middle">Next.js 16 Dashboard</text>
+        <text x="345" y="134" fill="#94a3b8" font-size="9" text-anchor="middle">React 19 • Tauri WebView • charts</text>
+        <text x="345" y="150" fill="#22d3ee" font-size="8" text-anchor="middle">/dashboard • anomalies • chatbot • notifications</text>
+
+        <!-- Backend API -->
+        <rect x="590" y="100" width="270" height="70" rx="8" fill="#0f172a"/>
+        <rect x="590" y="100" width="270" height="70" rx="8" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="725" y="123" fill="white" font-size="12" font-weight="600" text-anchor="middle">FastAPI Server</text>
+        <text x="725" y="141" fill="#94a3b8" font-size="9" text-anchor="middle">server/main.py • CORS • auth/org middleware</text>
+        <text x="725" y="157" fill="#34d399" font-size="8" text-anchor="middle">REST API + streaming SSE contracts</text>
+
+        <rect x="585" y="245" width="90" height="70" rx="6" fill="#0f172a"/>
+        <rect x="585" y="245" width="90" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="630" y="268" fill="white" font-size="10" font-weight="600" text-anchor="middle">Routers</text>
+        <text x="630" y="286" fill="#94a3b8" font-size="8" text-anchor="middle">anomalib</text>
+        <text x="630" y="300" fill="#94a3b8" font-size="8" text-anchor="middle">novavision</text>
+
+        <rect x="690" y="245" width="90" height="70" rx="6" fill="#0f172a"/>
+        <rect x="690" y="245" width="90" height="70" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="735" y="268" fill="white" font-size="10" font-weight="600" text-anchor="middle">Services</text>
+        <text x="735" y="286" fill="#94a3b8" font-size="8" text-anchor="middle">prediction</text>
+        <text x="735" y="300" fill="#94a3b8" font-size="8" text-anchor="middle">crisis/PO</text>
+
+        <rect x="795" y="245" width="75" height="70" rx="6" fill="#0f172a"/>
+        <rect x="795" y="245" width="75" height="70" rx="6" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="832" y="268" fill="white" font-size="10" font-weight="600" text-anchor="middle">Auth</text>
+        <text x="832" y="286" fill="#94a3b8" font-size="8" text-anchor="middle">org ctx</text>
+        <text x="832" y="300" fill="#94a3b8" font-size="8" text-anchor="middle">RBAC</text>
+
+        <!-- Supabase -->
+        <rect x="930" y="92" width="180" height="86" rx="8" fill="#0f172a"/>
+        <rect x="930" y="92" width="180" height="86" rx="8" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="1020" y="116" fill="white" font-size="12" font-weight="600" text-anchor="middle">Supabase + pgvector</text>
+        <text x="1020" y="136" fill="#94a3b8" font-size="8" text-anchor="middle">metadata • orgs • anomalies</text>
+        <text x="1020" y="150" fill="#94a3b8" font-size="8" text-anchor="middle">image_embedding vector(1024)</text>
+        <text x="1020" y="164" fill="#a78bfa" font-size="8" text-anchor="middle">project: jgufisddsdmappcnglcf</text>
+
+        <!-- AI components -->
+        <rect x="405" y="415" width="155" height="60" rx="6" fill="#0f172a"/>
+        <rect x="405" y="415" width="155" height="60" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="482" y="438" fill="white" font-size="11" font-weight="600" text-anchor="middle">Anomalib PatchCore</text>
+        <text x="482" y="455" fill="#94a3b8" font-size="8" text-anchor="middle">wide_resnet50_2 • local train</text>
+        <text x="482" y="468" fill="#34d399" font-size="7" text-anchor="middle">exports models/patchcore_matwi.pt</text>
+
+        <rect x="615" y="415" width="220" height="60" rx="6" fill="#0f172a"/>
+        <rect x="615" y="415" width="220" height="60" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="725" y="438" fill="white" font-size="11" font-weight="600" text-anchor="middle">NovaVision Local Workflow</text>
+        <text x="725" y="455" fill="#94a3b8" font-size="8" text-anchor="middle">Docker app • preprocessing • webhook</text>
+        <text x="725" y="468" fill="#fbbf24" font-size="7" text-anchor="middle">mock/live gate via .env + app id</text>
+
+        <rect x="890" y="415" width="95" height="60" rx="6" fill="#0f172a"/>
+        <rect x="890" y="415" width="95" height="60" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="937" y="438" fill="white" font-size="10" font-weight="600" text-anchor="middle">Jina CLIP v2</text>
+        <text x="937" y="455" fill="#94a3b8" font-size="8" text-anchor="middle">image+text</text>
+        <text x="937" y="468" fill="#94a3b8" font-size="8" text-anchor="middle">1024 dim</text>
+
+        <!-- Data layer -->
+        <rect x="70" y="555" width="245" height="82" rx="8" fill="#0f172a"/>
+        <rect x="70" y="555" width="245" height="82" rx="8" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="192" y="580" fill="white" font-size="12" font-weight="600" text-anchor="middle">Local Data Lake</text>
+        <text x="192" y="600" fill="#94a3b8" font-size="8" text-anchor="middle">data/MATWI/Set* • 17 sets</text>
+        <text x="192" y="614" fill="#94a3b8" font-size="8" text-anchor="middle">images + Accelerometer/Acoustic/Force CSV</text>
+        <text x="192" y="628" fill="#94a3b8" font-size="8" text-anchor="middle">local files; not stored as Supabase blobs</text>
+
+        <rect x="590" y="610" width="195" height="72" rx="8" fill="#0f172a"/>
+        <rect x="590" y="610" width="195" height="72" rx="8" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c" stroke-width="1.5"/>
+        <text x="687" y="634" fill="white" font-size="11" font-weight="600" text-anchor="middle">Spare Parts Crisis</text>
+        <text x="687" y="652" fill="#94a3b8" font-size="8" text-anchor="middle">mock inventory • lead time</text>
+        <text x="687" y="666" fill="#fb923c" font-size="8" text-anchor="middle">crisis score + PO + suppliers</text>
+
+        <rect x="930" y="610" width="165" height="72" rx="8" fill="#0f172a"/>
+        <rect x="930" y="610" width="165" height="72" rx="8" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
+        <text x="1012" y="634" fill="white" font-size="11" font-weight="600" text-anchor="middle">PUQ AI</text>
+        <text x="1012" y="652" fill="#94a3b8" font-size="8" text-anchor="middle">Telegram • Email • SMS</text>
+        <text x="1012" y="666" fill="#fb7185" font-size="8" text-anchor="middle">webhook + retry + logs</text>
+
+        <rect x="970" y="555" width="125" height="42" rx="6" fill="#0f172a"/>
+        <rect x="970" y="555" width="125" height="42" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="1032" y="573" fill="white" font-size="10" font-weight="600" text-anchor="middle">LLM Provider</text>
+        <text x="1032" y="588" fill="#94a3b8" font-size="8" text-anchor="middle">Gemini / Claude</text>
+
+        <rect x="890" y="495" width="160" height="52" rx="6" fill="#0f172a"/>
+        <rect x="890" y="495" width="160" height="52" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="970" y="516" fill="white" font-size="10" font-weight="600" text-anchor="middle">RAG / Hybrid Search</text>
+        <text x="970" y="532" fill="#94a3b8" font-size="8" text-anchor="middle">pgvector top-k + metadata filters</text>
+
+        <rect x="610" y="495" width="205" height="52" rx="6" fill="#0f172a"/>
+        <rect x="610" y="495" width="205" height="52" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="712" y="516" fill="white" font-size="10" font-weight="600" text-anchor="middle">Wear Prediction Engine</text>
+        <text x="712" y="532" fill="#94a3b8" font-size="8" text-anchor="middle">wear µm • hours_to_critical • trend</text>
+
+        <!-- Status labels -->
+        <text x="50" y="680" fill="#94a3b8" font-size="8">Gates: G1 Supabase OK • G2 NovaVision partial/manual • G3 PUQ AI pending • G4 LLM key pending</text>
+        <text x="50" y="692" fill="#94a3b8" font-size="8">v1.0 scope: local-first backend + AI pipeline; cloud deployment / real ERP execution out of scope.</text>
+
+        <!-- Legend outside boundary -->
+        <text x="40" y="745" fill="white" font-size="11" font-weight="600">Legend</text>
+        <rect x="40" y="760" width="16" height="10" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1"/>
+        <text x="64" y="768" fill="#94a3b8" font-size="8">Frontend / Desktop</text>
+        <rect x="200" y="760" width="16" height="10" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1"/>
+        <text x="224" y="768" fill="#94a3b8" font-size="8">Backend / AI Service</text>
+        <rect x="370" y="760" width="16" height="10" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1"/>
+        <text x="394" y="768" fill="#94a3b8" font-size="8">Database / Vector Store</text>
+        <rect x="550" y="760" width="16" height="10" rx="2" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1"/>
+        <text x="574" y="768" fill="#94a3b8" font-size="8">Local Docker / External Runtime</text>
+        <rect x="770" y="760" width="16" height="10" rx="2" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1"/>
+        <text x="794" y="768" fill="#94a3b8" font-size="8">Security / Notification</text>
+        <rect x="950" y="760" width="16" height="10" rx="2" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c" stroke-width="1"/>
+        <text x="974" y="768" fill="#94a3b8" font-size="8">Automation / Message Flow</text>
+
+        <line x1="40" y1="802" x2="78" y2="802" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowhead-emerald)"/>
+        <text x="90" y="805" fill="#94a3b8" font-size="8">API / service call</text>
+        <line x1="225" y1="802" x2="263" y2="802" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="5,5" marker-end="url(#arrowhead-rose)"/>
+        <text x="275" y="805" fill="#94a3b8" font-size="8">webhook / auth-sensitive flow</text>
+        <rect x="500" y="794" width="28" height="16" rx="4" fill="transparent" stroke="#34d399" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="540" y="805" fill="#94a3b8" font-size="8">logical boundary</text>
+      </svg>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot emerald"></div>
+          <h3>Backend Core</h3>
+        </div>
+        <ul>
+          <li>• FastAPI exposes anomalib, NovaVision, embeddings, predictions, chat, notifications, spare-parts and dashboard routers.</li>
+          <li>• Auth/org middleware protects B2B SaaS routes with organization context and RBAC.</li>
+          <li>• Mock/live gates are explicit: no live NovaVision, PUQ AI or LLM success is claimed without credentials/artifacts.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot violet"></div>
+          <h3>Data & AI</h3>
+        </div>
+        <ul>
+          <li>• MATWI image and sensor files stay on local disk; Supabase stores metadata and pgvector embeddings.</li>
+          <li>• Anomalib PatchCore handles image anomaly scoring; Jina CLIP v2 provides shared image/text embeddings.</li>
+          <li>• RAG uses vector similarity plus SQL metadata filters before sending context to Gemini or Claude.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot rose"></div>
+          <h3>Operations Loop</h3>
+        </div>
+        <ul>
+          <li>• Anomaly score feeds wear prediction, hours-to-critical and spare-parts crisis scoring.</li>
+          <li>• Crisis workflow can prepare mock PO and alternative supplier recommendations.</li>
+          <li>• PUQ AI receives webhook payloads for Telegram, email and SMS notifications with retry/logging.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer">
+      Yefai • standalone HTML/SVG architecture diagram • generated from .planning/PROJECT.md, ROADMAP.md, server/main.py and local architecture-diagram skill
+    </p>
+  </div>
+</body>
+</html>
