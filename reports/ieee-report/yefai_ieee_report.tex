@@ -56,17 +56,13 @@ Bildirim ve otomasyon katmanında webhook tabanlı entegrasyonlar, olay üreten 
 \subsection{Genel Mimari}
 Yefai katmanlı bir arka uç mimarisine sahiptir. Veri hazırlama katmanı, çok modlu takım aşınması verisini ayrıştırır ve sızıntısız eğitim-test ayrımını üretir. Yapay zeka katmanı, görüntü anomalisi, aşınma tipi yorumu, görsel-metin temsili ve aşınma projeksiyonu görevlerini yürütür. Uygulama katmanı, bu çıkarımları sorgulanabilir ve olay odaklı arayüzlere dönüştürür. Karar destek katmanı ise stok, tedarikçi, satın alma ve bildirim mekanizmalarını bakım riskiyle ilişkilendirir.
 
-\begin{figure}[H]
+\begin{figure*}[t]
   \centering
-  \fbox{\parbox{0.9\linewidth}{
-    \centering
-    \textbf{YER TUTUCU --- GENEL MİMARİ DİYAGRAMI}\\[0.5em]
-    \small Kaynak: Yazar tarafından çizilecek mimari diyagram.\\
-    Beklenen içerik: Veri hazırlama, yapay zeka çıkarımı, vektör veritabanı, sorgulama, bildirim otomasyonu ve yedek parça riski katmanlarının akışı.
-  }}
+  \shorthandoff{=}
+  \includegraphics[width=0.98\textwidth]{images/diagram.png}
   \caption{Yefai platformunun kavramsal katman mimarisi.}
   \label{fig:architecture}
-\end{figure}
+\end{figure*}
 
 Mimari tasarımda iki ilke belirleyicidir. Birincisi, görüntü ve sensör gibi büyük dosyaların yerel ortamda tutulmasıdır. Böylece bulut depolama maliyeti ve veri aktarım yükü azaltılır. İkincisi, üst veri ve vektör temsillerinin yönetilen bir ilişkisel veritabanı üzerinde saklanmasıdır. Bu ayrım, hem semantik aramayı hem de operasyonel filtrelemeyi desteklerken ağır medya dosyalarını sistem sınırları içinde tutar.
 
