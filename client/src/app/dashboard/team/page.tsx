@@ -1,146 +1,137 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Users, UserPlus, Mail, MoreHorizontal, Shield } from 'lucide-react';
-import { RoleBadge } from '@/components/ui/badge';
+import { useMemo, useState } from 'react';
+import { motion, type Variants } from 'framer-motion';
+import { Users, UserPlus, Shield, Mail, MoreHorizontal, Search } from 'lucide-react';
+import { mockOrgMembers } from '@/services/mock/auth';
+import { RoleBadge, StatusDot } from '@/components/ui/index';
 import { cn, formatRelativeTime } from '@/lib/utils';
-import type { Role } from '@/types';
 
-const MOCK_MEMBERS = [
-  { user_id: 'u1', name: 'Ahmet Yılmaz', email: 'ahmet@yilmazmakina.com', role: 'manager' as Role, status: 'active', last_active: new Date(Date.now() - 300000).toISOString(), joined_at: '2025-01-10T00:00:00Z' },
-  { user_id: 'u2', name: 'Fatma Demir', email: 'fatma@yilmazmakina.com', role: 'technician' as Role, status: 'active', last_active: new Date(Date.now() - 1800000).toISOString(), joined_at: '2025-02-01T00:00:00Z' },
-  { user_id: 'u3', name: 'Mehmet Kaya', email: 'mehmet@yilmazmakina.com', role: 'operator' as Role, status: 'active', last_active: new Date(Date.now() - 7200000).toISOString(), joined_at: '2025-03-15T00:00:00Z' },
-  { user_id: 'u4', name: 'Zeynep Çelik', email: 'zeynep@yilmazmakina.com', role: 'procurement' as Role, status: 'active', last_active: new Date(Date.now() - 86400000).toISOString(), joined_at: '2025-03-20T00:00:00Z' },
-  { user_id: 'u5', name: 'Ali Şahin', email: 'ali@yilmazmakina.com', role: 'viewer' as Role, status: 'invited', last_active: undefined, joined_at: '2026-05-15T00:00:00Z' },
-];
+const stagger: { container: Variants; item: Variants } = {
+  container: { hidden: {}, show: { transition: { staggerChildren: 0.04 } } },
+  item: { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 26 } } },
+};
+
+const statusLabels: Record<string, string> = {
+  active: 'Aktif',
+  invited: 'Davet Edildi',
+  disabled: 'Devre Dışı',
+};
 
 export default function TeamPage() {
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<Role>('operator');
+  const [search, setSearch] = useState('');
 
-  const ROLES: Role[] = ['manager', 'technician', 'operator', 'procurement', 'viewer'];
+  const filtered = useMemo(() => {
+    if (!search) return mockOrgMembers;
+    return mockOrgMembers.filter((m) =>
+      m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search]);
+
+  const counts = useMemo(() => ({
+    total: mockOrgMembers.length,
+    active: mockOrgMembers.filter((m) => m.status === 'active').length,
+    invited: mockOrgMembers.filter((m) => m.status === 'invited').length,
+  }), []);
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-muted" />
-          <span className="text-sm text-muted">{MOCK_MEMBERS.length} members</span>
+    <div className="p-6 space-y-6">
+      {/* Stats */}
+      <motion.div
+        variants={stagger.container}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-3 gap-4"
+      >
+        {[
+          { label: 'Toplam Üye', value: counts.total, icon: Users, color: 'bg-cyan/10 text-cyan' },
+          { label: 'Aktif', value: counts.active, icon: Shield, color: 'bg-emerald/10 text-emerald' },
+          { label: 'Davet Edildi', value: counts.invited, icon: Mail, color: 'bg-amber/10 text-amber' },
+        ].map((s) => (
+          <motion.div key={s.label} variants={stagger.item} className="bg-surface border border-border rounded-xl p-4 flex items-center gap-3">
+            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.color)}>
+              <s.icon className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[11px] text-muted tracking-wide uppercase">{s.label}</p>
+              <p className="text-xl font-heading font-bold text-foreground">{s.value}</p>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Actions row */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Üye ara..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface border border-border text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-cyan/40 focus:ring-2 focus:ring-cyan/10 transition-all"
+          />
         </div>
-        <button
-          onClick={() => setShowInvite(true)}
-          className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          Invite Member
+        <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan to-violet text-white text-xs font-semibold shadow-lg shadow-cyan/15 hover:shadow-xl transition-all active:scale-95">
+          <UserPlus className="w-4 h-4" />
+          Üye Davet Et
         </button>
       </div>
 
-      {/* Invite form */}
-      {showInvite && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-surface border border-cyan-500/20 rounded-xl p-5 space-y-3"
-        >
-          <h3 className="text-sm font-semibold font-heading text-foreground">Invite a team member</h3>
-          <div className="flex gap-3 flex-wrap">
-            <div className="flex-1 relative min-w-48">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted" />
-              <input
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="colleague@company.com"
-                className="w-full pl-9 pr-3 py-2 text-sm bg-surface-2 border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition-all"
-              />
+      {/* Members Table */}
+      <motion.div
+        variants={stagger.container}
+        initial="hidden"
+        animate="show"
+        className="bg-surface border border-border rounded-xl overflow-hidden"
+      >
+        {/* Header */}
+        <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-border text-[11px] text-muted font-medium tracking-wide uppercase">
+          <div className="col-span-4">Üye</div>
+          <div className="col-span-2">Rol</div>
+          <div className="col-span-2">Durum</div>
+          <div className="col-span-2">Son Aktivite</div>
+          <div className="col-span-2">Katılım</div>
+        </div>
+
+        {filtered.map((member) => (
+          <motion.div
+            key={member.user_id}
+            variants={stagger.item}
+            className="grid grid-cols-12 gap-4 px-5 py-4 border-b border-border/50 last:border-0 items-center hover:bg-surface-2 transition-all group"
+          >
+            <div className="col-span-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet/30 to-cyan/30 flex items-center justify-center text-xs font-bold text-foreground border border-border">
+                {member.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground truncate">{member.name}</p>
+                <p className="text-[10px] text-muted truncate">{member.email}</p>
+              </div>
             </div>
-            <select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as Role)}
-              className="px-3 py-2 text-sm bg-surface-2 border border-border rounded-lg text-foreground focus:outline-none focus:border-cyan-500/40 transition-all"
-            >
-              {ROLES.map((r) => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
-            </select>
-            <button
-              onClick={() => setShowInvite(false)}
-              className="px-4 py-2 rounded-lg bg-cyan-500 text-background text-sm font-medium hover:bg-cyan-400 transition-all"
-            >
-              Send Invite
-            </button>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Members table */}
-      <div className="bg-surface border border-border rounded-xl overflow-hidden">
-        <div className="divide-y divide-border">
-          {MOCK_MEMBERS.map((member, i) => (
-            <motion.div
-              key={member.user_id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: i * 0.04 }}
-              className="flex items-center gap-4 px-5 py-4 hover:bg-surface-2 transition-colors"
-            >
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center shrink-0">
-                <span className="text-white text-xs font-bold">
-                  {member.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)}
-                </span>
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground">{member.name}</span>
-                  {member.status === 'invited' && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Invited
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-muted">{member.email}</p>
-              </div>
-
+            <div className="col-span-2">
               <RoleBadge role={member.role} />
-
-              <div className="text-right shrink-0">
-                <p className="text-xs text-muted">
-                  {member.last_active ? `Active ${formatRelativeTime(member.last_active)}` : 'Not yet joined'}
-                </p>
+            </div>
+            <div className="col-span-2">
+              <div className="flex items-center gap-1.5">
+                <StatusDot status={member.status === 'active' ? 'safe' : member.status === 'invited' ? 'watch' : 'critical'} pulse={false} />
+                <span className="text-xs text-muted">{statusLabels[member.status]}</span>
               </div>
-
-              <button className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface-3 transition-colors">
+            </div>
+            <div className="col-span-2">
+              <span className="text-[11px] text-muted">
+                {member.last_active ? formatRelativeTime(member.last_active) : '—'}
+              </span>
+            </div>
+            <div className="col-span-2 flex items-center justify-between">
+              <span className="text-[11px] text-muted">{new Date(member.joined_at).toLocaleDateString('tr-TR')}</span>
+              <button className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface-3 transition-all opacity-0 group-hover:opacity-100">
                 <MoreHorizontal className="w-4 h-4" />
               </button>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Role legend */}
-      <div className="bg-surface border border-border rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Shield className="w-4 h-4 text-muted" />
-          <h3 className="text-xs font-semibold text-muted">Role Permissions</h3>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {[
-            { role: 'manager', desc: 'Full access + member management' },
-            { role: 'technician', desc: 'Anomalies, predictions, spare parts' },
-            { role: 'operator', desc: 'Dashboard, anomalies, notifications' },
-            { role: 'procurement', desc: 'Spare parts + PO approval' },
-            { role: 'viewer', desc: 'Read-only dashboard access' },
-          ].map((r) => (
-            <div key={r.role} className="flex items-start gap-2 p-2.5 rounded-lg bg-surface-2">
-              <RoleBadge role={r.role} />
-              <p className="text-[11px] text-muted">{r.desc}</p>
             </div>
-          ))}
-        </div>
-      </div>
+          </motion.div>
+        ))}
+      </motion.div>
     </div>
   );
 }

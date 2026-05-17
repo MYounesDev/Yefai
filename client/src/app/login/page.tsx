@@ -3,16 +3,26 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, LogIn, AlertCircle, Cpu, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
 
 const DEMO_ACCOUNTS = [
-  { label: 'Manager', email: 'manager@acme.com', password: 'demo123' },
-  { label: 'Technician', email: 'tech@acme.com', password: 'demo123' },
-  { label: 'Procurement', email: 'proc@acme.com', password: 'demo123' },
-  { label: 'Operator', email: 'op@acme.com', password: 'demo123' },
+  { label: 'Yönetici', email: 'manager@acme.com', password: 'demo123', desc: 'Tam erişim' },
+  { label: 'Teknisyen', email: 'tech@acme.com', password: 'demo123', desc: 'Bakım ekibi' },
+  { label: 'Satın Alma', email: 'proc@acme.com', password: 'demo123', desc: 'Parça yönetimi' },
+  { label: 'Operatör', email: 'op@acme.com', password: 'demo123', desc: 'Makine izleme' },
 ];
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  }),
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,7 +43,7 @@ export default function LoginPage() {
       await login(email, password);
       router.replace('/dashboard');
     } catch {
-      setError('Invalid credentials. Try a demo account below.');
+      setError('Geçersiz kimlik bilgileri. Aşağıdaki demo hesaplarını deneyin.');
     }
   };
 
@@ -44,54 +54,70 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      {/* Background grid */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] pointer-events-none" />
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Background effects */}
+      <div className="bg-mesh" />
+      <div className="absolute inset-0 bg-dots opacity-30" />
+
+      {/* Back to landing */}
+      <Link
+        href="/"
+        className="absolute top-6 left-6 z-20 flex items-center gap-2 text-xs text-muted hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>Ana Sayfa</span>
+      </Link>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md relative"
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-md relative z-10"
       >
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center mb-3 shadow-lg shadow-cyan-500/20">
-            <span className="text-white font-bold text-xl font-heading">Y</span>
+        <motion.div variants={fadeUp} custom={0} className="flex flex-col items-center mb-10">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan to-violet flex items-center justify-center mb-4 shadow-xl shadow-cyan/20">
+            <Cpu className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold font-heading text-foreground">Welcome to Yefai</h1>
-          <p className="text-sm text-muted mt-1">Industrial AI Platform</p>
-        </div>
+          <h1 className="text-2xl font-bold font-heading text-foreground tracking-tight">
+            Yefai&apos;ye Hoş Geldiniz
+          </h1>
+          <p className="text-sm text-muted mt-1.5">Endüstriyel AI Platformu</p>
+        </motion.div>
 
         {/* Card */}
-        <div className="bg-surface border border-border rounded-2xl p-8 shadow-xl">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <motion.div
+          variants={fadeUp}
+          custom={1}
+          className="bg-surface border border-border rounded-2xl p-8 shadow-elevated"
+        >
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Email</label>
+              <label className="block text-xs font-medium text-muted mb-2">E-posta</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 rounded-lg bg-surface-2 border border-border text-foreground text-sm placeholder:text-muted focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
-                placeholder="you@company.com"
+                className="w-full px-4 py-3 rounded-xl bg-surface-2 border border-border text-foreground text-sm placeholder:text-muted/50 focus:outline-none focus:border-cyan/40 focus:ring-2 focus:ring-cyan/10 transition-all"
+                placeholder="isim@sirket.com"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Password</label>
+              <label className="block text-xs font-medium text-muted mb-2">Şifre</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 rounded-lg bg-surface-2 border border-border text-foreground text-sm placeholder:text-muted focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all pr-10"
+                  className="w-full px-4 py-3 rounded-xl bg-surface-2 border border-border text-foreground text-sm placeholder:text-muted/50 focus:outline-none focus:border-cyan/40 focus:ring-2 focus:ring-cyan/10 transition-all pr-11"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -100,9 +126,9 @@ export default function LoginPage() {
 
             {error && (
               <motion.div
-                initial={{ opacity: 0, y: -4 }}
+                initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs"
+                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-rose/8 border border-rose/15 text-rose text-xs"
               >
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                 {error}
@@ -113,42 +139,46 @@ export default function LoginPage() {
               type="submit"
               disabled={isLoading}
               className={cn(
-                'w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all',
-                'bg-cyan-500 hover:bg-cyan-400 text-background',
+                'w-full flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-semibold transition-all active:scale-[0.97]',
+                'bg-gradient-to-r from-cyan to-violet text-white shadow-lg shadow-cyan/15 hover:shadow-xl hover:shadow-cyan/25',
                 isLoading && 'opacity-60 cursor-not-allowed'
               )}
             >
               {isLoading ? (
-                <span className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <LogIn className="w-4 h-4" />
               )}
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
             </button>
           </form>
 
           {/* Demo accounts */}
-          <div className="mt-6">
-            <p className="text-xs text-muted text-center mb-3">Demo accounts</p>
-            <div className="grid grid-cols-2 gap-2">
+          <motion.div variants={fadeUp} custom={2} className="mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px bg-border" />
+              <p className="text-[10px] text-muted tracking-widest uppercase">Demo Hesaplar</p>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
               {DEMO_ACCOUNTS.map((acc) => (
                 <button
                   key={acc.label}
                   onClick={() => fillDemo(acc)}
                   className={cn(
-                    'px-3 py-2 rounded-lg border text-xs font-medium transition-all text-left',
+                    'px-3.5 py-3 rounded-xl border text-left transition-all duration-200',
                     email === acc.email
-                      ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-400'
+                      ? 'border-cyan/30 bg-cyan/6 text-cyan'
                       : 'border-border bg-surface-2 text-muted hover:border-border-strong hover:text-foreground'
                   )}
                 >
-                  <div className="font-semibold">{acc.label}</div>
-                  <div className="opacity-70 text-[10px] truncate">{acc.email}</div>
+                  <div className="text-xs font-semibold">{acc.label}</div>
+                  <div className="text-[10px] mt-0.5 opacity-60">{acc.desc}</div>
                 </button>
               ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </motion.div>
     </div>
   );

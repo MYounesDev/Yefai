@@ -16,18 +16,18 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'Yefai — Predictive Maintenance Platform', template: '%s | Yefai' },
-  description: 'AI-powered predictive maintenance for manufacturing. Zero-shot anomaly detection, real-time alerts, and smart spare parts management.',
-  keywords: ['predictive maintenance', 'AI', 'anomaly detection', 'manufacturing', 'CNC'],
+  title: { default: 'Yefai — Kestirimci Bakım Platformu', template: '%s | Yefai' },
+  description: 'Yapay zeka destekli kestirimci bakım. Gerçek zamanlı anomali tespiti, akıllı yedek parça yönetimi ve endüstriyel IoT izleme.',
+  keywords: ['kestirimci bakım', 'yapay zeka', 'anomali tespiti', 'üretim', 'CNC', 'endüstriyel IoT'],
   openGraph: {
-    title: 'Yefai — Predictive Maintenance Platform',
-    description: 'AI-powered predictive maintenance for manufacturing.',
+    title: 'Yefai — Kestirimci Bakım Platformu',
+    description: 'Yapay zeka destekli kestirimci bakım platformu.',
     type: 'website',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0A0E1A',
+  themeColor: '#06090F',
   width: 'device-width',
   initialScale: 1,
 };
@@ -35,10 +35,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} bg-background antialiased`}
+      lang="tr"
+      className={`${inter.variable} ${spaceGrotesk.variable} antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-screen text-foreground">
+      <body className="min-h-screen bg-background text-foreground">
         <Providers>{children}</Providers>
       </body>
     </html>

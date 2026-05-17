@@ -24,8 +24,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
+      {/* Background mesh */}
+      <div className="bg-mesh" />
+
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         <TopBar />
         <main className="flex-1 overflow-y-auto">
           {children}

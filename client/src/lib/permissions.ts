@@ -106,14 +106,14 @@ export interface NavItem {
 }
 
 export const ALL_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard', permission: 'view:dashboard' },
-  { label: 'Anomalies', href: '/dashboard/anomalies', icon: 'AlertTriangle', permission: 'view:anomalies' },
-  { label: 'Predictions', href: '/dashboard/predictions', icon: 'TrendingUp', permission: 'view:predictions' },
-  { label: 'Spare Parts', href: '/dashboard/spare-parts', icon: 'Package', permission: 'view:spare_parts' },
-  { label: 'AI Chat', href: '/dashboard/chatbot', icon: 'MessageSquare', permission: 'view:chat' },
-  { label: 'Notifications', href: '/dashboard/notifications', icon: 'Bell', permission: 'view:notifications' },
-  { label: 'Members', href: '/dashboard/team', icon: 'Users', permission: 'manage:members' },
-  { label: 'Settings', href: '/dashboard/settings', icon: 'Settings', permission: 'manage:org_settings' },
+  { label: 'Kontrol Paneli', href: '/dashboard', icon: 'LayoutDashboard', permission: 'view:dashboard' },
+  { label: 'Anomaliler', href: '/dashboard/anomalies', icon: 'AlertTriangle', permission: 'view:anomalies' },
+  { label: 'Tahminler', href: '/dashboard/predictions', icon: 'TrendingUp', permission: 'view:predictions' },
+  { label: 'Yedek Parçalar', href: '/dashboard/spare-parts', icon: 'Package', permission: 'view:spare_parts' },
+  { label: 'AI Asistan', href: '/dashboard/chatbot', icon: 'MessageSquare', permission: 'view:chat' },
+  { label: 'Bildirimler', href: '/dashboard/notifications', icon: 'Bell', permission: 'view:notifications' },
+  { label: 'Ekip', href: '/dashboard/team', icon: 'Users', permission: 'manage:members' },
+  { label: 'Ayarlar', href: '/dashboard/settings', icon: 'Settings', permission: 'manage:org_settings' },
 ];
 
 export function getNavItems(role: Role | null | undefined): NavItem[] {

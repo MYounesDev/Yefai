@@ -2,272 +2,244 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Plus, MessageSquare, Bot, User, ExternalLink, Sparkles } from 'lucide-react';
-import { mockChatSessions, mockInitialMessages, getMockResponse } from '@/services/mock/chat';
-import { cn, formatRelativeTime } from '@/lib/utils';
-import type { ChatMessage, ChatSession } from '@/types';
+import { Send, Bot, User, Loader2, MessageSquare, Plus, Sparkles } from 'lucide-react';
+import { sendChatMessage, getChatSessions } from '@/services/api';
+import { cn } from '@/lib/utils';
 
-const SUGGESTED_PROMPTS = [
-  'Which tools have the highest wear right now?',
-  'Show me spare parts at crisis level',
-  'What anomalies were detected in the last 24h?',
-  'Compare wear rates across the fleet',
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  images?: { url: string; metadata: { set: string; wear_level: number; machine_id: string; anomaly_score: number } }[];
+  sources?: { label: string; similarity: number }[];
+}
+
+const suggestedQueries = [
+  'M-03 makinesinin aşınma durumu nedir?',
+  'Son 24 saatteki kritik anomalileri listele',
+  'Karbür uçların stok durumunu kontrol et',
+  'En yüksek aşınma hızına sahip makine hangisi?',
 ];
 
-function MessageBubble({ msg }: { msg: ChatMessage }) {
-  const isUser = msg.role === 'user';
-  const isSystem = msg.role === 'system';
-
-  if (isSystem) {
-    return (
-      <div className="flex justify-center">
-        <span className="text-[11px] text-muted px-3 py-1 rounded-full bg-surface-2 border border-border">
-          {msg.content}
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn('flex gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}
-    >
-      {/* Avatar */}
-      <div className={cn(
-        'w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5',
-        isUser ? 'bg-gradient-to-br from-cyan-500 to-violet-600' : 'bg-gradient-to-br from-violet-500 to-cyan-600'
-      )}>
-        {isUser ? <User className="w-3.5 h-3.5 text-white" /> : <Bot className="w-3.5 h-3.5 text-white" />}
-      </div>
-
-      <div className={cn('flex flex-col gap-1.5 max-w-[75%]', isUser && 'items-end')}>
-        {/* Content */}
-        <div className={cn(
-          'px-4 py-3 rounded-2xl text-sm leading-relaxed',
-          isUser
-            ? 'bg-cyan-500/10 border border-cyan-500/20 text-foreground rounded-tr-sm'
-            : 'bg-surface border border-border text-foreground rounded-tl-sm'
-        )}>
-          <p className="whitespace-pre-wrap">{msg.content}</p>
-        </div>
-
-        {/* Sources */}
-        {msg.sources && msg.sources.length > 0 && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] text-muted">Sources:</span>
-            {msg.sources.map((s, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400"
-              >
-                <ExternalLink className="w-2.5 h-2.5" />
-                {s.label}
-                <span className="opacity-60">{(s.similarity * 100).toFixed(0)}%</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <span className="text-[10px] text-muted">{formatRelativeTime(msg.timestamp)}</span>
-      </div>
-    </motion.div>
-  );
-}
-
-function TypingIndicator() {
-  return (
-    <div className="flex gap-3">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-cyan-600 flex items-center justify-center shrink-0">
-        <Bot className="w-3.5 h-3.5 text-white" />
-      </div>
-      <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-surface border border-border flex items-center gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <motion.div
-            key={i}
-            className="w-1.5 h-1.5 rounded-full bg-muted"
-            animate={{ opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function ChatbotPage() {
-  const [sessions, setSessions] = useState<ChatSession[]>(mockChatSessions);
-  const [activeSessionId, setActiveSessionId] = useState<string>(mockChatSessions[0].id);
-  const [messages, setMessages] = useState<ChatMessage[]>(mockInitialMessages);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: 'Merhaba! Ben Yefai AI Asistanı. Fabrika verileriniz, anomaliler, tahminler ve yedek parçalar hakkında sorularınızı yanıtlayabilirim. Size nasıl yardımcı olabilirim?',
+      timestamp: new Date().toISOString(),
+    },
+  ]);
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  const sendMessage = async (content: string) => {
-    if (!content.trim() || isTyping) return;
-    setInput('');
+  const handleSend = async (text?: string) => {
+    const messageText = text || input.trim();
+    if (!messageText || isLoading) return;
 
-    const userMsg: ChatMessage = {
-      id: `msg_${Date.now()}`,
-      session_id: activeSessionId,
+    const userMessage: Message = {
+      id: `user_${Date.now()}`,
       role: 'user',
-      content: content.trim(),
+      content: messageText,
       timestamp: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, userMsg]);
-    setIsTyping(true);
 
-    // Simulate streaming delay
-    await new Promise((r) => setTimeout(r, 900 + Math.random() * 600));
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
 
-    const response = getMockResponse(content);
-    const aiMsg: ChatMessage = {
-      id: `msg_${Date.now() + 1}`,
-      session_id: activeSessionId,
-      role: 'assistant',
-      content: response.content,
-      timestamp: new Date().toISOString(),
-      sources: response.sources,
-    };
-    setIsTyping(false);
-    setMessages((prev) => [...prev, aiMsg]);
-  };
-
-  const newSession = () => {
-    const newSess: ChatSession = {
-      id: `sess_${Date.now()}`,
-      title: 'New conversation',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      message_count: 0,
-    };
-    setSessions((prev) => [newSess, ...prev]);
-    setActiveSessionId(newSess.id);
-    setMessages([]);
+    try {
+      const response = await sendChatMessage('session_default', messageText);
+      const assistantMessage: Message = {
+        id: response.id || `ai_${Date.now()}`,
+        role: 'assistant',
+        content: response.content || 'Yanıt oluşturulamadı.',
+        timestamp: response.timestamp || new Date().toISOString(),
+        images: response.images,
+        sources: response.sources,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch {
+      setMessages((prev) => [...prev, {
+        id: `err_${Date.now()}`,
+        role: 'assistant',
+        content: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.',
+        timestamp: new Date().toISOString(),
+      }]);
+    } finally {
+      setIsLoading(false);
+      inputRef.current?.focus();
+    }
   };
 
   return (
-    <div className="h-[calc(100vh-56px)] flex overflow-hidden">
-      {/* Session sidebar */}
-      <div className="w-56 shrink-0 flex flex-col border-r border-border bg-surface overflow-hidden">
-        <div className="p-3 border-b border-border">
-          <button
-            onClick={newSession}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-medium hover:bg-cyan-500/20 transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            New Chat
-          </button>
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
+      {/* Chat Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface/60 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan to-violet flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h2 className="text-sm font-heading font-bold text-foreground">Yefai AI Asistan</h2>
+            <p className="text-[10px] text-muted">RAG destekli · Gerçek zamanlı veri erişimi</p>
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto py-2">
-          {sessions.map((sess) => (
-            <button
-              key={sess.id}
-              onClick={() => setActiveSessionId(sess.id)}
-              className={cn(
-                'w-full flex items-start gap-2.5 px-3 py-2.5 text-left transition-colors',
-                activeSessionId === sess.id ? 'bg-surface-2' : 'hover:bg-surface-2'
-              )}
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-muted shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <p className={cn(
-                  'text-xs truncate',
-                  activeSessionId === sess.id ? 'text-foreground font-medium' : 'text-muted'
-                )}>
-                  {sess.title}
-                </p>
-                <p className="text-[10px] text-muted mt-0.5">{formatRelativeTime(sess.updated_at)}</p>
-              </div>
-            </button>
-          ))}
-        </div>
+        <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-2 border border-border text-xs text-muted hover:text-foreground hover:border-border-strong transition-all">
+          <Plus className="w-3.5 h-3.5" />
+          Yeni Sohbet
+        </button>
       </div>
 
-      {/* Chat area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-600 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold font-heading text-foreground">Ask Yefai AI</h2>
-                <p className="text-xs text-muted mt-1 max-w-xs">
-                  Ask about anomalies, wear trends, spare parts, or any production data.
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+        <AnimatePresence>
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className={cn('flex gap-3', msg.role === 'user' ? 'justify-end' : 'justify-start')}
+            >
+              {msg.role === 'assistant' && (
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan to-violet flex items-center justify-center shrink-0 mt-0.5">
+                  <Bot className="w-4 h-4 text-white" />
+                </div>
+              )}
+
+              <div className={cn(
+                'max-w-[70%] rounded-2xl px-5 py-3.5',
+                msg.role === 'user'
+                  ? 'bg-cyan/10 border border-cyan/15 text-foreground'
+                  : 'bg-surface border border-border text-foreground'
+              )}>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+
+                {/* Sources */}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">
+                    <p className="text-[10px] text-muted font-medium tracking-wide uppercase">Kaynaklar</p>
+                    {msg.sources.map((src, i) => (
+                      <div key={i} className="flex items-center gap-2 text-[11px]">
+                        <span className="text-cyan font-medium">{src.label}</span>
+                        <span className="text-muted font-mono">({(src.similarity * 100).toFixed(0)}%)</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Images */}
+                {msg.images && msg.images.length > 0 && (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {msg.images.map((img, i) => (
+                      <div key={i} className="rounded-lg bg-surface-2 border border-border p-2">
+                        <div className="aspect-square rounded bg-surface-3 flex items-center justify-center text-[10px] text-muted">
+                          {img.metadata.machine_id}
+                        </div>
+                        <p className="text-[9px] text-muted mt-1 font-mono">
+                          Aşınma: {img.metadata.wear_level}µm · Skor: {img.metadata.anomaly_score}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-[10px] text-muted/60 mt-2">
+                  {new Date(msg.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-2 max-w-md w-full">
-                {SUGGESTED_PROMPTS.map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => sendMessage(p)}
-                    className="px-3 py-2.5 rounded-xl text-xs text-left bg-surface border border-border text-muted hover:text-foreground hover:border-border-strong transition-all"
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {messages.map((msg) => (
-            <MessageBubble key={msg.id} msg={msg} />
+              {msg.role === 'user' && (
+                <div className="w-8 h-8 rounded-xl bg-surface-2 border border-border flex items-center justify-center shrink-0 mt-0.5">
+                  <User className="w-4 h-4 text-muted" />
+                </div>
+              )}
+            </motion.div>
           ))}
-          <AnimatePresence>
-            {isTyping && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <TypingIndicator />
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div ref={bottomRef} />
-        </div>
+        </AnimatePresence>
 
-        {/* Suggested prompts above input */}
-        {messages.length > 0 && (
-          <div className="px-6 pb-1 flex gap-2 flex-wrap">
-            {SUGGESTED_PROMPTS.slice(0, 2).map((p) => (
-              <button
-                key={p}
-                onClick={() => sendMessage(p)}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-surface border border-border text-muted hover:text-foreground hover:border-border-strong transition-all"
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Input */}
-        <div className="p-4 border-t border-border">
-          <form
-            onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
+        {/* Loading indicator */}
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             className="flex gap-3"
           >
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about wear levels, anomalies, spare parts..."
-              disabled={isTyping}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-surface border border-border text-foreground text-sm placeholder:text-muted focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition-all disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isTyping}
-              className="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-background text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </form>
-        </div>
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan to-violet flex items-center justify-center shrink-0">
+              <Bot className="w-4 h-4 text-white" />
+            </div>
+            <div className="bg-surface border border-border rounded-2xl px-5 py-3.5">
+              <div className="flex items-center gap-2 text-sm text-muted">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Düşünüyorum...</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Suggested queries (show when only welcome message) */}
+        {messages.length === 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="space-y-3"
+          >
+            <p className="text-xs text-muted">Önerilen sorular:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {suggestedQueries.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => handleSend(q)}
+                  className="text-left px-4 py-3 rounded-xl bg-surface border border-border text-xs text-foreground hover:border-cyan/25 hover:bg-cyan/4 transition-all group"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-muted group-hover:text-cyan mb-1.5 transition-colors" />
+                  {q}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="px-6 py-4 border-t border-border bg-surface/80 backdrop-blur-xl">
+        <form
+          onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+          className="flex gap-3"
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Bir soru sorun..."
+            disabled={isLoading}
+            className="flex-1 px-4 py-3 rounded-xl bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-cyan/40 focus:ring-2 focus:ring-cyan/10 transition-all disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || isLoading}
+            className={cn(
+              'px-5 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95',
+              input.trim() && !isLoading
+                ? 'bg-gradient-to-r from-cyan to-violet text-white shadow-lg shadow-cyan/15'
+                : 'bg-surface-2 text-muted cursor-not-allowed'
+            )}
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </form>
       </div>
     </div>
   );

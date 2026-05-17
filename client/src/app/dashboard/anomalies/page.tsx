@@ -1,193 +1,202 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Filter, AlertTriangle, ChevronRight } from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
+import { AlertTriangle, Search, Filter, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { mockAnomalies } from '@/services/mock/anomalies';
-import { SeverityBadge, StatusBadge } from '@/components/ui/badge';
+import { SeverityBadge, StatusBadge, StatusDot } from '@/components/ui/index';
 import { cn, formatRelativeTime } from '@/lib/utils';
-import type { Severity, AnomalyStatus, WearType } from '@/types';
 
-const SEVERITY_OPTS: (Severity | 'all')[] = ['all', 'critical', 'high', 'medium', 'low'];
-const STATUS_OPTS: (AnomalyStatus | 'all')[] = ['all', 'new', 'reviewed', 'resolved'];
-const WEAR_OPTS: (WearType | 'all')[] = ['all', 'flank_wear', 'adhesion', 'combination'];
+const stagger: { container: Variants; item: Variants } = {
+  container: { hidden: {}, show: { transition: { staggerChildren: 0.03 } } },
+  item: { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 26 } } },
+};
+
+type FilterSeverity = 'all' | 'critical' | 'high' | 'medium' | 'low';
+type FilterStatus = 'all' | 'new' | 'reviewed' | 'resolved';
+
+const severityFilters: { value: FilterSeverity; label: string }[] = [
+  { value: 'all', label: 'Tümü' },
+  { value: 'critical', label: 'Kritik' },
+  { value: 'high', label: 'Yüksek' },
+  { value: 'medium', label: 'Orta' },
+  { value: 'low', label: 'Düşük' },
+];
+
+const statusFilters: { value: FilterStatus; label: string }[] = [
+  { value: 'all', label: 'Tümü' },
+  { value: 'new', label: 'Yeni' },
+  { value: 'reviewed', label: 'İncelendi' },
+  { value: 'resolved', label: 'Çözüldü' },
+];
 
 export default function AnomaliesPage() {
+  const [severity, setSeverity] = useState<FilterSeverity>('all');
+  const [status, setStatus] = useState<FilterStatus>('all');
   const [search, setSearch] = useState('');
-  const [severity, setSeverity] = useState<Severity | 'all'>('all');
-  const [status, setStatus] = useState<AnomalyStatus | 'all'>('all');
-  const [wearType, setWearType] = useState<WearType | 'all'>('all');
 
   const filtered = useMemo(() => {
     return mockAnomalies.filter((a) => {
       if (severity !== 'all' && a.severity !== severity) return false;
       if (status !== 'all' && a.status !== status) return false;
-      if (wearType !== 'all' && a.wear_type !== wearType) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (!a.machine_id.toLowerCase().includes(q) && !a.id.toLowerCase().includes(q)) return false;
-      }
+      if (search && !a.machine_id.toLowerCase().includes(search.toLowerCase()) && !a.wear_type.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [search, severity, status, wearType]);
+  }, [severity, status, search]);
+
+  const counts = useMemo(() => ({
+    total: mockAnomalies.length,
+    critical: mockAnomalies.filter((a) => a.severity === 'critical').length,
+    new: mockAnomalies.filter((a) => a.status === 'new').length,
+  }), []);
 
   return (
-    <div className="p-6 space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold font-heading text-foreground">Anomaly Log</h1>
-          <p className="text-xs text-muted mt-0.5">{filtered.length} of {mockAnomalies.length} anomalies</p>
-        </div>
-      </div>
+    <div className="p-6 space-y-6">
+      {/* Header Stats */}
+      <motion.div
+        variants={stagger.container}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-3 gap-4"
+      >
+        {[
+          { label: 'Toplam Anomali', value: counts.total, color: 'text-foreground' },
+          { label: 'Kritik', value: counts.critical, color: 'text-rose' },
+          { label: 'Yeni (İncelenmemiş)', value: counts.new, color: 'text-amber' },
+        ].map((s) => (
+          <motion.div key={s.label} variants={stagger.item} className="bg-surface border border-border rounded-xl p-4">
+            <p className="text-[11px] text-muted tracking-wide uppercase mb-1">{s.label}</p>
+            <p className={cn('text-2xl font-heading font-bold', s.color)}>{s.value}</p>
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Filters */}
-      <div className="bg-surface border border-border rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by machine ID..."
-              className="w-full pl-9 pr-3 py-2 text-sm bg-surface-2 border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition-all"
-            />
-          </div>
-          <div className="flex items-center gap-1 text-xs text-muted">
-            <Filter className="w-3.5 h-3.5" />
-          </div>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-surface border border-border rounded-xl p-4 space-y-4"
+      >
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Makine ID veya aşınma türü ara..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-cyan/40 focus:ring-2 focus:ring-cyan/10 transition-all"
+          />
         </div>
 
-        <div className="flex flex-wrap gap-4">
-          {/* Severity filter */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-muted">Severity:</span>
-            {SEVERITY_OPTS.map((s) => (
-              <button
-                key={s}
-                onClick={() => setSeverity(s)}
-                className={cn(
-                  'text-xs px-2.5 py-1 rounded-lg border transition-all capitalize',
-                  severity === s
-                    ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400'
-                    : 'bg-surface-2 border-border text-muted hover:border-border-strong hover:text-foreground'
-                )}
-              >
-                {s}
-              </button>
-            ))}
+        <div className="flex flex-wrap gap-6">
+          {/* Severity */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted">
+              <Filter className="w-3 h-3" />
+              <span>Şiddet</span>
+            </div>
+            <div className="flex gap-1.5">
+              {severityFilters.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setSeverity(f.value)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                    severity === f.value
+                      ? 'bg-cyan/10 text-cyan border border-cyan/20'
+                      : 'bg-surface-2 text-muted border border-transparent hover:text-foreground hover:border-border'
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Status filter */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-muted">Status:</span>
-            {STATUS_OPTS.map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatus(s)}
-                className={cn(
-                  'text-xs px-2.5 py-1 rounded-lg border transition-all capitalize',
-                  status === s
-                    ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400'
-                    : 'bg-surface-2 border-border text-muted hover:border-border-strong hover:text-foreground'
-                )}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          {/* Wear type filter */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-muted">Wear:</span>
-            {WEAR_OPTS.map((w) => (
-              <button
-                key={w}
-                onClick={() => setWearType(w)}
-                className={cn(
-                  'text-xs px-2.5 py-1 rounded-lg border transition-all capitalize',
-                  wearType === w
-                    ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400'
-                    : 'bg-surface-2 border-border text-muted hover:border-border-strong hover:text-foreground'
-                )}
-              >
-                {w === 'all' ? 'all' : w.replace('_', ' ')}
-              </button>
-            ))}
+          {/* Status */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted">
+              <Filter className="w-3 h-3" />
+              <span>Durum</span>
+            </div>
+            <div className="flex gap-1.5">
+              {statusFilters.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setStatus(f.value)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                    status === f.value
+                      ? 'bg-cyan/10 text-cyan border border-cyan/20'
+                      : 'bg-surface-2 text-muted border border-transparent hover:text-foreground hover:border-border'
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Results count */}
+      <p className="text-xs text-muted">
+        <span className="text-foreground font-semibold">{filtered.length}</span> anomali bulundu
+      </p>
 
       {/* Table */}
-      <div className="bg-surface border border-border rounded-xl overflow-hidden">
-        <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 text-[11px] font-medium text-muted px-4 py-2.5 border-b border-border bg-surface-2">
-          <span>Machine / ID</span>
-          <span className="px-4">Wear Type</span>
-          <span className="px-4">Wear</span>
-          <span className="px-4">Score</span>
-          <span className="px-4">Severity</span>
-          <span className="px-4">Status</span>
+      <motion.div
+        variants={stagger.container}
+        initial="hidden"
+        animate="show"
+        className="bg-surface border border-border rounded-xl overflow-hidden"
+      >
+        {/* Header */}
+        <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-border text-[11px] text-muted font-medium tracking-wide uppercase">
+          <div className="col-span-2">Makine</div>
+          <div className="col-span-2">Aşınma Türü</div>
+          <div className="col-span-2">Aşınma</div>
+          <div className="col-span-1">Skor</div>
+          <div className="col-span-2">Şiddet</div>
+          <div className="col-span-2">Durum</div>
+          <div className="col-span-1">Zaman</div>
         </div>
-        <div className="divide-y divide-border">
-          {filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-muted">
-              <AlertTriangle className="w-8 h-8 mb-2 opacity-30" />
-              <p className="text-sm">No anomalies match your filters</p>
-            </div>
-          )}
-          {filtered.map((a, i) => (
-            <motion.div
-              key={a.id}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.02 }}
+
+        {/* Rows */}
+        {filtered.map((a) => (
+          <motion.div key={a.id} variants={stagger.item}>
+            <Link
+              href={`/dashboard/anomalies/${a.id}`}
+              className="grid grid-cols-12 gap-4 px-5 py-3.5 hover:bg-surface-2 transition-all border-b border-border/50 last:border-0 group items-center"
             >
-              <Link
-                href={`/dashboard/anomalies/${a.id}`}
-                className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-0 items-center px-4 py-3 hover:bg-surface-2 transition-colors group"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <div className={cn(
-                      'w-1.5 h-1.5 rounded-full shrink-0',
-                      a.severity === 'critical' ? 'bg-rose-500 animate-pulse' :
-                      a.severity === 'high' ? 'bg-amber-500' :
-                      a.severity === 'medium' ? 'bg-cyan-500' : 'bg-emerald-500'
-                    )} />
-                    <span className="text-sm font-medium text-foreground">{a.machine_id}</span>
-                    <span className="text-xs text-muted font-mono">{a.id}</span>
-                  </div>
-                  <p className="text-xs text-muted mt-0.5 ml-3.5">{formatRelativeTime(a.timestamp)}</p>
-                </div>
-                <div className="px-4">
-                  <span className="text-xs text-foreground capitalize">{a.wear_type.replace('_', ' ')}</span>
-                </div>
-                <div className="px-4">
-                  <span className="text-xs font-mono text-foreground">{a.estimated_wear_um} µm</span>
-                </div>
-                <div className="px-4">
-                  <span className={cn(
-                    'text-xs font-mono font-bold',
-                    a.anomaly_score > 0.75 ? 'text-rose-400' :
-                    a.anomaly_score > 0.5 ? 'text-amber-400' :
-                    a.anomaly_score > 0.3 ? 'text-cyan-400' : 'text-emerald-400'
-                  )}>
-                    {(a.anomaly_score * 100).toFixed(0)}%
-                  </span>
-                </div>
-                <div className="px-4">
-                  <SeverityBadge severity={a.severity} />
-                </div>
-                <div className="px-4 flex items-center gap-2">
-                  <StatusBadge status={a.status} />
-                  <ChevronRight className="w-3.5 h-3.5 text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+              <div className="col-span-2 flex items-center gap-2">
+                <StatusDot status={a.severity === 'critical' ? 'critical' : 'safe'} pulse={a.severity === 'critical'} />
+                <span className="text-xs font-semibold text-foreground">{a.machine_id}</span>
+              </div>
+              <div className="col-span-2 text-xs text-muted capitalize">{a.wear_type.replace('_', ' ')}</div>
+              <div className="col-span-2">
+                <span className="text-xs font-mono text-foreground font-medium">{a.estimated_wear_um} µm</span>
+              </div>
+              <div className="col-span-1">
+                <span className={cn(
+                  'text-xs font-mono font-semibold',
+                  a.anomaly_score > 0.7 ? 'text-rose' : a.anomaly_score > 0.4 ? 'text-amber' : 'text-emerald'
+                )}>
+                  {a.anomaly_score.toFixed(2)}
+                </span>
+              </div>
+              <div className="col-span-2"><SeverityBadge severity={a.severity} /></div>
+              <div className="col-span-2"><StatusBadge status={a.status} /></div>
+              <div className="col-span-1 flex items-center justify-between">
+                <span className="text-[11px] text-muted">{formatRelativeTime(a.timestamp)}</span>
+                <ArrowUpRight className="w-3 h-3 text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </Link>
+          </motion.div>
+        ))}
+      </motion.div>
     </div>
   );
 }
