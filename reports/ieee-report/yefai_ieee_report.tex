@@ -1,0 +1,305 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[turkish]{babel}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{float}
+
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+
+\begin{document}
+
+\title{Yefai: Çok Modlu Kestirimci Bakım için Yerel Yapay Zeka Tabanlı Bir Platform}
+
+\author{\IEEEauthorblockN{Yazar Adı Soyadı}
+\IEEEauthorblockA{Bölüm / Program \\
+Üniversite / Kurum \\
+Şehir, Ülke \\
+E-posta veya Öğrenci Numarası}}
+
+\maketitle
+
+\begin{abstract}
+Bu çalışma, üretim ortamlarında kesici takım aşınmasını izlemek, görüntü tabanlı anomali belirtilerini değerlendirmek, bakım kararlarını yedek parça riskleriyle ilişkilendirmek ve operatöre karar destek bilgisi sunmak amacıyla geliştirilen Yefai platformunu tanıtmaktadır. Sistem, çok modlu takım aşınması verisini yerel olarak işler; görüntü tabanlı anomali çıkarımı, görsel-metin ortak temsil üretimi, vektör tabanlı arama, doğal dil destekli sorgulama, bildirim otomasyonu ve sentetik yedek parça krizi simülasyonu bileşenlerini bütünleşik bir mimaride birleştirir. Tasarım, ağır medya dosyalarının yerel kalmasını, ilişkisel üst verinin ve vektör temsillerinin yönetilen bir veritabanı katmanında tutulmasını ve dış bildirim kanallarının denetlenebilir bir aracı mekanizma ile tetiklenmesini esas alır. Değerlendirme bulguları, set bazlı veri ayrımının veri sızıntısını engellediğini, görüntü-anomali ve bildirim bileşenlerinin otomatik testlerle doğrulandığını, canlı dış servis gerektiren kısımların ise manuel kapılarla açıkça ayrıldığını göstermektedir.
+\end{abstract}
+
+\begin{IEEEkeywords}
+kestirimci bakım, takım aşınması, görüntü anomalisi, çok modlu veri, vektör arama, yedek parça riski, bildirim otomasyonu
+\end{IEEEkeywords}
+
+\section{Giriş}
+Endüstriyel üretim hatlarında takım aşınmasının geç fark edilmesi; kalite sapması, plansız duruş, üretim kaybı ve bakım maliyeti doğurur. Kestirimci bakım yaklaşımı, arıza oluşmadan önce aşınma davranışını yorumlayarak karar vericinin müdahale zamanını daha güvenilir biçimde belirlemesini amaçlar. Yefai platformu bu problemi çok modlu bir bakışla ele alır: kamera görüntüleri, sensör ölçümleri, operasyonel üst veri, stok riski ve bildirim süreçleri tek bir karar destek akışında birleştirilir.
+
+Çalışmanın ana katkısı, görüntü temelli aşınma gözlemini bakım aksiyonuna bağlayan uçtan uca bir arka uç mimarisi sunmasıdır. Sistem yalnızca anomali skorunu üretmekle kalmaz; aşınmanın kritik eşiğe yaklaşma davranışını yorumlar, ilgili yedek parçayı sentetik envanter modeliyle ilişkilendirir, stok ve tedarikçi riskini sayısallaştırır ve uygun durumda satın alma hazırlığı ile çok kanallı uyarı akışını başlatır. Böylece bakım kararı, tekil bir model çıktısından ziyade teknik durum, operasyonel risk ve tedarik koşullarının bileşiminden türetilir.
+
+Platformun ilk sürümü arka uç kapsamına odaklanmaktadır. Masaüstü arayüzü, canlı grafikler ve yerel bildirim kabuğu sonraki aşamalara bırakılmıştır. Buna karşılık veri altyapısı, görüntü tabanlı çıkarım, vektör temsili, sorgulama zemini, bildirim sözleşmeleri ve yedek parça simülasyonu arka uç düzeyinde ele alınmıştır. Bu ayrım, değerlendirmede tamamlanan ve dış bağımlılığa bağlı kalan gereksinimlerin açık biçimde izlenmesini sağlar.
+
+\section{İlgili Çalışmalar}
+Kestirimci bakım literatürü, makine sağlığını tahmin etmek için titreşim, akustik, kuvvet, sıcaklık ve görüntü gibi kaynaklardan yararlanır. Zaman serisi sinyalleri özellikle rulman, motor ve kesici takım izleme alanlarında yaygın kullanılmakla birlikte, yüzey görüntüleri aşınmanın görsel karakterini doğrudan temsil ettiği için takım aşınması problemlerinde tamamlayıcı bir kanıt sunar. Çok modlu takım aşınması veri kümeleri bu nedenle hem sensör tabanlı hem de görüntü tabanlı yöntemleri kıyaslamak için değerli bir zemin oluşturur \cite{matwi2023}.
+
+Görüntü anomalisi alanında derin temsil çıkarımı ve yakın komşuluk tabanlı yöntemler, az sayıda normal örnekle çalışabilmeleri nedeniyle endüstriyel denetimde öne çıkmaktadır. PatchCore yaklaşımı, önceden öğrenilmiş görsel temsillerden seçilmiş bir bellek bankası oluşturarak anomalileri normal örnek uzayına uzaklık üzerinden değerlendirir \cite{patchcore2022}. Bu strateji, yoğun etiket gerektiren tam denetimli öğrenmeye kıyasla prototip ve demo sistemlerinde daha uygulanabilir bir çözüm sunar. Anomalib ise bu tür algoritmaları standartlaştırılmış eğitim ve değerlendirme akışlarıyla erişilebilir kılar \cite{anomalib2024}.
+
+Metin ve görüntüyü ortak bir temsil uzayında modelleyen çok modlu embedding yaklaşımları, doğal dil ile görsel arama arasında köprü kurar. CLIP ailesi, görüntü-metin eşlemesini geniş ölçekli karşıt öğrenme ile temsil ederek semantik aramayı mümkün kılmıştır \cite{clip2021}. Çok dilli ve yerel çalışabilir embedding modelleri, endüstriyel veri gizliliği ile kullanıcı dil esnekliğini birlikte desteklediğinden bakım sistemleri için uygundur \cite{jina2024}. Vektör uzayı üzerinde benzerlik araması ise ilişkisel filtrelerle birleştiğinde hem semantik hem de operasyonel koşullara duyarlı hibrit sorgulama sağlar \cite{pgvector2024}.
+
+Bildirim ve otomasyon katmanında webhook tabanlı entegrasyonlar, olay üreten sistemlerle çok kanallı mesajlaşma altyapıları arasında gevşek bağlılık sağlar. Bu yaklaşım, bakım alarmı, günlük rapor ve kritik eskalasyon gibi farklı senaryoların aynı olay sözleşmesi üzerinden yönetilmesine olanak verir. Yefai bu çizgide, yapay zeka çıktısını doğrudan kullanıcıya iletmek yerine denetlenebilir tekrar deneme, yedek davranış ve kayıt mekanizmalarıyla zenginleştirilmiş bir otomasyon hattına dönüştürür.
+
+\section{Sistem Mimarisi ve Yöntem}
+\subsection{Genel Mimari}
+Yefai katmanlı bir arka uç mimarisine sahiptir. Veri hazırlama katmanı, çok modlu takım aşınması verisini ayrıştırır ve sızıntısız eğitim-test ayrımını üretir. Yapay zeka katmanı, görüntü anomalisi, aşınma tipi yorumu, görsel-metin temsili ve aşınma projeksiyonu görevlerini yürütür. Uygulama katmanı, bu çıkarımları sorgulanabilir ve olay odaklı arayüzlere dönüştürür. Karar destek katmanı ise stok, tedarikçi, satın alma ve bildirim mekanizmalarını bakım riskiyle ilişkilendirir.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.9\linewidth}{
+    \centering
+    \textbf{YER TUTUCU --- GENEL MİMARİ DİYAGRAMI}\\[0.5em]
+    \small Kaynak: Yazar tarafından çizilecek mimari diyagram.\\
+    Beklenen içerik: Veri hazırlama, yapay zeka çıkarımı, vektör veritabanı, sorgulama, bildirim otomasyonu ve yedek parça riski katmanlarının akışı.
+  }}
+  \caption{Yefai platformunun kavramsal katman mimarisi.}
+  \label{fig:architecture}
+\end{figure}
+
+Mimari tasarımda iki ilke belirleyicidir. Birincisi, görüntü ve sensör gibi büyük dosyaların yerel ortamda tutulmasıdır. Böylece bulut depolama maliyeti ve veri aktarım yükü azaltılır. İkincisi, üst veri ve vektör temsillerinin yönetilen bir ilişkisel veritabanı üzerinde saklanmasıdır. Bu ayrım, hem semantik aramayı hem de operasyonel filtrelemeyi desteklerken ağır medya dosyalarını sistem sınırları içinde tutar.
+
+\subsection{Teknoloji Seçimi}
+Sistem arka uç tarafında asenkron web uygulama ilkelerini izleyen bir Python mimarisi kullanır. Görüntü anomalisi için PatchCore tabanlı yöntem, çok modlu arama için ortak görsel-metin embedding modeli, semantik sorgulama için vektör uzantılı ilişkisel veritabanı ve canlı çıkarım için yerel konteyner tabanlı model yürütme yaklaşımı benimsenmiştir. Tablo~\ref{tab:technology} kullanılan bileşenleri kavramsal rollerine göre özetlemektedir.
+
+\begin{table}[H]
+\centering
+\caption{Temel teknoloji bileşenleri ve tasarım gerekçeleri.}
+\label{tab:technology}
+\begin{tabular}{p{0.27\linewidth}p{0.27\linewidth}p{0.34\linewidth}}
+\toprule
+Bileşen & Rol & Gerekçe \\
+\midrule
+Web uygulama çatısı & Arka uç arayüzleri & Tip denetimli veri sözleşmeleri, otomatik dokümantasyon ve asenkron yürütme \\
+Görüntü anomalisi & Aşınma sinyali çıkarımı & Az örnekli normal temsilden sapma ölçümü \cite{patchcore2022} \\
+Çok modlu embedding & Görsel-metin araması & Türkçe dahil çok dilli semantik sorgu ve yerel çalışma \cite{jina2024} \\
+Vektör veritabanı & Hibrit sorgulama & Vektör benzerliği ile ilişkisel filtrelerin birleşimi \cite{pgvector2024} \\
+Konteyner tabanlı çıkarım & Yerel model servisleme & Bulut bağımlılığını azaltan tekrar üretilebilir yürütme ortamı \\
+Webhook otomasyonu & Uyarı ve rapor akışı & Çok kanallı bildirimleri gevşek bağlı bir olay hattına dönüştürme \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Veri Yönetim Stratejisi}
+Veri yönetimi, ağır medya ve hafif sorgu verisi ayrımına dayanır. Görüntüler ve sensör ölçümleri yerel dosya alanında tutulurken; set kimliği, zaman damgası, aşınma seviyesi, aşınma türü, anomali skoru, vektör temsili ve bildirim kayıtları ilişkisel depolama katmanında yönetilir. Bu strateji, veri hacmini sınırlı tutarken model çıktılarının denetlenebilirliğini korur.
+
+Veri ayrımı set düzeyinde yapılmıştır; aynı üretim seti hem eğitim hem test bölmesine dağıtılmaz. Bu karar, benzer zaman ve operasyon koşullarından gelen örneklerin iki bölme arasında sızmasını önler. Veri kalite raporlarına göre 17 üretim setinden 1803 etiketli görüntü elde edilmiş, 1292 görüntü eğitim ve 511 görüntü test bölümünde tutulmuştur. Aşınma dağılımı 0--300 mikrometre aralığındadır; yüksek aşınma eşiği üzerindeki örnek oranı yaklaşık yüzde 7.9 olarak gözlenmiştir.
+
+\section{Gereksinim Kapsamı}
+Gereksinimler arka uç odaklı ilk sürüm ve sonraki masaüstü arayüz aşaması olarak ayrılmıştır. İlk sürümde veri seti yönetimi, görüntü tabanlı çıkarım, embedding, vektör arama, RAG arayüzü için API zemini, bildirim sözleşmeleri ve yedek parça krizi simülasyonu öne çıkar. Canlı grafikler, masaüstü kabuğu ve son kullanıcı panelleri sonraki sürüm kapsamına bırakılmıştır. Bu ayrım, sistemin araştırma ve prototip hedefleriyle uygulanabilir teslimat sınırlarını uyumlu hale getirir.
+
+\begin{table}[H]
+\centering
+\caption{Fonksiyonel gereksinim gruplarının kavramsal durum özeti.}
+\label{tab:reqstatus}
+\begin{tabular}{p{0.33\linewidth}p{0.22\linewidth}p{0.35\linewidth}}
+\toprule
+Gereksinim grubu & Durum & Açıklama \\
+\midrule
+Veri seti yönetimi & Tamamlandı & Ayrıştırma, kalite raporu, set bazlı ayrım ve sentetik yedek parça verisi üretildi. \\
+Görüntü çıkarımı & Kısmi/Tamamlandı & Eğitim ve embedding hattı uygulanmış; canlı yerel çıkarım dış kapıya bağlıdır. \\
+Gerçek zamanlı akış & Sonraki aşama & Kullanıcı arayüzü ve canlı gösterim kapsamına bırakılmıştır. \\
+RAG sorgulama & API zemini & Embedding ve hibrit arama bileşenleri doğal dil sorgulama için temel oluşturur. \\
+Bildirim otomasyonu & Mock yeşil & Payload, tekrar deneme, yedek davranış ve kayıt sözleşmeleri doğrulanmıştır. \\
+Masaüstü uygulama & Sonraki aşama & Yerel kabuk ve canlı kullanıcı deneyimi arka uç sonrası ele alınacaktır. \\
+Veritabanı ve embedding & Tamamlandı & Üst veri ve vektör temsilleri için yönetilen ilişkisel model planlanmıştır. \\
+Yedek parça krizi & Tamamlandı & Sentetik katalog, risk skoru, satın alma hazırlığı ve alternatif tedarikçi mantığı oluşturulmuştur. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Görüntü Tabanlı Anomali ve Aşınma Yorumu}
+Görüntü tabanlı çıkarımın amacı, kesici takım yüzeyinde normal davranıştan sapmayı ölçmek ve bakım kararı için nicel bir skor üretmektir. PatchCore temelli yaklaşımda normal veya düşük aşınmalı görüntülerden temsil belleği oluşturulur. Test aşamasında yeni görüntülerin temsilleri bu belleğe göre uzaklık üzerinden değerlendirilir. Yüksek uzaklık, yüzeyde alışılmadık aşınma örüntüsü bulunduğunu gösteren bir anomali sinyali olarak ele alınır.
+
+\begin{algorithm}[H]
+\caption{Görüntü Tabanlı Anomali Değerlendirme Akışı}
+\begin{algorithmic}[1]
+\STATE Çok modlu veri kümesini set düzeyinde eğitim ve test bölmelerine ayır
+\STATE Normal veya düşük aşınmalı eğitim görüntülerinden temsil belleği oluştur
+\STATE Yeni görüntüyü standart ön işleme adımlarından geçir
+\STATE Görüntü temsilini normal temsil belleğiyle karşılaştır
+\STATE Uzaklık ölçüsünden anomali skorunu hesapla
+\IF{anomali skoru karar eşiğini aşarsa}
+  \STATE Görüntüyü bakım riski adayı olarak işaretle
+  \STATE Aşınma türü ve operasyonel üst veriyle açıklama üret
+\ELSE
+  \STATE Görüntüyü normal izleme akışında tut
+\ENDIF
+\RETURN Anomali skoru, risk etiketi ve açıklayıcı üst veri
+\end{algorithmic}
+\end{algorithm}
+
+Aşınma türü yorumu, bakım kararının açıklanabilirliğini artırır. Flank aşınması, yapışmalı aşınma ve bileşik aşınma gibi türler farklı operasyonel nedenlere işaret edebilir. Bu nedenle sistem, yalnızca anomali varlığını değil, mümkün olduğunda aşınma karakterini de karar destek çıktısına ekler. Sensör ölçümleri ilk sürümde anomali kararının ana girdisi değildir; ancak görsel kararın zaman ve operasyon bağlamını zenginleştiren tamamlayıcı veri olarak tutulur.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.9\linewidth}{
+    \centering
+    \textbf{YER TUTUCU --- GÖRÜNTÜ ANOMALİ SONUCU}\\[0.5em]
+    \small Kaynak: Test görüntüsü üzerinde çalıştırılan çıkarım ekranı veya rapor çıktısı.\\
+    Beklenen içerik: Normal ve anomali adaylarının skor, aşınma seviyesi ve aşınma türüyle karşılaştırılması.
+  }}
+  \caption{Görüntü tabanlı anomali değerlendirme sonucunun örnek gösterimi.}
+  \label{fig:image_anomaly_result}
+\end{figure}
+
+\section{Çok Modlu Arama ve RAG Destekli Sorgulama}
+Bakım operatörü çoğu zaman teknik veriyi doğal dilde sorgulamak ister. Örneğin belirli bir üretim setindeki en yüksek aşınma örneğini, belirli bir aşınma türüne sahip görüntüleri veya stok riskiyle ilişkili parça kayıtlarını aramak isteyebilir. Bu gereksinim için sistem, görüntü ve metin temsillerini ortak bir vektör uzayında ele alır. Kullanıcı sorusu embedding modelinden geçirilir; benzer görsel ve üst veri kayıtları vektör benzerliği ile bulunur; ardından set, zaman, aşınma türü ve risk seviyesi gibi ilişkisel filtrelerle sonuçlar daraltılır.
+
+RAG mekanizması yalnızca cevap üretme katmanı değildir; aynı zamanda bakım kararının dayandığı bağlamı seçen bir bilgi erişim bileşenidir. Modelin üretici yanıtı, seçilen bağlamla sınırlandırılarak halüsinasyon riski azaltılır. İlk sürümde API zemini ve hibrit arama sözleşmesi önceliklidir; tam etkileşimli sohbet deneyimi kullanıcı arayüzü aşamasında olgunlaştırılacaktır.
+
+\begin{algorithm}[H]
+\caption{Hibrit Görsel-Metin Sorgulama Akışı}
+\begin{algorithmic}[1]
+\STATE Kullanıcı sorusunu çok modlu temsil uzayına dönüştür
+\STATE Vektör benzerliğiyle aday kayıtları getir
+\STATE Operasyonel filtreleri uygula
+\STATE Görüntü, aşınma, zaman ve risk bağlamını birleştir
+\STATE Yanıt üretici modele yalnızca seçilmiş bağlamı ver
+\STATE Sonucu tablo, özet ve görsel referans bilgisiyle döndür
+\RETURN Doğal dil yanıtı ve denetlenebilir bağlam özeti
+\end{algorithmic}
+\end{algorithm}
+
+\section{Yedek Parça Krizi ve Bildirim Otomasyonu}
+Anomali tespiti tek başına bakım kararını tamamlamaz; ilgili parçanın stokta bulunup bulunmadığı, tedarik süresi, tedarikçi güvenilirliği ve aşınmanın kritik eşiğe yaklaşma hızı da kararı etkiler. Bu nedenle Yefai, görüntü veya tahmin çıktısını sentetik yedek parça katmanıyla ilişkilendirir. İlk sürümde gerçek envanter sistemi bulunmadığından, 40 yedek parça, 10 tedarikçi, stok anlık görünümü, talep kayıtları ve satın alma hazırlığı içeren sentetik bir simülasyon katmanı oluşturulmuştur. Bu katman gerçek satın alma işlemi yapmaz; yalnızca karar destek ve demo akışı sağlar.
+
+Kriz skoru stok açığı, tedarik süresi baskısı, parça kritiklik sınıfı, tedarikçi riski ve anomali şiddetinin ağırlıklı bileşiminden hesaplanır. Skor aralığı 0 ile 100 arasındadır ve sonuç normal izleme, dikkat, riskli veya kriz seviyesine dönüştürülür. Riskli veya kriz durumunda sistem satın alma hazırlığı üretir ve alternatif tedarikçi arar. Tablo~\ref{tab:crisis} kriz hesaplamasında kullanılan ana değişkenleri özetler.
+
+\begin{table}[H]
+\centering
+\caption{Yedek parça kriz skoru bileşenleri.}
+\label{tab:crisis}
+\begin{tabular}{p{0.30\linewidth}p{0.18\linewidth}p{0.42\linewidth}}
+\toprule
+Bileşen & Ağırlık & Bakım kararındaki anlamı \\
+\midrule
+Stok açığı & 0.30 & Eldeki miktarın minimum güvenli seviyeyi karşılayamaması \\
+Tedarik süresi baskısı & 0.25 & Parçanın kritik zamana yetişmeme olasılığı \\
+Kritiklik sınıfı & 0.20 & Parçanın üretim sürekliliği üzerindeki etkisi \\
+Tedarikçi riski & 0.15 & Birincil tedarikçinin güvenilirlik ve süre riski \\
+Anomali şiddeti & 0.10 & Teknik aşınma sinyalinin operasyonel önemi \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{algorithm}[H]
+\caption{Anomaliden Kriz ve Bildirim Aksiyonuna Geçiş}
+\begin{algorithmic}[1]
+\STATE Anomali veya aşınma tahmin sonucunu al
+\STATE İlgili yedek parça ailesini ve stok durumunu belirle
+\STATE Stok açığı, tedarik süresi, kritiklik ve tedarikçi riskini hesapla
+\STATE Ağırlıklı kriz skorunu üret
+\IF{risk seviyesi yüksek ise}
+  \STATE Satın alma hazırlığı oluştur
+  \STATE Daha kısa sürede karşılayabilecek alternatif tedarikçileri sırala
+  \STATE Bildirim olayını oluştur ve gönderim kuyruğuna al
+\ELSE
+  \STATE Durumu izleme kaydı olarak sakla
+\ENDIF
+\RETURN Kriz skoru, önerilen aksiyon, satın alma özeti ve bildirim durumu
+\end{algorithmic}
+\end{algorithm}
+
+Bildirim otomasyonu, olayların dış kanallara güvenilir biçimde iletilmesi için tekrar deneme ve yedek davranış ilkelerini kullanır. Dış servis kullanılamadığında olay kaydı korunur ve yerel yedek davranış devreye alınır. Bu tasarım, canlı Telegram, e-posta ve kısa mesaj gönderimlerinin dış hesap ve webhook kapılarına bağlı olduğunu açık biçimde ayırır; sistem bu kapılar tamamlanmadan canlı gönderimi tamamlanmış saymaz.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.9\linewidth}{
+    \centering
+    \textbf{YER TUTUCU --- KRİZ İŞ AKIŞI SONUCU}\\[0.5em]
+    \small Kaynak: Yedek parça krizi simülasyon ekranı veya API çıktısından hazırlanacak görsel.\\
+    Beklenen içerik: Kriz skoru, risk seviyesi, satın alma hazırlığı, alternatif tedarikçiler ve bildirim durumunun tek akışta gösterimi.
+  }}
+  \caption{Yedek parça krizi ve bildirim otomasyonu çıktısının örnek gösterimi.}
+  \label{fig:crisis_workflow}
+\end{figure}
+
+\section{Aşınma Projeksiyonu}
+Aşınma projeksiyonu, anomali skorunu bakım zamanlamasına dönüştürmeyi amaçlar. Sistem, mevcut aşınma tahmini ile zamana bağlı aşınma hızını kullanarak kritik eşiğe kalan süreyi hesaplar. Kritik eşik 200 mikrometre olarak ele alınır. Aşınma hızı çok düşük olduğunda sonuç üst sınırla sınırlandırılır; yeterli veri noktası ve regresyon kalitesine göre güven seviyesi atanır.
+
+Projeksiyon çıktısı, yedek parça krizi hesabındaki tedarik süresi baskısını zenginleştirir. Örneğin parça tedarik süresi kritik eşiğe kalan süreden uzunsa, stok veya tedarikçi riski daha yüksek değerlendirilir. Böylece teknik aşınma sinyali, yalnızca görsel anomali değil, tedarik kararı için zaman baskısı olarak da kullanılır.
+
+\begin{table}[H]
+\centering
+\caption{Aşınma projeksiyonunda kullanılan temel karar değişkenleri.}
+\label{tab:projection}
+\begin{tabular}{p{0.34\linewidth}p{0.52\linewidth}}
+\toprule
+Değişken & Karar etkisi \\
+\midrule
+Mevcut aşınma seviyesi & Kritik eşiğe olan teknik mesafeyi belirler. \\
+Aşınma hızı & Kritik eşiğe kalan süreyi hesaplamak için kullanılır. \\
+Regresyon uyumu & Tahmin güven düzeyini etkiler. \\
+Veri noktası sayısı & Yetersiz veri durumunu ayırt eder. \\
+Tedarik süresi & Kriz skorunda zaman baskısını artırır veya azaltır. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Değerlendirme}
+Değerlendirme üç düzeyde yapılmıştır: veri kalitesi, bileşen davranışı ve entegrasyon sözleşmesi. Veri kalitesi düzeyinde 17 set ve 1803 etiketli görüntü ayrıştırılmış, eğitim-test ayrımı set bazında uygulanmış ve sızıntıyı önleyen bölme korunmuştur. Sensör verisinin her sette beklenen kanalları kapsadığı; zaman eşlemesinin ise veri kümesi kaynaklı farklar nedeniyle kayıt ve kontrol gerektirdiği belirlenmiştir.
+
+Bileşen davranışı düzeyinde görüntü anomalisi, embedding, yerel çıkarım sözleşmesi, yedek parça krizi ve bildirim akışları otomatik testlerle ele alınmıştır. Yerel görüntü çıkarımı tarafında canlı konteyner ve model dağıtımı dış kimlik bilgileri ile model artefaktına bağlı olduğu için mock ve canlı doğrulama ayrımı yapılmıştır. Bildirim tarafında payload üretimi, tekrar deneme, yedek davranış, kriz skoru, satın alma hazırlığı ve alternatif tedarikçi önerisi test edilmiştir.
+
+\begin{table}[H]
+\centering
+\caption{Değerlendirme bulgularının özeti.}
+\label{tab:evaluation}
+\begin{tabular}{p{0.33\linewidth}p{0.22\linewidth}p{0.35\linewidth}}
+\toprule
+Alan & Sonuç & Yorum \\
+\midrule
+Veri ayrımı & Başarılı & Set bazlı bölümleme ile sızıntı riski azaltıldı. \\
+Etiketli görüntüler & 1803 kayıt & Eğitim ve test için yeterli prototip tabanı oluşturuldu. \\
+Test bölümü & 511 kayıt & Canlı demo ve çıkarım değerlendirmesi için ayrıldı. \\
+Yüksek aşınma oranı & Yaklaşık \%7.9 & Sınıf dengesizliği karar eşiği seçimini önemli kılar. \\
+NovaVision sözleşmesi & Mock yeşil & Canlı doğrulama dış kurulum kapısına bağlıdır. \\
+Bildirim ve kriz & Mock yeşil & Tek akışta tahmin, kriz, satın alma ve bildirim çıktısı üretildi. \\
+Otomatik testler & Geçti & Arka uç kalite kapıları mevcut kapsam için yeşildir. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.9\linewidth}{
+    \centering
+    \textbf{YER TUTUCU --- DEĞERLENDİRME ÖZETİ}\\[0.5em]
+    \small Kaynak: Veri kalite raporu ve test sonuçlarından hazırlanacak özet görsel.\\
+    Beklenen içerik: Veri dağılımı, eğitim-test bölmesi, aşınma türleri ve doğrulama durumlarının tek panelde gösterimi.
+  }}
+  \caption{Veri ve doğrulama sonuçlarının özet görünümü.}
+  \label{fig:evaluation_summary}
+\end{figure}
+
+Dış bağımlılıklar değerlendirmede özellikle ayrıştırılmıştır. Yerel model konteyneri için kimlik bilgisi, canlı model artefaktı ve kurulum doğrulaması gereklidir. Çok kanallı bildirim için gerçek hesap ve webhook adresleri insan tarafından sağlanmalıdır. Bu nedenle sistem, mock sözleşmeleri yeşil olsa bile canlı dış kanal başarısını tamamlanmış saymaz. Bu yaklaşım, akademik raporlama açısından iddiaların kanıt kapsamıyla uyumlu kalmasını sağlar.
+
+\section{Tehditler ve Sınırlılıklar}
+İlk sınırlılık, sensör verisinin anomali kararında ana sinyal olarak kullanılmamasıdır. Sensör kanalları saklanmakta ve bağlam sağlamaktadır; ancak ilk sürümde görüntü temelli anomali daha baskın tasarım kararıdır. İkinci sınırlılık, yedek parça katmanının gerçek ERP veya bakım yönetimi sistemiyle bağlı olmamasıdır. Sentetik katalog ve tedarikçi verisi karar destek akışını test etmek için yeterli olsa da gerçek operasyonel veriyle kalibrasyon gerektirir.
+
+Üçüncü sınırlılık, canlı bildirim ve yerel model dağıtımının manuel kapılara bağlı olmasıdır. Dış hesaplar ve yerel kurulum tamamlanmadan canlı Telegram, e-posta, kısa mesaj veya konteyner çıkarımı başarısı iddia edilmemelidir. Son olarak, son kullanıcı arayüzü ve masaüstü deneyimi sonraki aşamaya bırakıldığı için mevcut değerlendirme arka uç davranışlarına odaklanmaktadır.
+
+\section{Sonuç ve Gelecek Çalışmalar}
+Bu rapor, Yefai platformunun çok modlu kestirimci bakım için geliştirdiği arka uç mimarisini IEEE formatında özetlemiştir. Sistem; MATWI verisi üzerinde sızıntısız veri ayrımı, görüntü tabanlı anomali çıkarımı, çok modlu embedding, hibrit arama, RAG destekli sorgu zemini, yedek parça krizi simülasyonu ve bildirim otomasyonunu birleştiren bütünleşik bir yapı sunmaktadır. Mevcut durumda veri altyapısı, yedek parça simülasyonu ve arka uç bildirim sözleşmeleri güçlü biçimde doğrulanmış; canlı dış servisler ve kullanıcı arayüzü ise açık biçimde sonraki iş paketlerine ayrılmıştır.
+
+Gelecek çalışmalar dört yönde ilerleyebilir. İlk olarak, canlı yerel model dağıtımı tamamlanmalı ve gerçek görüntüler üzerinde uçtan uca çıkarım ölçülmelidir. İkinci olarak, RAG bileşeni kullanıcı arayüzüyle birleştirilerek doğal dil sorguları görsel ve tablo çıktılarıyla sunulmalıdır. Üçüncü olarak, masaüstü kabuğu ve canlı grafikler tamamlanarak operatör deneyimi test edilmelidir. Dördüncü olarak, sentetik yedek parça katmanı gerçek ERP, MRO veya CMMS sistemleriyle değiştirilmeli ve kriz skoru gerçek operasyonel verilerle kalibre edilmelidir.
+
+\section*{Teşekkür}
+Bu rapordaki yazar, kurum ve ders bilgileri yer tutucu olarak bırakılmıştır. Nihai teslim öncesinde ilgili akademik veya kurumsal bilgilerle güncellenmelidir.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
