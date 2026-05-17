@@ -3,7 +3,7 @@ nova-rag-langchain-puq-pipeline.md
  
 
 PROJECT.md
- 
+  
 Your goal is to rewrite the frontend from the start 
 the languge of the website should be in turkish
 Redesign the complete website for The redesign must feel like a world-class
