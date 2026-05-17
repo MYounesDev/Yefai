@@ -20,12 +20,6 @@
 
 \title{Yefai: Çok Modlu Kestirimci Bakım için Yerel Yapay Zeka Tabanlı Bir Platform}
 
-\author{\IEEEauthorblockN{Yazar Adı Soyadı}
-\IEEEauthorblockA{Bölüm / Program \\
-Üniversite / Kurum \\
-Şehir, Ülke \\
-E-posta veya Öğrenci Numarası}}
-
 \maketitle
 
 \begin{abstract}
@@ -99,18 +93,18 @@ Gereksinimler arka uç odaklı ilk sürüm ve sonraki masaüstü arayüz aşamas
 \centering
 \caption{Fonksiyonel gereksinim gruplarının kavramsal durum özeti.}
 \label{tab:reqstatus}
-\begin{tabular}{p{0.33\linewidth}p{0.22\linewidth}p{0.35\linewidth}}
+\begin{tabular}{p{0.35\linewidth}p{0.55\linewidth}}
 \toprule
-Gereksinim grubu & Durum & Açıklama \\
+Gereksinim grubu & Açıklama \\
 \midrule
-Veri seti yönetimi & Tamamlandı & Ayrıştırma, kalite raporu, set bazlı ayrım ve sentetik yedek parça verisi üretildi. \\
-Görüntü çıkarımı & Kısmi/Tamamlandı & Eğitim ve embedding hattı uygulanmış; canlı yerel çıkarım dış kapıya bağlıdır. \\
-Gerçek zamanlı akış & Sonraki aşama & Kullanıcı arayüzü ve canlı gösterim kapsamına bırakılmıştır. \\
-RAG sorgulama & API zemini & Embedding ve hibrit arama bileşenleri doğal dil sorgulama için temel oluşturur. \\
-Bildirim otomasyonu & Mock yeşil & Payload, tekrar deneme, yedek davranış ve kayıt sözleşmeleri doğrulanmıştır. \\
-Masaüstü uygulama & Sonraki aşama & Yerel kabuk ve canlı kullanıcı deneyimi arka uç sonrası ele alınacaktır. \\
-Veritabanı ve embedding & Tamamlandı & Üst veri ve vektör temsilleri için yönetilen ilişkisel model planlanmıştır. \\
-Yedek parça krizi & Tamamlandı & Sentetik katalog, risk skoru, satın alma hazırlığı ve alternatif tedarikçi mantığı oluşturulmuştur. \\
+Veri seti yönetimi & Ayrıştırma, kalite raporu, set bazlı ayrım ve sentetik yedek parça verisi üretildi. \\
+Görüntü çıkarımı & Eğitim ve embedding hattı uygulanmış; canlı yerel çıkarım dış kapıya bağlıdır. \\
+Gerçek zamanlı akış & Kullanıcı arayüzü ve canlı gösterim kapsamına bırakılmıştır. \\
+RAG sorgulama & Embedding ve hibrit arama bileşenleri doğal dil sorgulama için temel oluşturur. \\
+Bildirim otomasyonu & Payload, tekrar deneme, yedek davranış ve kayıt sözleşmeleri doğrulanmıştır. \\
+Masaüstü uygulama & Yerel kabuk ve canlı kullanıcı deneyimi arka uç sonrası ele alınacaktır. \\
+Veritabanı ve embedding & Üst veri ve vektör temsilleri için yönetilen ilişkisel model planlanmıştır. \\
+Yedek parça krizi & Sentetik katalog, risk skoru, satın alma hazırlığı ve alternatif tedarikçi mantığı oluşturulmuştur. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -137,18 +131,6 @@ Görüntü tabanlı çıkarımın amacı, kesici takım yüzeyinde normal davran
 \end{algorithm}
 
 Aşınma türü yorumu, bakım kararının açıklanabilirliğini artırır. Flank aşınması, yapışmalı aşınma ve bileşik aşınma gibi türler farklı operasyonel nedenlere işaret edebilir. Bu nedenle sistem, yalnızca anomali varlığını değil, mümkün olduğunda aşınma karakterini de karar destek çıktısına ekler. Sensör ölçümleri ilk sürümde anomali kararının ana girdisi değildir; ancak görsel kararın zaman ve operasyon bağlamını zenginleştiren tamamlayıcı veri olarak tutulur.
-
-\begin{figure}[H]
-  \centering
-  \fbox{\parbox{0.9\linewidth}{
-    \centering
-    \textbf{YER TUTUCU --- GÖRÜNTÜ ANOMALİ SONUCU}\\[0.5em]
-    \small Kaynak: Test görüntüsü üzerinde çalıştırılan çıkarım ekranı veya rapor çıktısı.\\
-    Beklenen içerik: Normal ve anomali adaylarının skor, aşınma seviyesi ve aşınma türüyle karşılaştırılması.
-  }}
-  \caption{Görüntü tabanlı anomali değerlendirme sonucunun örnek gösterimi.}
-  \label{fig:image_anomaly_result}
-\end{figure}
 
 \section{Çok Modlu Arama ve RAG Destekli Sorgulama}
 Bakım operatörü çoğu zaman teknik veriyi doğal dilde sorgulamak ister. Örneğin belirli bir üretim setindeki en yüksek aşınma örneğini, belirli bir aşınma türüne sahip görüntüleri veya stok riskiyle ilişkili parça kayıtlarını aramak isteyebilir. Bu gereksinim için sistem, görüntü ve metin temsillerini ortak bir vektör uzayında ele alır. Kullanıcı sorusu embedding modelinden geçirilir; benzer görsel ve üst veri kayıtları vektör benzerliği ile bulunur; ardından set, zaman, aşınma türü ve risk seviyesi gibi ilişkisel filtrelerle sonuçlar daraltılır.
@@ -210,18 +192,6 @@ Anomali şiddeti & 0.10 & Teknik aşınma sinyalinin operasyonel önemi \\
 
 Bildirim otomasyonu, olayların dış kanallara güvenilir biçimde iletilmesi için tekrar deneme ve yedek davranış ilkelerini kullanır. Dış servis kullanılamadığında olay kaydı korunur ve yerel yedek davranış devreye alınır. Bu tasarım, canlı Telegram, e-posta ve kısa mesaj gönderimlerinin dış hesap ve webhook kapılarına bağlı olduğunu açık biçimde ayırır; sistem bu kapılar tamamlanmadan canlı gönderimi tamamlanmış saymaz.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\parbox{0.9\linewidth}{
-    \centering
-    \textbf{YER TUTUCU --- KRİZ İŞ AKIŞI SONUCU}\\[0.5em]
-    \small Kaynak: Yedek parça krizi simülasyon ekranı veya API çıktısından hazırlanacak görsel.\\
-    Beklenen içerik: Kriz skoru, risk seviyesi, satın alma hazırlığı, alternatif tedarikçiler ve bildirim durumunun tek akışta gösterimi.
-  }}
-  \caption{Yedek parça krizi ve bildirim otomasyonu çıktısının örnek gösterimi.}
-  \label{fig:crisis_workflow}
-\end{figure}
-
 \section{Aşınma Projeksiyonu}
 Aşınma projeksiyonu, anomali skorunu bakım zamanlamasına dönüştürmeyi amaçlar. Sistem, mevcut aşınma tahmini ile zamana bağlı aşınma hızını kullanarak kritik eşiğe kalan süreyi hesaplar. Kritik eşik 200 mikrometre olarak ele alınır. Aşınma hızı çok düşük olduğunda sonuç üst sınırla sınırlandırılır; yeterli veri noktası ve regresyon kalitesine göre güven seviyesi atanır.
 
@@ -267,18 +237,6 @@ Otomatik testler & Geçti & Arka uç kalite kapıları mevcut kapsam için yeşi
 \bottomrule
 \end{tabular}
 \end{table}
-
-\begin{figure}[H]
-  \centering
-  \fbox{\parbox{0.9\linewidth}{
-    \centering
-    \textbf{YER TUTUCU --- DEĞERLENDİRME ÖZETİ}\\[0.5em]
-    \small Kaynak: Veri kalite raporu ve test sonuçlarından hazırlanacak özet görsel.\\
-    Beklenen içerik: Veri dağılımı, eğitim-test bölmesi, aşınma türleri ve doğrulama durumlarının tek panelde gösterimi.
-  }}
-  \caption{Veri ve doğrulama sonuçlarının özet görünümü.}
-  \label{fig:evaluation_summary}
-\end{figure}
 
 Dış bağımlılıklar değerlendirmede özellikle ayrıştırılmıştır. Yerel model konteyneri için kimlik bilgisi, canlı model artefaktı ve kurulum doğrulaması gereklidir. Çok kanallı bildirim için gerçek hesap ve webhook adresleri insan tarafından sağlanmalıdır. Bu nedenle sistem, mock sözleşmeleri yeşil olsa bile canlı dış kanal başarısını tamamlanmış saymaz. Bu yaklaşım, akademik raporlama açısından iddiaların kanıt kapsamıyla uyumlu kalmasını sağlar.
 
