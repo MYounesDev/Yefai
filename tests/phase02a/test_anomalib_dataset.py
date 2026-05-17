@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pandas as pd
 
 from ai.anomalib.dataset import build_anomalib_folder_structure, classify_anomaly
 
@@ -24,7 +23,6 @@ class TestBuildAnomalibFolder:
     def test_creates_folder_structure(
         self, sample_labels_df, sample_splits, tmp_anomalib_dir, tmp_path, monkeypatch
     ):
-        import shutil
 
         src_dir = tmp_path / "images"
         src_dir.mkdir()

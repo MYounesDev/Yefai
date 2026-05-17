@@ -2,11 +2,14 @@
   "name": "sector-dash",
   "version": "1.0.0",
   "description": "Full-stack template with Next.js frontend and Express backend",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "client": "cd client && npm run dev",
     "server": "cd server && venv\\Scripts\\activate && uvicorn main:app --reload",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "test": "node server/tests/api.test.js",
+    "seed": "node server/scripts/seed/seed.js",
     "client:build": "cd client && npm run build",
     "start": "concurrently \"cd server && npm run start\" \"cd client && npm run start\"",
     "build": "npm run client:build"
@@ -24,9 +27,11 @@
     "concurrently": "^8.2.2"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.105.4",
     "@tanstack/react-query": "^5.100.10",
     "axios": "^1.16.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.16.0",
     "next": "^16.2.6",

@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 
 from ai.anomalib.wear_classifier import classify_wear_type_from_labels
 

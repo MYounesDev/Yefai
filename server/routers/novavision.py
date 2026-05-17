@@ -8,6 +8,9 @@ from ai.novavision.schemas import (
     InferenceResponse,
     InferenceResult,
 )
+from auth.dependencies import get_org_context, require_permission
+from auth.models import OrgContext
+from auth.permissions import Permission
 from services.novavision_service import NovaVisionService, get_novavision_service
 
 router = APIRouter(prefix="/api/novavision", tags=["novavision"])
@@ -16,6 +19,8 @@ router = APIRouter(prefix="/api/novavision", tags=["novavision"])
 @router.post("/deploy", response_model=DeployedModel)
 async def deploy_model(
     request: DeployRequest,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.MANAGE_ORG_SETTINGS)),
     service: NovaVisionService = Depends(get_novavision_service),
 ) -> DeployedModel:
     try:
@@ -26,6 +31,7 @@ async def deploy_model(
 
 @router.get("/models", response_model=list[DeployedModel])
 def list_models(
+    org: OrgContext = Depends(get_org_context),
     service: NovaVisionService = Depends(get_novavision_service),
 ) -> list[DeployedModel]:
     return service.models()
@@ -33,7 +39,9 @@ def list_models(
 
 @router.get("/models/{app_id}", response_model=DeployedModel)
 def get_model(
-    app_id: str, service: NovaVisionService = Depends(get_novavision_service)
+    app_id: str,
+    org: OrgContext = Depends(get_org_context),
+    service: NovaVisionService = Depends(get_novavision_service),
 ) -> DeployedModel:
     model = service.model(app_id)
     if model is None:
@@ -45,7 +53,10 @@ def get_model(
 
 @router.delete("/models/{app_id}", response_model=DeployedModel)
 def delete_model(
-    app_id: str, service: NovaVisionService = Depends(get_novavision_service)
+    app_id: str,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.MANAGE_ORG_SETTINGS)),
+    service: NovaVisionService = Depends(get_novavision_service),
 ) -> DeployedModel:
     return service.delete_model(app_id)
 
@@ -53,6 +64,8 @@ def delete_model(
 @router.post("/inference", response_model=InferenceResponse)
 async def start_inference(
     request: InferenceRequest,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_ANOMALIES)),
     service: NovaVisionService = Depends(get_novavision_service),
 ) -> InferenceResponse:
     try:
@@ -63,7 +76,9 @@ async def start_inference(
 
 @router.get("/inference/{job_id}", response_model=InferenceResult)
 def get_inference_result(
-    job_id: str, service: NovaVisionService = Depends(get_novavision_service)
+    job_id: str,
+    org: OrgContext = Depends(get_org_context),
+    service: NovaVisionService = Depends(get_novavision_service),
 ) -> InferenceResult:
     result = service.inference_result(job_id)
     if result is None:
@@ -72,5 +87,8 @@ def get_inference_result(
 
 
 @router.get("/health", response_model=HealthResponse)
-async def health(service: NovaVisionService = Depends(get_novavision_service)) -> HealthResponse:
+async def health(
+    org: OrgContext = Depends(get_org_context),
+    service: NovaVisionService = Depends(get_novavision_service),
+) -> HealthResponse:
     return await service.health()

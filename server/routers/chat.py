@@ -1,11 +1,20 @@
+"""Chat router — manages conversational RAG sessions and messages."""
+
+# Chat router placeholder — Phase 3A
 import asyncio
 import logging
-from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from supabase import Client
 
 from ai.puqai.schemas import NotificationRequest
+from auth.dependencies import get_org_context, require_permission
+from auth.models import OrgContext
+from auth.permissions import Permission
+from db.client import get_supabase_client
+from services.chat_service import ChatService
 from services.notification_service import NotificationService
 from services.prediction_service import PredictionService
 from services.vector_search_service import VectorSearchService
@@ -15,7 +24,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 _embedding_svc = None
-_anomalib_svc = None
 
 
 def _get_embedding_service():
@@ -25,15 +33,6 @@ def _get_embedding_service():
 
         _embedding_svc = EmbeddingService()
     return _embedding_svc
-
-
-def _get_anomalib_service():
-    global _anomalib_svc
-    if _anomalib_svc is None:
-        from services.anomalib_service import AnomalibService
-
-        _anomalib_svc = AnomalibService()
-    return _anomalib_svc
 
 
 def _get_analyzer():
@@ -46,36 +45,102 @@ def _get_vector_service():
     return VectorSearchService()
 
 
-def _resolve_image_path(image_name: str) -> Path | None:
-    parts = image_name.split("/")
-    if len(parts) >= 2:
-        set_dir = parts[0]
-        file_name = parts[-1]
-    else:
-        file_name = image_name
-        set_dir = None
+class CreateSessionRequest(BaseModel):
+    title: str | None = "New Chat"
 
-    project_root = Path(__file__).resolve().parent.parent.parent
-    matwi_root = project_root / "data" / "MATWI"
 
-    candidates = [matwi_root / image_name]
+class SendMessageRequest(BaseModel):
+    message: str
 
-    if set_dir:
-        candidates.extend(
-            [
-                matwi_root / set_dir / "images" / file_name,
-                matwi_root / set_dir / set_dir / "images" / file_name,
-                matwi_root / set_dir / file_name,
-            ]
+
+class SearchRequest(BaseModel):
+    query: str
+    top_k: int = 5
+
+
+# ── Dependency ─────────────────────────────────────────────────
+
+
+def _get_chat_service(supabase: Client = Depends(get_supabase_client)) -> ChatService:
+    if supabase is None:
+        raise HTTPException(status_code=503, detail="Database not available")
+    return ChatService(supabase)
+
+
+# ── Endpoints ──────────────────────────────────────────────────
+
+
+@router.get("/sessions")
+async def list_sessions(
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_CHAT)),
+    service: ChatService = Depends(_get_chat_service),
+) -> dict[str, Any]:
+    """List the current user's chat sessions in this organization."""
+    sessions = await service.get_sessions(org.org_id, org.user.id)
+    return {"sessions": sessions}
+
+
+@router.post("/sessions", status_code=status.HTTP_201_CREATED)
+async def create_session(
+    body: CreateSessionRequest,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_CHAT)),
+    service: ChatService = Depends(_get_chat_service),
+) -> dict[str, Any]:
+    """Create a new chat session."""
+    try:
+        session = await service.create_session(org.org_id, org.user.id, body.title or "New Chat")
+        return session
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.get("/sessions/{session_id}")
+async def get_session_messages(
+    session_id: str,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_CHAT)),
+    service: ChatService = Depends(_get_chat_service),
+) -> dict[str, Any]:
+    """Get a chat session and all its messages."""
+    try:
+        messages = await service.get_session_messages(session_id, org.org_id, org.user.id)
+        return {"session_id": session_id, "messages": messages}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+@router.post("/sessions/{session_id}/messages")
+async def send_message(
+    session_id: str,
+    body: SendMessageRequest,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_CHAT)),
+    service: ChatService = Depends(_get_chat_service),
+) -> dict[str, Any]:
+    """Send a message to a chat session and get a generated response."""
+    try:
+        assistant_message = await service.send_message(
+            session_id, org.org_id, org.user.id, body.message
         )
+        return assistant_message
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
-    for c in candidates:
-        if c.exists():
-            return c
 
-    candidates_tried = "\n  ".join(str(c) for c in candidates)
-    logger.warning("Image not found for %s. Tried:\n  %s", image_name, candidates_tried)
-    return None
+@router.delete("/sessions/{session_id}")
+async def archive_session(
+    session_id: str,
+    org: OrgContext = Depends(get_org_context),
+    service: ChatService = Depends(_get_chat_service),
+) -> dict[str, str]:
+    """Archive a chat session (soft delete)."""
+    try:
+        await service.archive_session(session_id, org.org_id, org.user.id)
+        return {"message": "Session archived successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/ask")
@@ -116,6 +181,7 @@ async def chat_ask(payload: dict[str, Any]) -> dict[str, Any]:
 @router.post("/analyze")
 async def chat_analyze(payload: dict[str, Any]) -> dict[str, Any]:
     image_name = payload.get("image_name", "").strip()
+    anomaly_score = float(payload.get("anomaly_score", 0))
     wear_type = payload.get("wear_type", "")
     wear_value_um = float(payload.get("wear_value_um", 0))
     top_k = int(payload.get("top_k", 5))
@@ -125,22 +191,6 @@ async def chat_analyze(payload: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="image_name is required")
 
     try:
-        image_path = _resolve_image_path(image_name)
-        if image_path is None:
-            raise HTTPException(status_code=404, detail=f"Image file not found for: {image_name}")
-
-        anomalib_svc = _get_anomalib_service()
-        inference_result = anomalib_svc.predict(str(image_path))
-        anomaly_score = inference_result["anomaly_score"]
-        is_anomaly = inference_result.get("is_anomaly", False)
-
-        logger.info(
-            "PatchCore inference: score=%.4f is_anomaly=%s image=%s",
-            anomaly_score,
-            is_anomaly,
-            image_name,
-        )
-
         embedding_svc = _get_embedding_service()
         if not embedding_svc.model_loaded and not embedding_svc.load_model():
             raise HTTPException(status_code=503, detail="Embedding model not loaded")
