@@ -10,9 +10,9 @@ This service provides the prediction interface that Phase 3B's crisis_service.py
 from services.prediction_service import PredictionService
 
 # In crisis_service.py:
-async def calculate_crisis_score(machine_id: str, spare_part_id: str):
-    # Get prediction data
-    prediction = await prediction_service.get_prediction(machine_id)
+async def calculate_crisis_score(machine_id: str, spare_part_id: str, org_id: str):
+    # Get organization-scoped prediction data
+    prediction = await prediction_service.get_prediction(machine_id, org_id)
 
     # Extract key metrics
     hours_to_critical = prediction["hours_to_critical"]
@@ -99,24 +99,25 @@ class PredictionService:
         self.scenario_projector = ScenarioProjector(critical_threshold_um)
         self.trend_analyzer = WearTrendAnalyzer(min_periods=3)
 
-    async def get_prediction(self, machine_id: str) -> dict:
+    async def get_prediction(self, machine_id: str, org_id: str | None = None) -> dict:
         """
         Get wear prediction for a specific machine.
 
         Args:
             machine_id: Machine/set identifier
+            org_id: Organization identifier. When omitted, falls back to the legacy
+                unscoped query path used by older internal callers and tests.
 
         Returns:
             Dictionary with prediction data including scenarios and projections
         """
-        # Fetch anomaly data for this machine
-        response = (
-            self.supabase.table("anomalies")
-            .select("*")
-            .eq("machine_id", machine_id)
-            .order("detected_at", desc=False)
-            .execute()
-        )
+        # Fetch anomaly data for this machine. Keep org scoping for authenticated
+        # API paths, but preserve the legacy unscoped path for internal callers
+        # that do not have an OrgContext yet.
+        query = self.supabase.table("anomalies").select("*")
+        if org_id is not None:
+            query = query.eq("org_id", org_id)
+        response = query.eq("machine_id", machine_id).order("detected_at", desc=False).execute()
 
         if not response.data:
             logger.warning(f"No anomaly data found for machine {machine_id}")
@@ -132,9 +133,11 @@ class PredictionService:
         latest: dict = anomalies[-1]  # type: ignore[assignment]
         current_wear_um = float(latest.get("estimated_wear_um", 0.0))
 
-        # Calculate wear rate from historical data
+        # Calculate wear rate from historical data. Prefer detected_at from the
+        # prediction data model, but fall back to created_at for legacy seeded data.
         timestamps = [
-            datetime.fromisoformat(a["detected_at"].replace("Z", "+00:00")) for a in anomalies
+            datetime.fromisoformat((a.get("detected_at") or a["created_at"]).replace("Z", "+00:00"))
+            for a in anomalies
         ]
         wear_values = [a.get("estimated_wear_um", 0.0) for a in anomalies]
 
@@ -190,19 +193,24 @@ class PredictionService:
             "trend": trend,
             "scenarios": scenarios,
             "projection_points": scenarios["projection_points"],
-            "last_check_at": latest["detected_at"],
+            "last_check_at": latest.get("detected_at") or latest["created_at"],
             "status": status,
         }
 
-    async def get_factory_overview(self) -> dict:
+    async def get_factory_overview(self, org_id: str) -> dict:
         """
-        Get overview of all machines in factory.
+        Get overview of all machines in factory for a specific organization.
+
+        Args:
+            org_id: Organization identifier
 
         Returns:
             Dictionary with list of machines and their status
         """
-        # Get all unique machine IDs
-        response = self.supabase.table("anomalies").select("machine_id").execute()
+        # Get all unique machine IDs for this org
+        response = (
+            self.supabase.table("anomalies").select("machine_id").eq("org_id", org_id).execute()
+        )
 
         if not response.data:
             return {"machines": []}
@@ -214,7 +222,7 @@ class PredictionService:
         machines = []
         for machine_id in machine_ids:
             try:
-                prediction = await self.get_prediction(machine_id)
+                prediction = await self.get_prediction(machine_id, org_id)
                 machines.append(
                     {
                         "machine_id": machine_id,
@@ -237,18 +245,19 @@ class PredictionService:
 
         return {"machines": machines}
 
-    async def recalculate_prediction(self, machine_id: str) -> dict:
+    async def recalculate_prediction(self, machine_id: str, org_id: str) -> dict:
         """
         Manually trigger recalculation of prediction.
 
         Args:
             machine_id: Machine identifier
+            org_id: Organization identifier
 
         Returns:
             Updated prediction data
         """
-        logger.info(f"Recalculating prediction for machine {machine_id}")
-        return await self.get_prediction(machine_id)
+        logger.info(f"Recalculating prediction for machine {machine_id} in org {org_id}")
+        return await self.get_prediction(machine_id, org_id)
 
     def get_prediction_sync(self, machine_id: str) -> dict:
         import asyncio

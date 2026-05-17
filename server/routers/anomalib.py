@@ -1,7 +1,10 @@
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
+from auth.dependencies import get_org_context, require_permission
+from auth.models import OrgContext
+from auth.permissions import Permission
 from services.anomalib_service import (
     AnomalibJobStatus,
     AnomalibModelInfo,
@@ -17,7 +20,12 @@ _service = AnomalibService()
 
 
 @router.post("/train", response_model=AnomalibJobStatus)
-def train_anomalib(request: AnomalibTrainRequest, background_tasks: BackgroundTasks):
+def train_anomalib(
+    request: AnomalibTrainRequest,
+    background_tasks: BackgroundTasks,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.MANAGE_ORG_SETTINGS)),
+):
     job_id = str(uuid.uuid4())[:8]
     _train_jobs[job_id] = AnomalibJobStatus(
         job_id=job_id, status="queued", progress=0.0, message="Training queued"
@@ -52,14 +60,21 @@ def train_anomalib(request: AnomalibTrainRequest, background_tasks: BackgroundTa
 
 
 @router.get("/status/{job_id}", response_model=AnomalibJobStatus)
-def get_training_status(job_id: str):
+def get_training_status(
+    job_id: str,
+    org: OrgContext = Depends(get_org_context),
+):
     if job_id not in _train_jobs:
         raise HTTPException(status_code=404, detail="Job not found")
     return _train_jobs[job_id]
 
 
 @router.post("/predict")
-def predict_anomaly(request: AnomalibPredictRequest):
+def predict_anomaly(
+    request: AnomalibPredictRequest,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_ANOMALIES)),
+):
     if not _service.model_available:
         raise HTTPException(status_code=503, detail="Model not available. Train first.")
     try:
@@ -72,5 +87,7 @@ def predict_anomaly(request: AnomalibPredictRequest):
 
 
 @router.get("/model/info", response_model=AnomalibModelInfo)
-def get_model_info():
+def get_model_info(
+    org: OrgContext = Depends(get_org_context),
+):
     return _service.get_model_info()

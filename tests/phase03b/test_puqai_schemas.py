@@ -1,8 +1,6 @@
 """Tests for PUQ AI schema models — Phase 3B."""
 
-from datetime import datetime
 
-import pytest
 
 from ai.puqai.schemas import (
     AnomalyDetail,
@@ -10,7 +8,6 @@ from ai.puqai.schemas import (
     CrisisScoreResponse,
     NotificationRequest,
     PurchaseOrderPayload,
-    ReportRequest,
     SparePartsCrisisPayload,
     WebhookLog,
     WebhookPayload,

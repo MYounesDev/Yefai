@@ -1,5 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from auth.dependencies import get_org_context, require_permission
+from auth.models import OrgContext
+from auth.permissions import Permission
 from services.embedding_service import (
     EmbeddingSearchRequest,
     EmbeddingService,
@@ -11,7 +14,11 @@ _service = EmbeddingService()
 
 
 @router.post("/search")
-def search_embeddings(request: EmbeddingSearchRequest):
+def search_embeddings(
+    request: EmbeddingSearchRequest,
+    org: OrgContext = Depends(get_org_context),
+    _: None = Depends(require_permission(Permission.VIEW_ANOMALIES)),
+):
     if not _service.model_loaded:
         try:
             _service.load_model()
@@ -19,7 +26,7 @@ def search_embeddings(request: EmbeddingSearchRequest):
             raise HTTPException(status_code=503, detail=f"Model not available: {e}") from e
 
     try:
-        filters: dict[str, object] = {}
+        filters: dict[str, object] = {"org_id": org.org_id}
         if request.set_filter is not None:
             filters["set"] = request.set_filter
         if request.wear_min is not None:

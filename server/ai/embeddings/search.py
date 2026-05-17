@@ -22,6 +22,7 @@ def cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
 def search_similar_images(
     query_vector: list[float],
     top_k: int = 10,
+    org_id: str | None = None,
     set_filter: int | None = None,
     wear_min: float | None = None,
     wear_max: float | None = None,
@@ -41,6 +42,8 @@ def search_similar_images(
         response = client.rpc("match_images", rpc_params).execute()
         results: list[dict[str, Any]] = list(response.data) if response.data else []  # type: ignore[arg-type]
 
+        if org_id is not None:
+            results = [r for r in results if r.get("org_id") == org_id]
         if set_filter is not None:
             results = [r for r in results if r.get("set") == set_filter]
         if wear_min is not None:
@@ -77,6 +80,7 @@ def text_search(
     return search_similar_images(
         query_vector,
         top_k=top_k,
+        org_id=metadata_filters.get("org_id"),
         set_filter=metadata_filters.get("set"),
         wear_min=metadata_filters.get("wear_min"),
         wear_max=metadata_filters.get("wear_max"),
@@ -103,6 +107,7 @@ def image_search(
     return search_similar_images(
         query_vector,
         top_k=top_k,
+        org_id=metadata_filters.get("org_id"),
         set_filter=metadata_filters.get("set"),
         wear_min=metadata_filters.get("wear_min"),
         wear_max=metadata_filters.get("wear_max"),

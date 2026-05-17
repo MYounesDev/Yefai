@@ -24,6 +24,8 @@ class Settings(BaseSettings):
 
     supabase_url: str = ""
     supabase_service_key: str = ""
+    supabase_anon_key: str = ""
+    supabase_jwt_secret: str = ""
     supabase_db_host: str = ""
     supabase_db_name: str = "postgres"
     supabase_db_user: str = "postgres"
@@ -36,6 +38,9 @@ class Settings(BaseSettings):
     llm_provider: str = "openai"
     llm_model: str = "gpt-4o"
     llm_api_key: str = ""
+
+    # Comma-separated list of platform admin emails
+    admin_emails: str = ""
 
     @computed_field  # type: ignore[prop-decorator]
     @property
