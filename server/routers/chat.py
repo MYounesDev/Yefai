@@ -16,6 +16,7 @@ from auth.permissions import Permission
 from db.client import get_supabase_client
 from services.chat_service import ChatService
 from services.notification_service import NotificationService
+from services.prediction_service import PredictionService
 from services.vector_search_service import VectorSearchService
 
 logger = logging.getLogger(__name__)
@@ -210,6 +211,11 @@ async def chat_analyze(payload: dict[str, Any]) -> dict[str, Any]:
             query_embedding = list(embedding)
 
         analyzer = _get_analyzer()
+        prediction = await _run_prediction(
+            set_id=image_data.get("set_id", 0),
+            set_name=image_data.get("set_name", ""),
+        )
+
         result = analyzer.analyze_anomaly(
             query_embedding=query_embedding,
             image_name=image_name,
@@ -218,7 +224,10 @@ async def chat_analyze(payload: dict[str, Any]) -> dict[str, Any]:
             wear_value_um=wear_value_um,
             top_k=top_k,
             language=language,
+            prediction=prediction,
         )
+        if prediction and "error" not in prediction:
+            result["prediction"] = prediction
 
         _fire_puqai_webhook(
             image_data=image_data,
@@ -227,6 +236,7 @@ async def chat_analyze(payload: dict[str, Any]) -> dict[str, Any]:
             wear_value_um=wear_value_um,
             image_name=image_name,
             llm_analysis=result.get("llm_analysis", ""),
+            prediction=prediction,
         )
 
         return result
@@ -238,6 +248,75 @@ async def chat_analyze(payload: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
+async def _run_prediction(set_id: int, set_name: str = "") -> dict[str, Any] | None:
+    if not set_id and not set_name:
+        return None
+
+    machine_id = set_name
+
+    try:
+        from db.client import get_supabase_client
+
+        client = get_supabase_client()
+        if client is None:
+            return None
+
+        if not machine_id and set_id:
+            resp = client.table("sets").select("name").eq("id", set_id).execute()
+            if resp.data:
+                machine_id = resp.data[0]["name"]
+
+        if not machine_id:
+            machine_id = f"Set{set_id}"
+
+        svc = PredictionService(client)
+        result = await svc.get_prediction(machine_id)
+        return result
+    except Exception:
+        logger.exception("Prediction failed for %s", machine_id)
+        return None
+
+
+def _format_prediction_message(prediction: dict[str, Any]) -> str:
+    hours = prediction.get("hours_to_critical", 0)
+    confidence = prediction.get("confidence", "unknown")
+    trend = prediction.get("trend", "unknown")
+    current_wear = prediction.get("current_wear_um", 0)
+
+    trend_labels: dict[str, str] = {
+        "accelerating": "Hizlaniyor",
+        "stable": "Sabit",
+        "decelerating": "Yavasliyor",
+    }
+
+    conf_labels: dict[str, str] = {
+        "high": "Yuksek",
+        "medium": "Orta",
+        "low": "Dusuk",
+    }
+
+    lines = [
+        "📊 Asinma Tahmini",
+        f"Mevcut Asinma: {current_wear:.0f} µm",
+        f"Kritik Esige Kalan Sure: {hours:.1f} saat",
+        f"Trend: {trend_labels.get(trend, trend)}",
+        f"Guven: {conf_labels.get(confidence, confidence)}",
+    ]
+
+    scenarios = prediction.get("scenarios", {})
+    if scenarios:
+        base = scenarios.get("baseline", {})
+        pess = scenarios.get("pessimistic", {})
+        opt = scenarios.get("optimistic", {})
+        lines.append(
+            f"Senaryolar: Normal={base.get('hours', 0):.1f}h"
+            f" / Kotu={pess.get('hours', 0):.1f}h"
+            f" / Iyi={opt.get('hours', 0):.1f}h"
+        )
+
+    return "\n".join(lines)
+
+
 def _fire_puqai_webhook(
     image_data: dict[str, Any],
     anomaly_score: float,
@@ -245,6 +324,7 @@ def _fire_puqai_webhook(
     wear_value_um: float,
     image_name: str,
     llm_analysis: str = "",
+    prediction: dict[str, Any] | None = None,
 ) -> None:
     from ai.puqai.config import get_puqai_settings
 
@@ -265,6 +345,21 @@ def _fire_puqai_webhook(
         f"Set: {set_name if set_name else f'set_{set_id}'}\n\n"
         f"{llm_analysis}"
     )
+
+    if prediction and "error" not in prediction:
+        pred_text = _format_prediction_message(prediction)
+        message += f"\n\n{pred_text}"
+
+        machine_id = prediction.get("machine_id", "")
+        from db.config import get_settings
+
+        settings_obj = get_settings()
+        base_url = (
+            getattr(settings_obj, "public_base_url", "http://localhost:8001")
+            or "http://localhost:8001"
+        )
+        chart_url = f"{base_url}/api/predictions/{machine_id}/chart"
+        message += f"\n\n📈 Asinma Grafigi: {chart_url}"
 
     request = NotificationRequest(
         anomaly_id=anomaly_id,

@@ -19,6 +19,7 @@ class NovaVisionSettings(BaseSettings):
     novavision_mock: bool = True
     novavision_container_name: str = "novavision"
     novavision_default_app_id: str = "mock-novavision-app"
+    novavision_app_port: int = 3030
     novavision_timeout_seconds: float = 30.0
 
     @computed_field  # type: ignore[prop-decorator]

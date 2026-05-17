@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from supabase import Client
 
@@ -166,4 +167,30 @@ async def recalculate_prediction(
         raise
     except Exception as e:
         logger.error(f"Error recalculating prediction for {machine_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.get("/{machine_id}/chart")
+async def get_prediction_chart(
+    machine_id: str,
+    service: PredictionService = Depends(get_prediction_service),
+) -> Response:
+    try:
+        result = await service.get_prediction(machine_id)
+
+        if "error" in result:
+            raise HTTPException(status_code=404, detail=result["error"])
+
+        from ai.prediction.chart import generate_wear_projection_chart
+
+        png_bytes = generate_wear_projection_chart(result)
+        if png_bytes is None:
+            raise HTTPException(status_code=500, detail="Chart generation failed")
+
+        return Response(content=png_bytes, media_type="image/png")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating chart for {machine_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e

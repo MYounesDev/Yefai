@@ -38,6 +38,7 @@ class RAGAnalyzer:
         wear_value_um: float,
         top_k: int = 5,
         language: str = "tr",
+        prediction: dict | None = None,
     ) -> dict[str, Any]:
         similar = self._vector.search_similar(
             query_embedding=query_embedding,
@@ -68,6 +69,7 @@ class RAGAnalyzer:
             wear_value_um=wear_value_um,
             similar_cases=cases,
             language=language,
+            prediction=prediction,
         )
 
         llm_response = self._call_llm(ctx["system"], ctx["prompt"])
