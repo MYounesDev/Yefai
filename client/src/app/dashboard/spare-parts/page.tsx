@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { motion, type Variants } from 'framer-motion';
+import { useState, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { Package, AlertTriangle, Truck, FileText, Check, X, ArrowUpRight, Search } from 'lucide-react';
 import { mockSparePartsCatalog, mockInventorySnapshots, mockPurchaseOrders, mockPartTickets } from '@/services/mock/spareParts';
 import { ProgressBar } from '@/components/ui/index';
@@ -28,6 +28,16 @@ const urgencyLabels: Record<string, string> = { normal: 'Normal', rush: 'Acil', 
 export default function SparePartsPage() {
   const [tab, setTab] = useState<Tab>('catalog');
   const [search, setSearch] = useState('');
+  const [dismissedOrders, setDismissedOrders] = useState<Record<string, 'approved' | 'rejected'>>({});
+  const [flashingOrder, setFlashingOrder] = useState<string | null>(null);
+
+  const handleOrderAction = useCallback((poId: string, action: 'approved' | 'rejected') => {
+    setFlashingOrder(poId);
+    setTimeout(() => {
+      setDismissedOrders((prev) => ({ ...prev, [poId]: action }));
+      setFlashingOrder(null);
+    }, 600);
+  }, []);
 
   const inventoryMap = useMemo(() => {
     const map: Record<string, typeof mockInventorySnapshots[0]> = {};
@@ -206,74 +216,123 @@ export default function SparePartsPage() {
       {/* ORDERS TAB */}
       {tab === 'orders' && (
         <motion.div variants={stagger.container} initial="hidden" animate="show" className="space-y-3">
-          {mockPurchaseOrders.map((po) => (
-            <motion.div
-              key={po.id}
-              variants={stagger.item}
-              className={cn(
-                'bg-surface border rounded-xl p-5 transition-all',
-                po.urgency === 'critical' ? 'border-rose/25' :
-                po.urgency === 'rush' ? 'border-amber/25' : 'border-border'
-              )}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-muted" />
-                    <p className="text-sm font-semibold text-foreground">{po.po_number}</p>
-                    <span className={cn(
-                      'text-[10px] px-2 py-0.5 rounded-lg font-semibold',
-                      po.urgency === 'critical' ? 'bg-rose/10 text-rose' :
-                      po.urgency === 'rush' ? 'bg-amber/10 text-amber' :
-                      'bg-emerald/10 text-emerald'
-                    )}>
-                      {urgencyLabels[po.urgency]}
-                    </span>
+          <AnimatePresence mode="popLayout">
+            {mockPurchaseOrders
+              .filter((po) => !dismissedOrders[po.id])
+              .map((po) => (
+              <motion.div
+                key={po.id}
+                layout
+                variants={stagger.item}
+                exit={{
+                  opacity: 0,
+                  x: dismissedOrders[po.id] === 'rejected' ? -80 : 80,
+                  scale: 0.9,
+                  transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+                }}
+                className={cn(
+                  'bg-surface border rounded-xl p-5 transition-colors duration-300 overflow-hidden',
+                  flashingOrder === po.id ? 'border-cyan/50 shadow-lg shadow-cyan/10' :
+                  po.urgency === 'critical' ? 'border-rose/25' :
+                  po.urgency === 'rush' ? 'border-amber/25' : 'border-border'
+                )}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-muted" />
+                      <p className="text-sm font-semibold text-foreground">{po.po_number}</p>
+                      <span className={cn(
+                        'text-[10px] px-2 py-0.5 rounded-lg font-semibold',
+                        po.urgency === 'critical' ? 'bg-rose/10 text-rose' :
+                        po.urgency === 'rush' ? 'bg-amber/10 text-amber' :
+                        'bg-emerald/10 text-emerald'
+                      )}>
+                        {urgencyLabels[po.urgency]}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted mt-0.5">{po.part_name} · {po.supplier_name}</p>
                   </div>
-                  <p className="text-[11px] text-muted mt-0.5">{po.part_name} · {po.supplier_name}</p>
+                  <span className={cn(
+                    'text-[10px] px-2.5 py-1 rounded-lg font-semibold',
+                    po.status === 'approved' ? 'bg-emerald/10 text-emerald' :
+                    po.status === 'rejected' ? 'bg-rose/10 text-rose' :
+                    'bg-cyan/10 text-cyan'
+                  )}>
+                    {poStatusLabels[po.status]}
+                  </span>
                 </div>
-                <span className={cn(
-                  'text-[10px] px-2.5 py-1 rounded-lg font-semibold',
-                  po.status === 'approved' ? 'bg-emerald/10 text-emerald' :
-                  po.status === 'rejected' ? 'bg-rose/10 text-rose' :
-                  'bg-cyan/10 text-cyan'
-                )}>
-                  {poStatusLabels[po.status]}
-                </span>
-              </div>
 
-              <div className="grid grid-cols-4 gap-4 text-xs">
-                <div>
-                  <p className="text-[10px] text-muted mb-0.5">Miktar</p>
-                  <p className="font-medium text-foreground">{po.quantity} adet</p>
+                <div className="grid grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <p className="text-[10px] text-muted mb-0.5">Miktar</p>
+                    <p className="font-medium text-foreground">{po.quantity} adet</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted mb-0.5">Toplam Tutar</p>
+                    <p className="font-mono font-medium text-foreground">{formatCurrency(po.total_cost_usd)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted mb-0.5">Gerekli Tarih</p>
+                    <p className="text-foreground">{new Date(po.needed_by).toLocaleDateString('tr-TR')}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted mb-0.5">Tahmini Teslim</p>
+                    <p className="text-foreground">{new Date(po.expected_delivery).toLocaleDateString('tr-TR')}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] text-muted mb-0.5">Toplam Tutar</p>
-                  <p className="font-mono font-medium text-foreground">{formatCurrency(po.total_cost_usd)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted mb-0.5">Gerekli Tarih</p>
-                  <p className="text-foreground">{new Date(po.needed_by).toLocaleDateString('tr-TR')}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted mb-0.5">Tahmini Teslim</p>
-                  <p className="text-foreground">{new Date(po.expected_delivery).toLocaleDateString('tr-TR')}</p>
-                </div>
-              </div>
 
-              {/* Actions */}
-              {po.status === 'ready_for_review' && (
-                <div className="flex gap-2 mt-4">
-                  <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald/10 text-emerald text-xs font-semibold hover:bg-emerald/20 transition-all">
-                    <Check className="w-3.5 h-3.5" /> Onayla
-                  </button>
-                  <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-rose/10 text-rose text-xs font-semibold hover:bg-rose/20 transition-all">
-                    <X className="w-3.5 h-3.5" /> Reddet
-                  </button>
-                </div>
-              )}
+                {/* Actions */}
+                {po.status === 'ready_for_review' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-2 mt-4"
+                  >
+                    <button
+                      onClick={() => handleOrderAction(po.id, 'approved')}
+                      disabled={flashingOrder === po.id}
+                      className={cn(
+                        'flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all active:scale-95',
+                        flashingOrder === po.id
+                          ? 'bg-emerald/30 text-emerald scale-105'
+                          : 'bg-emerald/10 text-emerald hover:bg-emerald/20'
+                      )}
+                    >
+                      <Check className="w-3.5 h-3.5" /> Onayla
+                    </button>
+                    <button
+                      onClick={() => handleOrderAction(po.id, 'rejected')}
+                      disabled={flashingOrder === po.id}
+                      className={cn(
+                        'flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all active:scale-95',
+                        flashingOrder === po.id
+                          ? 'bg-rose/30 text-rose scale-105'
+                          : 'bg-rose/10 text-rose hover:bg-rose/20'
+                      )}
+                    >
+                      <X className="w-3.5 h-3.5" /> Reddet
+                    </button>
+                  </motion.div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {/* Empty state when all orders dismissed */}
+          {mockPurchaseOrders.filter((po) => !dismissedOrders[po.id]).length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center justify-center py-16 text-center"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-emerald/10 flex items-center justify-center mb-4">
+                <Check className="w-8 h-8 text-emerald" />
+              </div>
+              <p className="text-sm font-heading font-semibold text-foreground">Tüm talepler işlendi!</p>
+              <p className="text-xs text-muted mt-1">Bekleyen satın alma talebi bulunmuyor.</p>
             </motion.div>
-          ))}
+          )}
         </motion.div>
       )}
     </div>
