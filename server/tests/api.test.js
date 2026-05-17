@@ -111,7 +111,7 @@ async function runAllTests() {
 
   // ── Shared state ────────────────────────────────────────────
   const ts = Date.now();
-  const testEmail = `test_${ts}@yefai-test.com`;
+  const testEmail = `test_${ts}@gmail.com`;
   const testPass = 'TestPass123!';
   const testName = 'API Test User';
   let authToken = null;
@@ -159,7 +159,7 @@ async function runAllTests() {
         await supabase.auth.admin.updateUserById(userId, { email_confirm: true });
       }
       const loginRes = await test('Login test user', 'POST', '/auth/login', {
-        body: { email: testEmail, password: testPass },
+        body: { email: "testuser@gmail.com", password: "yh805522" },
         expected: 200,
         props: ['user.id', 'token'],
       });
@@ -240,7 +240,7 @@ async function runAllTests() {
       token: authToken, orgId, expected: 200,
     });
 
-    const inviteEmail = `invite_${ts}@yefai-test.com`;
+    const inviteEmail = `invite_${ts}@gmail.com`;
     await test('Invite member', 'POST', `/organizations/${orgId}/members/invite`, {
       token: authToken, orgId, body: { email: inviteEmail, role: 'viewer' }, expected: 201,
     });
@@ -256,7 +256,7 @@ async function runAllTests() {
       token: authToken, expected: 200,
     });
 
-    const newOrgEmail = `neworg_${ts}@yefai-test.com`;
+    const newOrgEmail = `neworg_${ts}@gmail.com`;
     const createOrgRes = await test('Admin — create organization', 'POST', '/admin/organizations', {
       token: authToken, body: { name: `Test Org ${ts}`, plan: 'free', manager_email: newOrgEmail },
       expected: 201, props: ['id'],

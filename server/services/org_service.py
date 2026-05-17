@@ -208,7 +208,7 @@ class OrgService:
             .execute()
         )
 
-        if existing.data:
+        if existing and existing.data:
             if existing.data.get("status") == "active":
                 raise ValueError(f"{email} is already a member of this organization")
             # Re-invite if disabled/invited

@@ -1,2 +1,10 @@
 fastapi
 uvicorn
+supabase
+pydantic_settings
+numpy
+pydantic
+scipy
+"pydantic[email]"
+python-multipart
+PIL
