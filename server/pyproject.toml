@@ -23,6 +23,7 @@ dependencies = [
     "pillow>=10.0.0",
     "anomalib>=1.1.0",
     "psycopg2-binary>=2.9.12",
+    "email-validator>=2.3.0",
 ]
 
 [project.optional-dependencies]

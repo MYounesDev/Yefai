@@ -1,11 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
 
+from errors import YefaiError
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from errors import YefaiError
 from middleware.logging import RequestLoggingMiddleware
 from middleware.org_context import OrgContextMiddleware
 from routers import predictions
