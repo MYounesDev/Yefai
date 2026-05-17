@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sade Sürdürülebilir Mimari"
+  short_description: "Sadelik odaklı mimari karar rehberi"
+  default_prompt: "Use $sade-surdurulebilir-mimari to review this design for cognitive load, coupling, architecture topology, and over-engineering risk."

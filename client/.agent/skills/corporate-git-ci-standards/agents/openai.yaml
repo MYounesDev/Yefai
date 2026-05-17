@@ -1,0 +1,4 @@
+interface:
+  display_name: "Corporate Git Commit Branch Standards"
+  short_description: "Kurumsal commit ve branch standardı uygula"
+  default_prompt: "Use $corporate-git-ci-standards to create a commit/branch plan under commit_history with safe local Git commands."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Actions CI/CD Architecture"
+  short_description: "Design secure GitHub Actions pipelines"
+  default_prompt: "Use $github-actions-cicd-architecture to design or review a secure GitHub Actions CI/CD pipeline."

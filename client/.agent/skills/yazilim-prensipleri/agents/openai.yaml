@@ -1,0 +1,4 @@
+interface:
+  display_name: "Yazılım Prensipleri"
+  short_description: "SOLID, DRY, KISS, YAGNI ve kalıp rehberi"
+  default_prompt: "Use $yazilim-prensipleri to review this code for SOLID, DRY, KISS, YAGNI, and design-pattern tradeoffs."

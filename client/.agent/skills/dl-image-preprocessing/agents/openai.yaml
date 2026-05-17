@@ -1,0 +1,4 @@
+interface:
+  display_name: "DL Image Preprocessing & Augmentation"
+  short_description: "Deep learning image preprocessing and augmentation guide"
+  default_prompt: "Use $dl-image-preprocessing to design an optimal image preprocessing and augmentation pipeline for my deep learning project."
