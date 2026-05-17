@@ -1,11 +1,61 @@
+import asyncio
+import base64
+import tempfile
 import time
+from pathlib import Path
 from uuid import uuid4
 
 import httpx
 
 from ai.novavision.config import NovaVisionSettings, get_novavision_settings
+from ai.novavision.image_request import resize_image_to_256, send_image_to_novavision_json
 from ai.novavision.preprocessing import preprocess_base64, preprocess_image
 from ai.novavision.schemas import InferenceRequest, InferenceResult
+
+
+def _temporary_image_path(image_base64: str, mime_type: str) -> Path:
+    suffix = ".png" if mime_type == "image/png" else ".jpg"
+    decoded = base64.b64decode(image_base64)
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp_file:
+        temp_file.write(decoded)
+        return Path(temp_file.name)
+
+
+async def _infer_via_novavision_gateway(
+    *,
+    preprocessed_image_base64: str,
+    preprocessed_mime_type: str,
+    source_image_path: str | None,
+    settings: NovaVisionSettings,
+    model_id: str,
+) -> tuple[int, object]:
+    image_path = (
+        Path(source_image_path)
+        if source_image_path
+        else _temporary_image_path(preprocessed_image_base64, preprocessed_mime_type)
+    )
+    with tempfile.NamedTemporaryFile(
+        suffix=image_path.suffix or ".jpg", delete=False
+    ) as resized_file:
+        resized_path = Path(resized_file.name)
+    try:
+        resized_image_path = await asyncio.to_thread(
+            resize_image_to_256,
+            str(image_path),
+            str(resized_path),
+        )
+        return await asyncio.to_thread(
+            send_image_to_novavision_json,
+            resized_image_path,
+            api_url=settings.novavision_inference_url,
+            app_id=model_id,
+            port=settings.novavision_app_port,
+            timeout=int(settings.novavision_timeout_seconds),
+        )
+    finally:
+        if source_image_path is None:
+            image_path.unlink(missing_ok=True)
+        resized_path.unlink(missing_ok=True)
 
 
 async def infer(
@@ -35,6 +85,43 @@ async def infer(
             mock=True,
             source_image=str(preprocessed.source_path) if preprocessed.source_path else None,
             raw_response={"mode": "mock", "size_bytes": preprocessed.size_bytes},
+        )
+
+    if str(settings.novavision_inference_url).rstrip("/").endswith("/api"):
+        status_code, data = await _infer_via_novavision_gateway(
+            preprocessed_image_base64=preprocessed.image_base64,
+            preprocessed_mime_type=preprocessed.mime_type,
+            source_image_path=str(preprocessed.source_path) if preprocessed.source_path else None,
+            settings=settings,
+            model_id=model_id,
+        )
+        if status_code != 200 or not isinstance(data, dict):
+            raise ValueError(f"NovaVision gateway request failed with HTTP {status_code}")
+        node_statuses = {
+            key: value.get("status")
+            for key, value in data.items()
+            if isinstance(value, dict) and "status" in value
+        }
+        failed_nodes = {
+            key: node_status
+            for key, node_status in node_statuses.items()
+            if node_status != "success"
+        }
+        if failed_nodes:
+            raise ValueError(f"NovaVision gateway node failure: {failed_nodes}")
+        elapsed = (time.perf_counter() - started) * 1000
+        return InferenceResult(
+            job_id=job_id,
+            status="completed",
+            anomaly_score=0.0,
+            anomaly_map=None,
+            wear_type="preprocessed",
+            estimated_wear_um=None,
+            processing_time_ms=elapsed,
+            model_id=model_id,
+            mock=False,
+            source_image=str(preprocessed.source_path) if preprocessed.source_path else None,
+            raw_response={"node_statuses": node_statuses, "gateway_response": data},
         )
 
     payload = {
