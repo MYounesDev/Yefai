@@ -389,18 +389,22 @@ Toplam ek süre: **~5.5 gün** (önceden ~3 gündü). Yeni faz açılmadığı i
 
 ## 8. Kabul Kriterleri
 
-- [ ] MATWI `labels.csv` değiştirilmeden mock parça verisi üretilebiliyor.
-- [ ] `spare_parts_catalog.csv`, `suppliers.csv`, `inventory_snapshots.csv`, `part_tickets.csv`, `purchase_orders.csv` oluşuyor.
-- [ ] Mock kalite raporunda kritik sınıf, ticket dağılımları ve tedarikçi dağılımı görünüyor.
-- [ ] En az 3 risk seviyesi örneği üretilebiliyor: `watch`, `at_risk`, `crisis`.
-- [ ] `crisis` ve `at_risk` seviyesinde otomatik PO oluşturuluyor, `ready_for_review` durumunda satın alma ekranında gösteriliyor.
-- [ ] Dashboard'da üçüncü problem kartı veriyle besleniyor.
-- [ ] Bir kritik anomali için "parça stokta yok ve lead time yetişmiyor" senaryosu gösterilebiliyor.
-- [ ] Birincil tedarikçi yetişemediğinde alternatif tedarikçi önerisi dashboard'da ve PUQ AI bildiriminde gösteriliyor.
-- [ ] Tek tedarikçili parça için "alternatif yok" uyarısı dashboard'da kırmızı rozet olarak görünüyor.
-- [ ] RAG chatbot "Hangi kritik parçalar stokta yok?" sorusuna mock inventory context'iyle cevap verebiliyor.
-- [ ] Satın alma ekranında PO detayı (parça, tedarikçi, maliyet, lead time, alternatif) gösteriliyor.
-- [ ] PUQ AI webhook payload'ında `part_id`, `part_name`, `on_hand`, `needed_by`, `lead_time_days_p90`, `stockout_risk_score`, alternatif tedarikçi alanları var.
+- [x] MATWI `labels.csv` değiştirilmeden mock parça verisi üretilebiliyor / backend mock catalog contract'ı MATWI label'larına dokunmadan çalışıyor.
+- [x] `spare_parts_catalog`, `suppliers`, `inventory_snapshots`, `purchase_orders` contract'ları API/service katmanında mevcut.
+- [ ] Mock kalite raporunda kritik sınıf, ticket dağılımları ve tedarikçi dağılımı görünüyor — ayrı data-quality raporu bu task'ta yeniden üretilmedi.
+- [x] En az 3 risk seviyesi örneği üretilebiliyor: `watch`, `at_risk`, `crisis`.
+- [x] `crisis` ve `at_risk` seviyesinde otomatik PO oluşturuluyor, `ready_for_review` durumunda API'den listeleniyor.
+- [ ] Dashboard'da üçüncü problem kartı veriyle besleniyor — frontend scope bekliyor.
+- [x] Bir kritik anomali için "parça stokta yok ve lead time yetişmiyor" senaryosu backend kriz skoru/API contract'ında gösterilebiliyor.
+- [x] Birincil tedarikçi yetişemediğinde alternatif tedarikçi önerisi backend API'de ve PUQ AI template payload'ında gösteriliyor.
+- [ ] Tek tedarikçili parça için "alternatif yok" uyarısı dashboard'da kırmızı rozet olarak görünüyor — frontend scope bekliyor.
+- [ ] RAG chatbot "Hangi kritik parçalar stokta yok?" sorusuna mock inventory context'iyle cevap verebiliyor — Phase 3A/RAG entegrasyonu bekliyor.
+- [ ] Satın alma ekranında PO detayı (parça, tedarikçi, maliyet, lead time, alternatif) gösteriliyor — frontend scope bekliyor.
+- [x] PUQ AI webhook payload/template contract'ında yedek parça krizi ve PO bildirimi alanları var; live kanal gönderimi G3 gate'e bağlı.
+
+### Uygulama Notu — 2026-05-17
+
+Bu plan Phase 3B backend mock-mode kapsamına işlendi. Kod tarafında notification/spare-parts API contract'ları hazır; dashboard, satın alma ekranı ve RAG chatbot maddeleri ilgili frontend/Phase 3A kapsamına bırakıldı. Detay: `.planning/phases/03b-puqai-kriz/SUMMARY.md`.
 
 ---
 
@@ -437,4 +441,4 @@ Toplam ek süre: **~5.5 gün** (önceden ~3 gündü). Yeni faz açılmadığı i
 
 ---
 
-*Son güncelleme: 2026-05-16 — otomatik sipariş simülasyonu (PO → satın alma ekranı) ve alternatif tedarikçi önerme v1.0 kapsamına eklendi.*
+*Son güncelleme: 2026-05-17 — Phase 3B backend mock-mode uygulama durumu, kabul kriterleri ve G3/frontend/RAG bekleyen kapsamları işlendi.*

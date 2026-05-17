@@ -8,7 +8,12 @@ from supabase import Client
 
 from ai.puqai.client import PuqAIWebhookClient
 from ai.puqai.config import get_puqai_settings
-from ai.puqai.schemas import NotificationRequest, WebhookLog
+from ai.puqai.schemas import (
+    NotificationRequest,
+    PurchaseOrderPayload,
+    SparePartsCrisisPayload,
+    WebhookLog,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +105,16 @@ class NotificationService:
         return [
             await self._client._post_webhook(self._settings.puqai_email_webhook, payload, "email")
         ]
+
+    async def send_spare_parts_crisis(
+        self,
+        crisis: SparePartsCrisisPayload,
+        po: PurchaseOrderPayload | None = None,
+    ) -> list[WebhookLog]:
+        logs = await self._client.send_crisis_alert(crisis)
+        if po is not None:
+            logs += await self._client.send_po_notification(po)
+        return logs
 
     async def close(self) -> None:
         await self._client.close()

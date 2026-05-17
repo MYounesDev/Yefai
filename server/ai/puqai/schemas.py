@@ -26,7 +26,7 @@ class WebhookPayload(BaseModel):
 class SparePartsCrisisPayload(BaseModel):
     event: str = "spare_parts_crisis"
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
-    part_id: int
+    part_id: str | int
     part_name: str
     on_hand: int = 0
     needed_by: str = ""
@@ -86,3 +86,25 @@ class AutoOrderRequest(BaseModel):
     part_id: int
     quantity: int = 1
     trigger: str = "crisis"
+
+
+class CrisisWorkflowRequest(BaseModel):
+    image_id: int
+    machine_id: str
+    anomaly_score: float = Field(ge=0.0, le=1.0)
+    wear_type: str = ""
+    image_url: str = ""
+    auto_order: bool = True
+    notify: bool = True
+    quantity: int = Field(default=1, ge=1)
+    hours_to_critical: float | None = Field(default=None, ge=0.0)
+
+
+class CrisisWorkflowResponse(BaseModel):
+    image_id: int
+    machine_id: str
+    prediction: dict
+    crisis: dict
+    purchase_order: dict
+    alternative_suppliers: list[dict]
+    notification: dict

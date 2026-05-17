@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: AI Backend
 current_phase: 3a
 status: executing
-last_updated: "2026-05-17T12:00:00.000Z"
+last_updated: "2026-05-17T03:37:44Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 5
+  percent: 71
 ---
 
 # Session State
@@ -22,8 +22,8 @@ See: .planning/PROJECT.md
 ## Position
 
 **Milestone:** v1.0 — AI Backend
-**Current phase:** 2A ∥ 2B — Anomalib/Embedding ve NovaVision paralel hattı
-**Status:** Executing in parallel
+**Current phase:** 3A — RAG Pipeline
+**Status:** Executing; Phase 3B backend mock-mode complete, G3 live PUQ AI gate pending
 
 ## Phase Status Snapshot
 
@@ -34,7 +34,7 @@ See: .planning/PROJECT.md
 | Phase 2B — NovaVision Local Inference Pipeline | ✅ Complete (mock-mode) | Mock-mode wrapper/service/router/test altyapısı hazır. Live gate G2 bekliyor. |
 | Phase 2.5 — Wear Prediction Engine | ✅ Complete | Calibration, wear rate, projection, scenarios, trends. E2E testler + Supabase seed + chat/analyze entegrasyonu + grafik. 27 yeni test. |
 | Phase 3A — RAG Pipeline | 🔄 Executing | pgvector similarity search func'ları DB'de. vector_search_service + LangChain agent yazılıyor. G4 bekleniyor. |
-| Phase 3B — PUQ AI + Kriz | Not started | G3 ve upstream inference/prediction çıktıları gerekir. |
+| Phase 3B — PUQ AI + Kriz | ✅ Complete (backend mock-mode) | Webhook client/retry/fallback, notification service, crisis score, birleşik crisis workflow, auto-PO, alternatives, routers ve tests hazır. G3 live kanal doğrulaması bekliyor. |
 | Phase 4 — FastAPI Lifespan & Entegrasyon | Not started | 3A/3B/2.5 entegrasyonlarından sonra. |
 
 ## Current Verified Work
@@ -55,3 +55,4 @@ See: .planning/PROJECT.md
 - 2026-05-16: Metadata seed tamamlandı (1681 images, 17 sets). `image_name` formatı `Set{id}/{filename}`. NaN/inf/duplicate handling eklendi. FK mapping doğrulandı.
 - 2026-05-16: Supabase pgvector similarity search function'ları deploy edildi. `search_similar_images` + `search_similar_images_rich`. Migration 004. Test edildi.
 - 2026-05-17: Phase 2.5 complete — Wear Prediction Engine: calibration, wear rate (scipy linregress), projection, 3 scenarios, trends, Supabase seed (1000 records), chart generation (matplotlib), chat/analyze LLM integration + PUQAI message (98 tests)
+- 2026-05-17: Phase 3B complete (backend mock-mode) — PUQ AI webhook/retry/fallback, yedek parça kriz skoru, birleşik crisis workflow, auto-order, alternatif tedarikçi ve notification/spare-parts API contract'ları doğrulandı; G3 live PUQ AI gate bekliyor.

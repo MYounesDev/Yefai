@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 _MOCK_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "mock"
 CATALOG_PATH = _MOCK_DIR / "spare_parts_catalog.csv"
 SUPPLIERS_PATH = _MOCK_DIR / "suppliers.csv"
+PART_SUPPLIERS_PATH = _MOCK_DIR / "part_suppliers.csv"
 INVENTORY_PATH = _MOCK_DIR / "inventory_snapshots.csv"
 
 
@@ -35,7 +36,7 @@ class CrisisInput:
 @dataclass
 class CrisisResult:
     image_id: int = 0
-    part_id: int = 0
+    part_id: str | int = 0
     part_name: str = ""
     crisis_score: float = 0.0
     risk_level: str = "none"
@@ -47,8 +48,13 @@ class CrisisResult:
 
 
 # --- MAIN FILE SCORING LOGIC (Overrides ABC file's calculation) ---
-def calculate_crisis_score(image_id: int, anomaly_score: float) -> CrisisResult:
-    part = _find_related_part(image_id)
+def calculate_crisis_score(
+    image_id: int,
+    anomaly_score: float,
+    hours_to_critical: float | None = None,
+    part_id: str | None = None,
+) -> CrisisResult:
+    part = _find_part_by_id(part_id) if part_id else _find_related_part(image_id)
     if part is None:
         return CrisisResult(image_id=image_id, risk_level="none")
 
@@ -59,16 +65,29 @@ def calculate_crisis_score(image_id: int, anomaly_score: float) -> CrisisResult:
     min_level = int(inv.get("min_level", 10) if inv else 10)
     stock_gap = max(0.0, 1.0 - (on_hand / min_level if min_level > 0 else 1.0))
 
-    lead_time_p90 = int(sup.get("lead_time_p90", 14) if sup else 14)
+    lead_time_p90 = int(sup.get("lead_time_p90", 14) if sup else part.get("lead_time_p90", 14))
 
-    criticality_map = {"A_vital": 1.0, "B_essential": 0.6, "C_desirable": 0.3}
+    criticality_map = {
+        "A_vital": 1.0,
+        "B_essential": 0.6,
+        "C_desirable": 0.3,
+        "A": 1.0,
+        "B": 0.6,
+        "C": 0.3,
+    }
     criticality = criticality_map.get(part.get("criticality", "C_desirable"), 0.3)
 
     reliability = float(sup.get("reliability_score", 0.8) if sup else 0.8)
     supplier_risk = 1.0 - reliability
 
+    lead_time_pressure = min(1.0, lead_time_p90 / 30.0)
+    if hours_to_critical is not None:
+        lead_time_hours = max(1.0, lead_time_p90 * 24.0)
+        lead_time_gap_pressure = max(0.0, (lead_time_hours - hours_to_critical) / lead_time_hours)
+        lead_time_pressure = max(lead_time_pressure, lead_time_gap_pressure)
+
     stock_gap_contrib = stock_gap * 100 * 0.30
-    lead_time_contrib = min(1.0, lead_time_p90 / 30.0) * 100 * 0.25
+    lead_time_contrib = lead_time_pressure * 100 * 0.25
     criticality_contrib = criticality * 100 * 0.20
     supplier_risk_contrib = supplier_risk * 100 * 0.15
     anomaly_contrib = anomaly_score * 100 * 0.10
@@ -124,6 +143,16 @@ def _find_related_part(image_id: int) -> dict | None:
     return catalog[idx]
 
 
+def _find_part_by_id(part_id: str | None) -> dict | None:
+    if not part_id:
+        return None
+    part_id_str = str(part_id)
+    for row in _load_csv(CATALOG_PATH):
+        if str(row.get("part_id", "")) == part_id_str:
+            return row
+    return None
+
+
 def _get_inventory(part_id_raw: str | int) -> dict | None:
     rows = _load_csv(INVENTORY_PATH)
     part_id_str = str(part_id_raw)
@@ -134,11 +163,24 @@ def _get_inventory(part_id_raw: str | int) -> dict | None:
 
 
 def _get_primary_supplier(part_id_raw: str | int) -> dict | None:
+    supplier_id = _get_primary_supplier_id(part_id_raw)
     rows = _load_csv(SUPPLIERS_PATH)
-    for r in rows:
-        if r.get("is_primary", "").lower() == "true":
-            return r
+    if supplier_id:
+        for row in rows:
+            if row.get("supplier_id", "") == supplier_id:
+                return row
+    for row in rows:
+        if row.get("is_primary", "").lower() == "true":
+            return row
     return rows[0] if rows else None
+
+
+def _get_primary_supplier_id(part_id_raw: str | int) -> str | None:
+    part_id_str = str(part_id_raw)
+    for row in _load_csv(PART_SUPPLIERS_PATH):
+        if row.get("part_id", "") == part_id_str and row.get("is_primary", "").lower() == "true":
+            return row.get("supplier_id", "")
+    return None
 
 
 def _load_csv(path: Path) -> list[dict]:

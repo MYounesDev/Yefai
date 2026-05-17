@@ -5,6 +5,8 @@ goal: "PUQ AI webhook client, çok kanallı bildirim (Telegram/E-posta/SMS), yed
 depends_on: "Phase 2B (inference pipeline), Phase 1 (mock yedek parça verisi)"
 estimated_effort: "1.5 hafta"
 manual_gate: "G3 — PUQ AI hesabı + workflow webhook URL'leri .env'de olmalı"
+status: implemented_mock_green
+last_updated: 2026-05-17T03:37:44Z
 parallel: true
 parallel_with: "Phase 3A"
 assignee: "Kişi B"
@@ -155,19 +157,25 @@ Anomali tespitinde PUQ AI webhook tetikle, Telegram/E-posta/SMS bildirimleri gö
   - `GET /api/spare-parts/alternative-suppliers/{part_id}` — alternatif tedarikçi öner
   - `GET /api/spare-parts/inventory` — stok durumu
   - `GET /api/spare-parts/purchase-orders?status=` — PO listesi
+  - `POST /api/spare-parts/crisis-workflow` — prediction + kriz skoru + auto-PO + alternatif tedarikçi + PUQ AI notification tek workflow
 - **UAT:** Tüm endpoint'ler mock veri ile çalışıyor
 
 ---
 
 ## Verification
 
-- [ ] PUQ AI webhook 3 kanala da (Telegram, E-posta, SMS) gönderim yapıyor
-- [ ] Retry mekanizması: 3 deneme, başarısız log'a yaz
-- [ ] Severity-based routing doğru kanallara yönleniyor
-- [ ] Kriz skoru formülü tüm senaryolarda tutarlı (0-100)
-- [ ] Otomatik PO `ready_for_review` durumunda oluşuyor
-- [ ] Alternatif tedarikçi önerisi lead time + maliyet karşılaştırmalı
-- [ ] Fallback OS notification çalışıyor
+- [ ] PUQ AI webhook 3 kanala da (Telegram, E-posta, SMS) gönderim yapıyor — G3 live webhook gate bekliyor
+- [x] Retry mekanizması: 3 deneme, başarısız log'a yaz
+- [x] Severity-based routing doğru kanallara yönleniyor
+- [x] Kriz skoru formülü tüm senaryolarda tutarlı (0-100)
+- [x] Otomatik PO `ready_for_review` durumunda oluşuyor
+- [x] Alternatif tedarikçi önerisi lead time + maliyet karşılaştırmalı
+- [x] Birleşik kriz workflow endpoint'i prediction, kriz, PO, alternatif tedarikçi ve notification payload'ını tek response'ta döndürüyor
+- [x] Fallback OS notification/mock fallback contract çalışıyor
+
+## Completion Note — 2026-05-17
+
+Backend mock-mode implementation tamamlandı. Gerçek PUQ AI kanal gönderimleri G3 manuel gate'e bağlı olduğundan live olarak işaretlenmedi; kod tarafında webhook client, retry/log, fallback, notification routing, crisis score, auto-order, supplier alternatives, birleşik `POST /api/spare-parts/crisis-workflow` orchestration endpoint'i ve API endpoint contract'ları test kapsamına alındı. Detay: `SUMMARY.md` ve `03b-VALIDATION.md`.
 
 ## must_haves
 
@@ -181,6 +189,7 @@ Anomali tespitinde PUQ AI webhook tetikle, Telegram/E-posta/SMS bildirimleri gö
 - `server/ai/puqai/client.py` + `schemas.py` + `templates/`
 - `server/ai/puqai/retry.py` + `fallback.py`
 - `server/services/notification_service.py`
+- `server/services/spare_parts_workflow_service.py`
 - `server/services/crisis_service.py` + `purchase_order_service.py` + `supplier_service.py`
 - `server/routers/notifications.py` + `server/routers/spare_parts.py`
 - `server/db/migrations/002_webhook_logs.sql`
