@@ -1,9 +1,15 @@
 import base64
+import re
 from pathlib import Path
 
 from ai.novavision.schemas import PreprocessedImage
 
 SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
+
+
+def _parse_set_from_path(image_path: str) -> int | None:
+    match = re.search(r"Set(\d+)", image_path, re.IGNORECASE)
+    return int(match.group(1)) if match else None
 
 
 def resolve_image_path(image_path: str, project_root: Path | None = None) -> Path:
@@ -12,11 +18,24 @@ def resolve_image_path(image_path: str, project_root: Path | None = None) -> Pat
         return path
 
     root = project_root or Path(__file__).resolve().parents[3]
+    image_name = path.name
     candidates = [
         root / image_path,
         root / "data" / image_path,
         root / "llm_docs" / image_path,
     ]
+
+    set_num = _parse_set_from_path(image_path)
+    if set_num is not None:
+        set_dir = f"Set{set_num}"
+        candidates.extend(
+            [
+                root / "data" / "MATWI" / set_dir / "images" / image_name,
+                root / "data" / "MATWI" / set_dir / set_dir / "images" / image_name,
+                root / "data" / "MATWI" / set_dir / image_name,
+            ]
+        )
+
     if image_path.startswith("MATWI/"):
         candidates.append(root / "llm_docs" / image_path.removeprefix("MATWI/"))
 
