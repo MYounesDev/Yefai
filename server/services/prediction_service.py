@@ -114,7 +114,7 @@ class PredictionService:
             self.supabase.table("anomalies")
             .select("*")
             .eq("machine_id", machine_id)
-            .order("created_at", desc=False)
+            .order("detected_at", desc=False)
             .execute()
         )
 
@@ -134,13 +134,18 @@ class PredictionService:
 
         # Calculate wear rate from historical data
         timestamps = [
-            datetime.fromisoformat(a["created_at"].replace("Z", "+00:00")) for a in anomalies
+            datetime.fromisoformat(a["detected_at"].replace("Z", "+00:00")) for a in anomalies
         ]
         wear_values = [a.get("estimated_wear_um", 0.0) for a in anomalies]
 
+        import numpy as np
+
+        wear_values = [a.get("estimated_wear_um", 0.0) for a in anomalies]
+        wear_values_np = np.array(wear_values, dtype=np.float64)
+
         try:
             wear_rate_result = self.wear_rate_calculator.calculate_with_confidence(
-                timestamps, wear_values
+                timestamps, wear_values_np
             )
             wear_rate_um_per_hour = wear_rate_result["wear_rate_um_per_hour"]
             r_squared = wear_rate_result["r_squared"]
@@ -161,7 +166,7 @@ class PredictionService:
         hours_to_critical = projection_result["hours_to_critical"]
 
         # Analyze trend
-        trend_result = self.trend_analyzer.analyze_trend(timestamps, wear_values)
+        trend_result = self.trend_analyzer.analyze_trend(timestamps, wear_values_np)
         trend = trend_result["trend"]
 
         # Generate scenarios
@@ -185,7 +190,7 @@ class PredictionService:
             "trend": trend,
             "scenarios": scenarios,
             "projection_points": scenarios["projection_points"],
-            "last_check_at": latest["created_at"],
+            "last_check_at": latest["detected_at"],
             "status": status,
         }
 
@@ -244,6 +249,17 @@ class PredictionService:
         """
         logger.info(f"Recalculating prediction for machine {machine_id}")
         return await self.get_prediction(machine_id)
+
+    def get_prediction_sync(self, machine_id: str) -> dict:
+        import asyncio
+
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(self.get_prediction(machine_id))
+
+        future = asyncio.run_coroutine_threadsafe(self.get_prediction(machine_id), loop)
+        return future.result()
 
     def _determine_status(self, hours_to_critical: float, current_wear_um: float) -> StatusLevel:
         """Determine status level based on hours to critical."""

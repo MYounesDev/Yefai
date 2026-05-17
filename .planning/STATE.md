@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: AI Backend
 current_phase: 3a
 status: executing
-last_updated: "2026-05-16T17:30:00.000Z"
+last_updated: "2026-05-17T12:00:00.000Z"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 7
-  completed_plans: 3
-  percent: 42
+  completed_plans: 4
+  percent: 57
 ---
 
 # Session State
@@ -32,7 +32,7 @@ See: .planning/PROJECT.md
 | Phase 1 — Veri Altyapısı & Supabase Setup | ✅ Complete | Supabase REST/DB/pgvector doğrulandı. 1681 image metadata seeded. |
 | Phase 2A — Anomalib Training & Embedding Pipeline | ✅ Complete | Kod yazıldı, embedding batch pipeline + pgvector search func hazır. Model eğitimi için train.py mevcut. |
 | Phase 2B — NovaVision Local Inference Pipeline | ✅ Complete (mock-mode) | Mock-mode wrapper/service/router/test altyapısı hazır. Live gate G2 bekliyor. |
-| Phase 2.5 — Wear Prediction Engine | Not started | Phase 2A skorları ve Phase 2B hattı netleşince başlanır. |
+| Phase 2.5 — Wear Prediction Engine | ✅ Complete | Calibration, wear rate, projection, scenarios, trends. E2E testler + Supabase seed + chat/analyze entegrasyonu + grafik. 27 yeni test. |
 | Phase 3A — RAG Pipeline | 🔄 Executing | pgvector similarity search func'ları DB'de. vector_search_service + LangChain agent yazılıyor. G4 bekleniyor. |
 | Phase 3B — PUQ AI + Kriz | Not started | G3 ve upstream inference/prediction çıktıları gerekir. |
 | Phase 4 — FastAPI Lifespan & Entegrasyon | Not started | 3A/3B/2.5 entegrasyonlarından sonra. |
@@ -54,4 +54,4 @@ See: .planning/PROJECT.md
 - 2026-05-16: Phase 2B planning docs reconciled with current implementation status; mock-mode NovaVision API is green, live validation is intentionally pending.
 - 2026-05-16: Metadata seed tamamlandı (1681 images, 17 sets). `image_name` formatı `Set{id}/{filename}`. NaN/inf/duplicate handling eklendi. FK mapping doğrulandı.
 - 2026-05-16: Supabase pgvector similarity search function'ları deploy edildi. `search_similar_images` + `search_similar_images_rich`. Migration 004. Test edildi.
-- 2026-05-16: Phase 3A başladı — vector_search_service + LangChain agent + chat router yazılıyor.
+- 2026-05-17: Phase 2.5 complete — Wear Prediction Engine: calibration, wear rate (scipy linregress), projection, 3 scenarios, trends, Supabase seed (1000 records), chart generation (matplotlib), chat/analyze LLM integration + PUQAI message (98 tests)
