@@ -117,7 +117,7 @@ class PredictionService:
         query = self.supabase.table("anomalies").select("*")
         if org_id is not None:
             query = query.eq("org_id", org_id)
-        response = query.eq("machine_id", machine_id).order("created_at", desc=False).execute()
+        response = query.eq("machine_id", machine_id).order("detected_at", desc=False).execute()
 
         if not response.data:
             logger.warning(f"No anomaly data found for machine {machine_id}")
@@ -133,9 +133,11 @@ class PredictionService:
         latest: dict = anomalies[-1]  # type: ignore[assignment]
         current_wear_um = float(latest.get("estimated_wear_um", 0.0))
 
-        # Calculate wear rate from historical data
+        # Calculate wear rate from historical data. Prefer detected_at from the
+        # prediction data model, but fall back to created_at for legacy seeded data.
         timestamps = [
-            datetime.fromisoformat(a["created_at"].replace("Z", "+00:00")) for a in anomalies
+            datetime.fromisoformat((a.get("detected_at") or a["created_at"]).replace("Z", "+00:00"))
+            for a in anomalies
         ]
         wear_values = [a.get("estimated_wear_um", 0.0) for a in anomalies]
 
@@ -186,7 +188,7 @@ class PredictionService:
             "trend": trend,
             "scenarios": scenarios,
             "projection_points": scenarios["projection_points"],
-            "last_check_at": latest["created_at"],
+            "last_check_at": latest.get("detected_at") or latest["created_at"],
             "status": status,
         }
 
