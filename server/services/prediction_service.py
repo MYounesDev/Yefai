@@ -10,9 +10,9 @@ This service provides the prediction interface that Phase 3B's crisis_service.py
 from services.prediction_service import PredictionService
 
 # In crisis_service.py:
-async def calculate_crisis_score(machine_id: str, spare_part_id: str):
-    # Get prediction data
-    prediction = await prediction_service.get_prediction(machine_id)
+async def calculate_crisis_score(machine_id: str, spare_part_id: str, org_id: str):
+    # Get organization-scoped prediction data
+    prediction = await prediction_service.get_prediction(machine_id, org_id)
 
     # Extract key metrics
     hours_to_critical = prediction["hours_to_critical"]
