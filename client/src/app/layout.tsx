@@ -1,23 +1,33 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Space_Grotesk } from 'next/font/google';
+import { IBM_Plex_Mono, Noto_Serif, Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 
-const inter = Inter({
+const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
-  variable: '--font-inter',
+  weight: ['400', '500'],
+  variable: '--font-ibm-plex-mono',
   display: 'swap',
 });
 
-const spaceGrotesk = Space_Grotesk({
+const notoSerif = Noto_Serif({
   subsets: ['latin'],
-  variable: '--font-space-grotesk',
+  weight: ['400'],
+  variable: '--font-noto-serif',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-inter',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: { default: 'Yefai — Kestirimci Bakım Platformu', template: '%s | Yefai' },
-  description: 'Yapay zeka destekli kestirimci bakım. Gerçek zamanlı anomali tespiti, akıllı yedek parça yönetimi ve endüstriyel IoT izleme.',
+  description:
+    'Yapay zeka destekli kestirimci bakım. Gerçek zamanlı anomali tespiti, akıllı yedek parça yönetimi ve endüstriyel IoT izleme.',
   keywords: ['kestirimci bakım', 'yapay zeka', 'anomali tespiti', 'üretim', 'CNC', 'endüstriyel IoT'],
   openGraph: {
     title: 'Yefai — Kestirimci Bakım Platformu',
@@ -27,7 +37,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#06090F',
+  themeColor: '#f6f3f1',
   width: 'device-width',
   initialScale: 1,
 };
@@ -36,10 +46,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="tr"
-      className={`${inter.variable} ${spaceGrotesk.variable} antialiased`}
+      className={`${ibmPlexMono.variable} ${notoSerif.variable} ${inter.variable} antialiased bg-paper-canvas`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background text-foreground">
+      <body className="min-h-screen bg-paper-canvas text-ink">
         <Providers>{children}</Providers>
       </body>
     </html>

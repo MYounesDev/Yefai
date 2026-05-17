@@ -1,9 +1,29 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-inter), 'Inter', sans-serif;
-  --font-heading: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  /* ── MONAD LANDING FONTS ── */
+  --font-mono: var(--font-ibm-plex-mono), 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-serif: var(--font-noto-serif), 'Noto Serif', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: var(--font-inter), 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-ibm-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* ── MONAD COLOR TOKENS ── */
+  --color-ink: #000000;
+  --color-paper-canvas: #f6f3f1;
+  --color-off-black: #242424;
+  --color-pale-stone: #4e4d4d;
+  --color-whisper-gray: #3d3d3d;
+  --color-atmosphere-wash: #cfdaf5;
+  --color-subtle-link: #333333;
+  --color-faint-text: #797776;
+
+  /* ── MONAD BORDER RADIUS ── */
+  --radius-tags: 2000px;
+  --radius-cards: 40px;
+  --radius-buttons: 100px;
+
+  /* ── MONAD SHADOW ── */
+  --shadow-monad-md: rgba(0, 0, 0, 0.1) 0px 0px 10px 0px;
 
   /* ── DARK MODE (default) ── */
   --color-background: #06090F;
