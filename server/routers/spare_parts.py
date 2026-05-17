@@ -209,7 +209,7 @@ async def get_inventory_history(
         .select("*")
         .eq("part_id", part_id)
         .eq("org_id", org.org_id)
-        .order("timestamp", desc=True)
+        .order("snapshot_date", desc=True)
         .limit(limit)
         .execute()
     )

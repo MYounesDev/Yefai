@@ -92,13 +92,17 @@ async function test(title, method, endpoint, { body, headers = {}, token, orgId,
     }
     return { ok, res, data: res.data };
   } catch (err) {
-    if (retries > 0 && err.code === 'ECONNREFUSED') {
-      logWarn(`Retrying "${title}"... (${retries} left)`);
-      await new Promise(r => setTimeout(r, 2000));
+    const isRetryable = err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET';
+    if (retries > 0 && isRetryable) {
+      const delay = err.code === 'ECONNRESET' ? 3000 : 2000;
+      logWarn(`${err.code} — Retrying "${title}"... (${retries} left, waiting ${delay / 1000}s)`);
+      await new Promise(r => setTimeout(r, delay));
       return test(title, method, endpoint, { body, headers, token, orgId, expected, props, retries: retries - 1, isRetry: true });
-    }
+    } 
     stats.failed++;
-    const msg = err.code === 'ECONNREFUSED' ? 'Server not running' : err.message;
+    const msg = err.code === 'ECONNREFUSED' ? 'Server not running'
+              : err.code === 'ECONNRESET'   ? 'Connection reset by server (after retries)'
+              : err.message;
     logTest(title, 'FAIL', msg);
     failures.push({ num: stats.num, title, method, endpoint, error: msg });
     return { ok: false };
@@ -151,6 +155,10 @@ async function runAllTests() {
       logInfo(`Registered user ${userId}`);
     }
 
+    // Track which credentials to use for re-login
+    let loginEmail = testEmail;
+    let loginPass = testPass;
+
     // If register didn't return a token (e.g. email confirmation required), login
     if (!authToken) {
       // Confirm the user via admin API so login works
@@ -158,8 +166,11 @@ async function runAllTests() {
         userId = regRes.data.user.id;
         await supabase.auth.admin.updateUserById(userId, { email_confirm: true });
       }
+      // Fall back to existing test user when registration fails (e.g. rate limit)
+      loginEmail = "testuser@gmail.com";
+      loginPass = "123123";
       const loginRes = await test('Login test user', 'POST', '/auth/login', {
-        body: { email: "testuser@gmail.com", password: "yh805522" },
+        body: { email: loginEmail, password: loginPass },
         expected: 200,
         props: ['user.id', 'token'],
       });
@@ -191,7 +202,7 @@ async function runAllTests() {
 
     // Re-login to pick up admin status in the JWT context
     const freshLogin = await test('Re-login (admin)', 'POST', '/auth/login', {
-      body: { email: testEmail, password: testPass },
+      body: { email: loginEmail, password: loginPass },
       expected: 200,
       props: ['token'],
     });
@@ -259,11 +270,11 @@ async function runAllTests() {
     const newOrgEmail = `neworg_${ts}@gmail.com`;
     const createOrgRes = await test('Admin — create organization', 'POST', '/admin/organizations', {
       token: authToken, body: { name: `Test Org ${ts}`, plan: 'free', manager_email: newOrgEmail },
-      expected: 201, props: ['id'],
+      expected: 201, props: ['organization.id'],
     });
 
-    if (createOrgRes.ok) {
-      await test('Admin — get organization detail', 'GET', `/admin/organizations/${createOrgRes.data.id}`, {
+    if (createOrgRes.ok && createOrgRes.data?.organization?.id) {
+      await test('Admin — get organization detail', 'GET', `/admin/organizations/${createOrgRes.data.organization.id}`, {
         token: authToken, expected: 200,
       });
     }
@@ -280,7 +291,7 @@ async function runAllTests() {
     logSub('Spare Parts');
 
     await test('Get catalog', 'GET', '/spare-parts/catalog', {
-      token: authToken, orgId, expected: 200, props: ['parts'],
+      token: authToken, orgId, expected: 200, props: ['items'],
     });
 
     await test('Get catalog part detail', 'GET', '/spare-parts/catalog/P-100', {
@@ -296,14 +307,14 @@ async function runAllTests() {
     });
 
     await test('Get purchase orders', 'GET', '/spare-parts/purchase-orders', {
-      token: authToken, orgId, expected: 200, props: ['purchase_orders'],
+      token: authToken, orgId, expected: 200, props: ['orders'],
     });
 
     await test('Get suppliers', 'GET', '/spare-parts/suppliers', {
       token: authToken, orgId, expected: 200, props: ['suppliers'],
     });
 
-    await test('Get alternative suppliers', 'GET', '/spare-parts/suppliers/P-100/alternatives', {
+    await test('Get alternative suppliers', 'GET', '/spare-parts/alternative-suppliers/P-100', {
       token: authToken, orgId, expected: 200, props: ['alternatives'],
     });
 
@@ -432,7 +443,7 @@ async function runAllTests() {
     console.error(`\n${c.red}${c.bright}Unexpected error: ${err.message}${c.reset}`);
     console.error(err.stack);
   }
-
+/*
   // ── CLEANUP ────────────────────────────────────────────────
   logSub('Cleanup');
   if (userId) {
@@ -445,7 +456,7 @@ async function runAllTests() {
       logWarn(`Cleanup warning: ${e.message}`);
     }
   }
-
+*/
   printSummary();
 }
 

@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "client": "cd client && npm run dev",
-    "server": "cd server && venv\\Scripts\\activate && uvicorn main:app --reload",
+    "server": "cd server && uv run uvicorn main:app --port 8001",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "test": "node server/tests/api.test.js",
     "seed": "node server/scripts/seed/seed.js",
