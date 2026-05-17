@@ -58,8 +58,8 @@ def send_image_to_novavision(
     api_url: str = "http://localhost:7001/api",
     app_id: str = "19EC35",
     port: int = 3030,
-    workspace: str = "934815ad542a4a7c5e8a2dfa04fea9f5",
-    ws_channel: str = "/ws/1057e5612fcf11af7978dccb280b07af",
+    workspace: str | None = None,
+    ws_channel: str | None = None,
     header_access_token: str | None = None,
     payload_access_token: str | None = None,
     storage_access_token: str | None = None,
@@ -99,6 +99,10 @@ def send_image_to_novavision(
     header_access_token = _env_required(header_access_token, "NOVAVISION_HEADER_ACCESS_TOKEN")
     payload_access_token = _env_required(payload_access_token, "NOVAVISION_PAYLOAD_ACCESS_TOKEN")
     storage_access_token = _env_required(storage_access_token, "NOVAVISION_STORAGE_ACCESS_TOKEN")
+    if workspace is None:
+        workspace = os.getenv("NOVAVISION_WORKSPACE", "934815ad542a4a7c5e8a2dfa04fea9f5")
+    if ws_channel is None:
+        ws_channel = os.getenv("NOVAVISION_WS_CHANNEL", "/ws/1057e5612fcf11af7978dccb280b07af")
 
     payload: dict[str, Any] = {
         "module": "Server",
@@ -146,7 +150,7 @@ def send_image_to_novavision(
                     },
                     "debug": "False",
                     "api": "False",
-                    "uID": "ZevSu2",
+                    "uID": "WBwm7R",
                 },
                 {
                     "type": "component",
@@ -187,21 +191,21 @@ def send_image_to_novavision(
                     },
                     "debug": "False",
                     "api": "False",
-                    "uID": "ulKkRn",
+                    "uID": "26SgzP",
                 },
             ],
             "connections": [
                 {
-                    "node": "ZevSu2",
-                    "nodeFrom": "ulKkRn",
+                    "node": "WBwm7R",
+                    "nodeFrom": "26SgzP",
                     "node_matching": {
                         "outputImage": "inputImage",
                     },
                 }
             ],
             "outputs": {
-                "ZevSu2-outputImage": "object",
-                "ulKkRn-outputImage": "object",
+                "26SgzP-outputImage": "object",
+                "WBwm7R-outputImage": "object",
             },
             "app": {
                 "access-token": storage_access_token,

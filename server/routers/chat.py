@@ -9,6 +9,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from supabase import Client
 
+from ai.novavision.inference import infer
+from ai.novavision.preprocessing import resolve_image_path
+from ai.novavision.schemas import InferenceRequest, InferenceResult
 from ai.puqai.schemas import NotificationRequest
 from auth.dependencies import get_org_context, require_permission
 from auth.models import OrgContext
@@ -190,6 +193,22 @@ async def chat_analyze(payload: dict[str, Any]) -> dict[str, Any]:
     if not image_name:
         raise HTTPException(status_code=400, detail="image_name is required")
 
+    novavision_result: InferenceResult | None = None
+    try:
+        image_path = resolve_image_path(image_name)
+        novavision_result = await infer(InferenceRequest(image_path=str(image_path)))
+        if novavision_result.raw_response and novavision_result.raw_response.get(
+            "normalized_image_path"
+        ):
+            logger.info(
+                "Novavision normalized image saved: %s",
+                novavision_result.raw_response["normalized_image_path"],
+            )
+    except (FileNotFoundError, ValueError) as e:
+        logger.warning("Novavision preprocessing skipped: %s", e)
+    except Exception as e:
+        logger.warning("Novavision preprocessing failed: %s", e)
+
     try:
         embedding_svc = _get_embedding_service()
         if not embedding_svc.model_loaded and not embedding_svc.load_model():
@@ -228,6 +247,20 @@ async def chat_analyze(payload: dict[str, Any]) -> dict[str, Any]:
         )
         if prediction and "error" not in prediction:
             result["prediction"] = prediction
+
+        if novavision_result:
+            result["novavision"] = {
+                "job_id": novavision_result.job_id,
+                "mock": novavision_result.mock,
+                "processing_time_ms": novavision_result.processing_time_ms,
+                "model_id": novavision_result.model_id,
+                "normalized_image_path": novavision_result.raw_response.get("normalized_image_path")
+                if novavision_result.raw_response
+                else None,
+                "node_statuses": novavision_result.raw_response.get("node_statuses")
+                if novavision_result.raw_response
+                else None,
+            }
 
         _fire_puqai_webhook(
             image_data=image_data,

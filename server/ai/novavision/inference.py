@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import logging
 import tempfile
 import time
 from pathlib import Path
@@ -11,6 +12,8 @@ from ai.novavision.config import NovaVisionSettings, get_novavision_settings
 from ai.novavision.image_request import resize_image_to_256, send_image_to_novavision_json
 from ai.novavision.preprocessing import preprocess_base64, preprocess_image
 from ai.novavision.schemas import InferenceRequest, InferenceResult
+
+logger = logging.getLogger(__name__)
 
 
 def _temporary_image_path(image_base64: str, mime_type: str) -> Path:
@@ -56,6 +59,24 @@ async def _infer_via_novavision_gateway(
         if source_image_path is None:
             image_path.unlink(missing_ok=True)
         resized_path.unlink(missing_ok=True)
+
+
+def _extract_node_output(node_data: dict, output_name: str = "outputImage") -> str | None:
+    try:
+        return node_data["configs"]["executor"]["value"]["value"]["outputs"][output_name]["value"][
+            "value"
+        ]
+    except (KeyError, TypeError):
+        return None
+
+
+def _save_base64_image(image_base64: str, output_dir: Path | None = None) -> Path:
+    output_dir = output_dir or Path(tempfile.gettempdir()) / "novavision_output"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"normalized_{uuid4().hex[:8]}.jpg"
+    image_bytes = base64.b64decode(image_base64)
+    output_path.write_bytes(image_bytes)
+    return output_path
 
 
 async def infer(
@@ -110,6 +131,19 @@ async def infer(
         if failed_nodes:
             raise ValueError(f"NovaVision gateway node failure: {failed_nodes}")
         elapsed = (time.perf_counter() - started) * 1000
+
+        normalized_image_base64 = None
+        normalized_image_path = None
+        for node_key in data:
+            if isinstance(data[node_key], dict):
+                extracted = _extract_node_output(data[node_key], "outputImage")
+                if extracted:
+                    normalized_image_base64 = extracted
+                    try:
+                        normalized_image_path = str(_save_base64_image(extracted))
+                    except Exception as exc:
+                        logger.warning("Failed to save normalized image: %s", exc)
+
         return InferenceResult(
             job_id=job_id,
             status="completed",
@@ -121,7 +155,14 @@ async def infer(
             model_id=model_id,
             mock=False,
             source_image=str(preprocessed.source_path) if preprocessed.source_path else None,
-            raw_response={"node_statuses": node_statuses, "gateway_response": data},
+            raw_response={
+                "node_statuses": node_statuses,
+                "gateway_response": data,
+                "normalized_image_path": normalized_image_path,
+                "normalized_image_base64_preview": normalized_image_base64[:80] + "..."
+                if normalized_image_base64
+                else None,
+            },
         )
 
     payload = {

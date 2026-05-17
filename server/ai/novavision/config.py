@@ -21,6 +21,9 @@ class NovaVisionSettings(BaseSettings):
     novavision_default_app_id: str = "mock-novavision-app"
     novavision_app_port: int = 3030
     novavision_timeout_seconds: float = 30.0
+    novavision_ws_channel: str = ""
+    novavision_workspace: str = ""
+    novavision_service: str = "diginova-wsl"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
