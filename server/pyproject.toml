@@ -68,7 +68,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["etl", "db", "routers", "services", "ai", "ai.anomalib", "ai.embeddings", "auth", "middleware"]
+known-first-party = ["etl", "db", "routers", "services", "ai", "ai.anomalib", "ai.embeddings", "auth", "errors", "middleware"]
 
 [tool.ruff.format]
 line-ending = "lf"
