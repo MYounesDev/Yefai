@@ -99,26 +99,25 @@ class PredictionService:
         self.scenario_projector = ScenarioProjector(critical_threshold_um)
         self.trend_analyzer = WearTrendAnalyzer(min_periods=3)
 
-    async def get_prediction(self, machine_id: str, org_id: str) -> dict:
+    async def get_prediction(self, machine_id: str, org_id: str | None = None) -> dict:
         """
         Get wear prediction for a specific machine.
 
         Args:
             machine_id: Machine/set identifier
-            org_id: Organization identifier
+            org_id: Organization identifier. When omitted, falls back to the legacy
+                unscoped query path used by older internal callers and tests.
 
         Returns:
             Dictionary with prediction data including scenarios and projections
         """
-        # Fetch anomaly data for this machine
-        response = (
-            self.supabase.table("anomalies")
-            .select("*")
-            .eq("org_id", org_id)
-            .eq("machine_id", machine_id)
-            .order("created_at", desc=False)
-            .execute()
-        )
+        # Fetch anomaly data for this machine. Keep org scoping for authenticated
+        # API paths, but preserve the legacy unscoped path for internal callers
+        # that do not have an OrgContext yet.
+        query = self.supabase.table("anomalies").select("*")
+        if org_id is not None:
+            query = query.eq("org_id", org_id)
+        response = query.eq("machine_id", machine_id).order("created_at", desc=False).execute()
 
         if not response.data:
             logger.warning(f"No anomaly data found for machine {machine_id}")
