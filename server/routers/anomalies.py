@@ -43,7 +43,7 @@ async def list_anomalies(
     if status:
         query = query.eq("status", status)
 
-    result = query.order("created_at", desc=True).range(offset, offset + limit - 1).execute()
+    result = query.order("detected_at", desc=True).range(offset, offset + limit - 1).execute()
     return {"anomalies": result.data or []}
 
 

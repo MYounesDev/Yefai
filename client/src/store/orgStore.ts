@@ -28,6 +28,8 @@ export const useOrgStore = create<OrgState>()(
         const membership = organizations.find((o) => o.org_id === orgId);
         if (membership) {
           set({ activeOrgId: orgId, activeRole: membership.role });
+        } else if (organizations.length > 0) {
+          set({ activeOrgId: organizations[0].org_id, activeRole: organizations[0].role });
         }
       },
     }),

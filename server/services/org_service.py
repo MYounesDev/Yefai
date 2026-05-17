@@ -170,14 +170,17 @@ class OrgService:
             # Fetch profile for each member
             profile: dict[str, Any] = {}
             if row.get("user_id"):
-                profile_result = (
-                    self.supabase.table("profiles")
-                    .select("full_name, avatar_url")
-                    .eq("id", row["user_id"])
-                    .maybe_single()
-                    .execute()
-                )
-                profile = profile_result.data or {}
+                try:
+                    profile_result = (
+                        self.supabase.table("profiles")
+                        .select("full_name, avatar_url")
+                        .eq("id", row["user_id"])
+                        .maybe_single()
+                        .execute()
+                    )
+                    profile = profile_result.data or {}
+                except Exception:
+                    profile = {}
 
             members.append(
                 {
@@ -208,7 +211,7 @@ class OrgService:
             .execute()
         )
 
-        if existing.data:
+        if existing and existing.data:
             if existing.data.get("status") == "active":
                 raise ValueError(f"{email} is already a member of this organization")
             # Re-invite if disabled/invited
@@ -217,13 +220,17 @@ class OrgService:
             ).execute()
             return {"message": f"Re-invitation sent to {email}", "role": role}
 
-        # Create invitation
+        # Create invitation with a unique placeholder user_id to avoid
+        # duplicate-key violations on the (org_id, user_id) constraint.
+        import uuid as _uuid
+
+        placeholder_uid = str(_uuid.uuid4())
         result = (
             self.supabase.table("org_members")
             .insert(
                 {
                     "org_id": org_id,
-                    "user_id": "00000000-0000-0000-0000-000000000000",  # placeholder until accepted
+                    "user_id": placeholder_uid,
                     "role": role,
                     "status": "invited",
                     "invited_email": email,

@@ -98,40 +98,93 @@ async function seedOrgMembers() {
 async function seedSuppliers() {
   logStep('🚚', 'Suppliers');
   const { error } = await supabase.from('suppliers').upsert([
-    { supplier_id: 'SUP-001', supplier_name: 'Bosch Industrial', reliability_score: 0.95, lead_time_p50: 3, lead_time_p90: 7, is_primary: true },
-    { supplier_id: 'SUP-002', supplier_name: 'Siemens Parts', reliability_score: 0.88, lead_time_p50: 5, lead_time_p90: 12, is_primary: false },
-    { supplier_id: 'SUP-003', supplier_name: 'ABB Components', reliability_score: 0.92, lead_time_p50: 4, lead_time_p90: 9, is_primary: false },
-    { supplier_id: 'SUP-004', supplier_name: 'Mitsubishi Electric', reliability_score: 0.90, lead_time_p50: 7, lead_time_p90: 14, is_primary: false },
+    { supplier_id: 'sup_001', supplier_name: 'GlobalTool GmbH', reliability_score: 0.85, lead_time_p50: 14, lead_time_p90: 21, is_primary: true },
+    { supplier_id: 'sup_002', supplier_name: 'HızlıParça A.Ş.', reliability_score: 0.72, lead_time_p50: 3, lead_time_p90: 5, is_primary: false },
+    { supplier_id: 'sup_003', supplier_name: 'PrecisionParts Ltd', reliability_score: 0.91, lead_time_p50: 21, lead_time_p90: 30, is_primary: true },
+    { supplier_id: 'sup_004', supplier_name: 'KES-Tedarik A.Ş.', reliability_score: 0.78, lead_time_p50: 28, lead_time_p90: 45, is_primary: true },
+    { supplier_id: 'sup_005', supplier_name: 'MakiTech Sanayi', reliability_score: 0.68, lead_time_p50: 12, lead_time_p90: 20, is_primary: false },
+    { supplier_id: 'sup_006', supplier_name: 'CutRight Tools', reliability_score: 0.88, lead_time_p50: 5, lead_time_p90: 8, is_primary: true },
+    { supplier_id: 'sup_007', supplier_name: 'Asya Makina Ltd.', reliability_score: 0.65, lead_time_p50: 5, lead_time_p90: 9, is_primary: false },
+    { supplier_id: 'sup_008', supplier_name: 'Tecnologia Italiana S.r.l.', reliability_score: 0.93, lead_time_p50: 18, lead_time_p90: 25, is_primary: true },
+    { supplier_id: 'sup_009', supplier_name: 'Nippon Precision KK', reliability_score: 0.97, lead_time_p50: 25, lead_time_p90: 35, is_primary: false },
+    { supplier_id: 'sup_010', supplier_name: 'Balkan Endüstri A.Ş.', reliability_score: 0.70, lead_time_p50: 8, lead_time_p90: 14, is_primary: false },
   ], { onConflict: 'supplier_id' });
   if (error) throw error;
-  logOk('4 suppliers upserted');
+  logOk('10 suppliers upserted');
 }
 
 async function seedSparePartsCatalog() {
   logStep('🔧', 'Spare Parts Catalog');
   const { error } = await supabase.from('spare_parts_catalog').upsert([
-    { part_id: 'P-100', part_name: 'Bearing Axis-X', criticality: 'A', demand_pattern: 'high', unit_cost: 45.0, lead_time_p50: 3, lead_time_p90: 7, min_stock: 20, max_stock: 100, org_id: ORG_1 },
-    { part_id: 'P-200', part_name: 'Servo Motor Y', criticality: 'A', demand_pattern: 'medium', unit_cost: 350.0, lead_time_p50: 5, lead_time_p90: 14, min_stock: 5, max_stock: 20, org_id: ORG_1 },
-    { part_id: 'P-300', part_name: 'Sensor Array Z', criticality: 'B', demand_pattern: 'low', unit_cost: 12.5, lead_time_p50: 2, lead_time_p90: 5, min_stock: 50, max_stock: 200, org_id: ORG_1 },
-    { part_id: 'P-400', part_name: 'Hydraulic Pump', criticality: 'A', demand_pattern: 'medium', unit_cost: 820.0, lead_time_p50: 10, lead_time_p90: 21, min_stock: 2, max_stock: 10, org_id: ORG_1 },
-    { part_id: 'P-500', part_name: 'Cooling Fan Belt', criticality: 'C', demand_pattern: 'low', unit_cost: 8.0, lead_time_p50: 1, lead_time_p90: 3, min_stock: 100, max_stock: 500, org_id: ORG_1 },
+    { part_id: 'p001', part_name: 'Insert Tip A-12', criticality: 'A', demand_pattern: 'high', unit_cost: 45.0, lead_time_p50: 14, lead_time_p90: 21, min_stock: 5, max_stock: 50, org_id: ORG_1 },
+    { part_id: 'p002', part_name: 'Spindle Bearing XR-9', criticality: 'A', demand_pattern: 'low', unit_cost: 320.0, lead_time_p50: 21, lead_time_p90: 35, min_stock: 2, max_stock: 10, org_id: ORG_1 },
+    { part_id: 'p003', part_name: 'Coolant Nozzle CN-4', criticality: 'B', demand_pattern: 'medium', unit_cost: 28.5, lead_time_p50: 7, lead_time_p90: 10, min_stock: 8, max_stock: 30, org_id: ORG_1 },
+    { part_id: 'p004', part_name: 'Tool Holder TH-7', criticality: 'A', demand_pattern: 'medium', unit_cost: 185.0, lead_time_p50: 10, lead_time_p90: 18, min_stock: 3, max_stock: 15, org_id: ORG_1 },
+    { part_id: 'p005', part_name: 'End Mill EM-16', criticality: 'B', demand_pattern: 'high', unit_cost: 62.0, lead_time_p50: 5, lead_time_p90: 8, min_stock: 10, max_stock: 40, org_id: ORG_1 },
+    { part_id: 'p006', part_name: 'Collet Chuck CC-20', criticality: 'B', demand_pattern: 'medium', unit_cost: 95.0, lead_time_p50: 12, lead_time_p90: 20, min_stock: 5, max_stock: 20, org_id: ORG_1 },
+    { part_id: 'p007', part_name: 'Drive Belt DB-3', criticality: 'C', demand_pattern: 'high', unit_cost: 18.0, lead_time_p50: 3, lead_time_p90: 5, min_stock: 15, max_stock: 50, org_id: ORG_1 },
+    { part_id: 'p008', part_name: 'Linear Guide LG-15', criticality: 'A', demand_pattern: 'low', unit_cost: 540.0, lead_time_p50: 28, lead_time_p90: 45, min_stock: 1, max_stock: 5, org_id: ORG_1 },
+    { part_id: 'p009', part_name: 'Servo Motor SM-4', criticality: 'A', demand_pattern: 'low', unit_cost: 1200.0, lead_time_p50: 18, lead_time_p90: 30, min_stock: 1, max_stock: 3, org_id: ORG_1 },
+    { part_id: 'p010', part_name: 'Proximity Sensor PS-8', criticality: 'B', demand_pattern: 'medium', unit_cost: 42.0, lead_time_p50: 6, lead_time_p90: 10, min_stock: 6, max_stock: 25, org_id: ORG_1 },
+    { part_id: 'p011', part_name: 'Rotary Encoder RE-6', criticality: 'B', demand_pattern: 'medium', unit_cost: 78.0, lead_time_p50: 9, lead_time_p90: 15, min_stock: 4, max_stock: 12, org_id: ORG_1 },
+    { part_id: 'p012', part_name: 'Hydraulic Seal HS-2', criticality: 'C', demand_pattern: 'high', unit_cost: 12.0, lead_time_p50: 2, lead_time_p90: 4, min_stock: 20, max_stock: 100, org_id: ORG_1 },
+    { part_id: 'p013', part_name: 'Ball Screw BS-20', criticality: 'A', demand_pattern: 'low', unit_cost: 890.0, lead_time_p50: 22, lead_time_p90: 40, min_stock: 2, max_stock: 8, org_id: ORG_1 },
+    { part_id: 'p014', part_name: 'Coolant Filter CF-1', criticality: 'C', demand_pattern: 'medium', unit_cost: 15.0, lead_time_p50: 3, lead_time_p90: 5, min_stock: 10, max_stock: 50, org_id: ORG_1 },
+    { part_id: 'p015', part_name: 'Tool Presetter TP-5', criticality: 'C', demand_pattern: 'low', unit_cost: 245.0, lead_time_p50: 8, lead_time_p90: 14, min_stock: 2, max_stock: 10, org_id: ORG_1 },
   ], { onConflict: 'part_id' });
   if (error) throw error;
-  logOk('5 spare parts upserted');
+  logOk('15 spare parts upserted');
 }
 
 async function seedSupplierParts() {
   logStep('🔗', 'Supplier ↔ Parts');
   const { error } = await supabase.from('supplier_parts').upsert([
-    { supplier_id: 'SUP-001', part_id: 'P-100', unit_cost: 45.0, lead_time_days: 3, is_preferred: true, org_id: ORG_1 },
-    { supplier_id: 'SUP-001', part_id: 'P-200', unit_cost: 360.0, lead_time_days: 6, is_preferred: false, org_id: ORG_1 },
-    { supplier_id: 'SUP-002', part_id: 'P-200', unit_cost: 350.0, lead_time_days: 7, is_preferred: true, org_id: ORG_1 },
-    { supplier_id: 'SUP-002', part_id: 'P-300', unit_cost: 13.0, lead_time_days: 3, is_preferred: true, org_id: ORG_1 },
-    { supplier_id: 'SUP-003', part_id: 'P-400', unit_cost: 810.0, lead_time_days: 9, is_preferred: true, org_id: ORG_1 },
-    { supplier_id: 'SUP-004', part_id: 'P-100', unit_cost: 48.0, lead_time_days: 8, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_001', part_id: 'p001', unit_cost: 45.0, lead_time_days: 14, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_001', part_id: 'p004', unit_cost: 185.0, lead_time_days: 14, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_001', part_id: 'p006', unit_cost: 95.0, lead_time_days: 14, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_001', part_id: 'p009', unit_cost: 1200.0, lead_time_days: 14, is_preferred: false, org_id: ORG_1 },
+    
+    { supplier_id: 'sup_002', part_id: 'p001', unit_cost: 51.75, lead_time_days: 3, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_002', part_id: 'p003', unit_cost: 32.77, lead_time_days: 3, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_002', part_id: 'p007', unit_cost: 20.7, lead_time_days: 3, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_002', part_id: 'p012', unit_cost: 13.8, lead_time_days: 3, is_preferred: true, org_id: ORG_1 },
+
+    { supplier_id: 'sup_003', part_id: 'p002', unit_cost: 384.0, lead_time_days: 21, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_003', part_id: 'p008', unit_cost: 648.0, lead_time_days: 21, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_003', part_id: 'p013', unit_cost: 1068.0, lead_time_days: 21, is_preferred: false, org_id: ORG_1 },
+
+    { supplier_id: 'sup_004', part_id: 'p008', unit_cost: 513.0, lead_time_days: 28, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_004', part_id: 'p013', unit_cost: 845.5, lead_time_days: 28, is_preferred: true, org_id: ORG_1 },
+
+    { supplier_id: 'sup_005', part_id: 'p004', unit_cost: 166.5, lead_time_days: 12, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_005', part_id: 'p006', unit_cost: 85.5, lead_time_days: 12, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_005', part_id: 'p008', unit_cost: 486.0, lead_time_days: 12, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_005', part_id: 'p015', unit_cost: 220.5, lead_time_days: 12, is_preferred: true, org_id: ORG_1 },
+
+    { supplier_id: 'sup_006', part_id: 'p005', unit_cost: 65.1, lead_time_days: 7, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_006', part_id: 'p010', unit_cost: 44.1, lead_time_days: 7, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_006', part_id: 'p014', unit_cost: 15.75, lead_time_days: 7, is_preferred: true, org_id: ORG_1 },
+
+    { supplier_id: 'sup_007', part_id: 'p003', unit_cost: 22.8, lead_time_days: 5, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_007', part_id: 'p005', unit_cost: 49.6, lead_time_days: 5, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_007', part_id: 'p007', unit_cost: 14.4, lead_time_days: 5, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_007', part_id: 'p010', unit_cost: 33.6, lead_time_days: 5, is_preferred: false, org_id: ORG_1 },
+
+    { supplier_id: 'sup_008', part_id: 'p009', unit_cost: 1560.0, lead_time_days: 18, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_008', part_id: 'p011', unit_cost: 101.4, lead_time_days: 18, is_preferred: true, org_id: ORG_1 },
+    { supplier_id: 'sup_008', part_id: 'p013', unit_cost: 1157.0, lead_time_days: 18, is_preferred: false, org_id: ORG_1 },
+
+    { supplier_id: 'sup_009', part_id: 'p002', unit_cost: 464.0, lead_time_days: 25, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_009', part_id: 'p009', unit_cost: 1740.0, lead_time_days: 25, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_009', part_id: 'p011', unit_cost: 113.1, lead_time_days: 25, is_preferred: false, org_id: ORG_1 },
+
+    { supplier_id: 'sup_010', part_id: 'p003', unit_cost: 21.37, lead_time_days: 8, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_010', part_id: 'p007', unit_cost: 13.5, lead_time_days: 8, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_010', part_id: 'p012', unit_cost: 9.0, lead_time_days: 8, is_preferred: false, org_id: ORG_1 },
+    { supplier_id: 'sup_010', part_id: 'p014', unit_cost: 11.25, lead_time_days: 8, is_preferred: false, org_id: ORG_1 },
   ], { onConflict: 'supplier_id,part_id,org_id' });
   if (error) throw error;
-  logOk('6 supplier-parts upserted');
+  logOk('34 supplier-parts upserted');
 }
 
 async function seedInventorySnapshots() {
@@ -143,14 +196,24 @@ async function seedInventorySnapshots() {
     return;
   }
   const { error } = await supabase.from('inventory_snapshots').insert([
-    { part_id: 'P-100', on_hand: 15, on_order: 50, min_level: 20, max_level: 100, org_id: ORG_1 },
-    { part_id: 'P-200', on_hand: 5, on_order: 10, min_level: 5, max_level: 20, org_id: ORG_1 },
-    { part_id: 'P-300', on_hand: 180, on_order: 0, min_level: 50, max_level: 200, org_id: ORG_1 },
-    { part_id: 'P-400', on_hand: 1, on_order: 3, min_level: 2, max_level: 10, org_id: ORG_1 },
-    { part_id: 'P-500', on_hand: 320, on_order: 0, min_level: 100, max_level: 500, org_id: ORG_1 },
+    { part_id: 'p001', on_hand: 2, on_order: 10, min_level: 5, max_level: 50, org_id: ORG_1 },
+    { part_id: 'p002', on_hand: 0, on_order: 2, min_level: 2, max_level: 10, org_id: ORG_1 },
+    { part_id: 'p003', on_hand: 12, on_order: 0, min_level: 8, max_level: 30, org_id: ORG_1 },
+    { part_id: 'p004', on_hand: 3, on_order: 5, min_level: 3, max_level: 15, org_id: ORG_1 },
+    { part_id: 'p005', on_hand: 18, on_order: 0, min_level: 10, max_level: 40, org_id: ORG_1 },
+    { part_id: 'p006', on_hand: 4, on_order: 5, min_level: 5, max_level: 20, org_id: ORG_1 },
+    { part_id: 'p007', on_hand: 25, on_order: 0, min_level: 15, max_level: 50, org_id: ORG_1 },
+    { part_id: 'p008', on_hand: 0, on_order: 1, min_level: 1, max_level: 5, org_id: ORG_1 },
+    { part_id: 'p009', on_hand: 1, on_order: 0, min_level: 1, max_level: 3, org_id: ORG_1 },
+    { part_id: 'p010', on_hand: 8, on_order: 0, min_level: 6, max_level: 25, org_id: ORG_1 },
+    { part_id: 'p011', on_hand: 3, on_order: 4, min_level: 4, max_level: 12, org_id: ORG_1 },
+    { part_id: 'p012', on_hand: 50, on_order: 0, min_level: 20, max_level: 100, org_id: ORG_1 },
+    { part_id: 'p013', on_hand: 1, on_order: 2, min_level: 2, max_level: 8, org_id: ORG_1 },
+    { part_id: 'p014', on_hand: 30, on_order: 0, min_level: 10, max_level: 50, org_id: ORG_1 },
+    { part_id: 'p015', on_hand: 2, on_order: 0, min_level: 2, max_level: 10, org_id: ORG_1 },
   ]);
   if (error) logWarn(`inventory_snapshots: ${error.message}`);
-  else logOk('5 inventory snapshots inserted');
+  else logOk('15 inventory snapshots inserted');
 }
 
 async function seedPartTickets() {
@@ -161,12 +224,21 @@ async function seedPartTickets() {
     return;
   }
   const { error } = await supabase.from('part_tickets').insert([
-    { part_id: 'P-100', status: 'waiting_part', quantity: 2, risk_level: 'at_risk', org_id: ORG_1 },
-    { part_id: 'P-200', status: 'waiting_part', quantity: 1, risk_level: 'critical', org_id: ORG_1 },
-    { part_id: 'P-400', status: 'waiting_part', quantity: 1, risk_level: 'watch', org_id: ORG_1 },
+    { part_id: 'p001', status: 'waiting_part', quantity: 1, risk_level: 'crisis', org_id: ORG_1 },
+    { part_id: 'p002', status: 'stockout', quantity: 1, risk_level: 'crisis', org_id: ORG_1 },
+    { part_id: 'p008', status: 'ordered', quantity: 1, risk_level: 'crisis', org_id: ORG_1 },
+    { part_id: 'p004', status: 'waiting_part', quantity: 1, risk_level: 'at_risk', org_id: ORG_1 },
+    { part_id: 'p006', status: 'planned', quantity: 1, risk_level: 'at_risk', org_id: ORG_1 },
+    { part_id: 'p011', status: 'planned', quantity: 1, risk_level: 'at_risk', org_id: ORG_1 },
+    { part_id: 'p013', status: 'waiting_part', quantity: 1, risk_level: 'at_risk', org_id: ORG_1 },
+    { part_id: 'p003', status: 'planned', quantity: 1, risk_level: 'watch', org_id: ORG_1 },
+    { part_id: 'p005', status: 'planned', quantity: 1, risk_level: 'watch', org_id: ORG_1 },
+    { part_id: 'p010', status: 'planned', quantity: 1, risk_level: 'watch', org_id: ORG_1 },
+    { part_id: 'p009', status: 'ordered', quantity: 1, risk_level: 'none', org_id: ORG_1 },
+    { part_id: 'p007', status: 'closed', quantity: 1, risk_level: 'none', org_id: ORG_1 },
   ]);
   if (error) logWarn(`part_tickets: ${error.message}`);
-  else logOk('3 part tickets inserted');
+  else logOk('12 part tickets inserted');
 }
 
 async function seedPurchaseOrders() {
@@ -177,11 +249,15 @@ async function seedPurchaseOrders() {
     return;
   }
   const { error } = await supabase.from('purchase_orders').insert([
-    { part_id: 'P-100', supplier_id: 'SUP-001', quantity: 50, status: 'ready_for_review', org_id: ORG_1 },
-    { part_id: 'P-200', supplier_id: 'SUP-002', quantity: 10, status: 'approved', org_id: ORG_1 },
+    { part_id: 'p001', supplier_id: 'sup_001', quantity: 10, status: 'ready_for_review', org_id: ORG_1 },
+    { part_id: 'p002', supplier_id: 'sup_003', quantity: 2, status: 'ready_for_review', org_id: ORG_1 },
+    { part_id: 'p008', supplier_id: 'sup_004', quantity: 1, status: 'ready_for_review', org_id: ORG_1 },
+    { part_id: 'p004', supplier_id: 'sup_001', quantity: 3, status: 'approved', org_id: ORG_1 },
+    { part_id: 'p005', supplier_id: 'sup_006', quantity: 20, status: 'approved', org_id: ORG_1 },
+    { part_id: 'p013', supplier_id: 'sup_003', quantity: 1, status: 'draft', org_id: ORG_1 },
   ]);
   if (error) logWarn(`purchase_orders: ${error.message}`);
-  else logOk('2 purchase orders inserted');
+  else logOk('6 purchase orders inserted');
 }
 
 async function seedSetsAndImages() {

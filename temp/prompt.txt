@@ -1,0 +1,63 @@
+
+nova-rag-langchain-puq-pipeline.md
+ 
+
+PROJECT.md
+  
+Your goal is to rewrite the frontend from the start 
+the languge of the website should be in turkish
+Redesign the complete website for The redesign must feel like a world-class
+🖥️ Yefai — Full Frontend Redesign Prompt:
+Completely rewrite and redesign the frontend from scratch for "Yefai" — a world-class B2B Predictive Maintenance AI Desktop Platform that monitors industrial tool wear in real time using multimodal AI (sensor data, camera imaging, acoustic signals). The redesign must feel like an award-winning, enterprise-grade AI dashboard (reference level: Linear.app, Vercel Dashboard, Grafana, Palantir AIP, and Awwwards SOTD winners).
+
+🎨 Theme & Visual Identity
+
+Choose a sophisticated, self-consistent dark or light theme that feels native to serious industrial AI software — no generic SaaS look
+The palette should evoke precision, intelligence, and trust — think deep neutrals, sharp accent colors, subtle glows
+Typography: Technical yet elegant — pair a strong display font for headings with a highly legible monospace or sans-serif for data/labels (e.g. GeistMono, Inter, IBM Plex)
+Mood: Mission-critical command center meets modern AI product — cinematic, data-dense, yet clean and navigable
+
+
+🏠 Landing / Home Dashboard Page
+
+Full-screen hero section with a live-feeling AI status overview: animated sensor streams, anomaly score meters, machine health indicators
+Cinematic 3D animated background: floating particle systems representing sensor data points, circuit-board light traces, or abstract industrial machinery in motion
+Smooth parallax scrolling with scroll-triggered section reveals
+Real-time data visualization preview: animated line graphs, heatmaps, and anomaly spike indicators that feel alive
+Bold headline communicating the core value: "Know before it breaks"
+Glowing CTA with magnetic hover effect
+
+
+✨ Animations & Effects (3D + Motion)
+
+GSAP / Framer Motion level animations: staggered text reveals, scroll-triggered fade-ins, smooth route transitions
+3D data visualizations using Three.js or Spline: rotating machine models, 3D sensor waveforms
+Particle effects or flowing data streams in hero backgrounds
+Magnetic hover on interactive elements and buttons
+Smooth morphing shape transitions between sections
+Loading screen with an animated Yefai logo reveal and AI boot-up sequence feel
+Micro-animations on every interactive element: toggles, alerts, cards, badges
+
+
+📄 Core Pages & Screens (consistent new theme)
+
+Main Dashboard: Dark command-center layout — live anomaly feed, machine health grid, active alerts panel, streaming WebSocket charts. Cards with subtle glow on anomaly state. Real-time sensor graphs with smooth animation
+Anomaly Detection View: Split-screen — camera feed / image anomaly heatmap overlay on the left, sensor time-series chart on the right. Confidence scores with animated progress rings. Anomaly classification badge with color-coded severity
+RAG Chatbot Panel: Sleek side-panel or full-page AI assistant interface. Streaming text response animation. Inline image thumbnails of product/tool visuals in chat. Table rendering inside chat bubbles. Typing indicator and smooth message transitions
+Spare Parts & Inventory (Mock Crisis Layer): Data table with sortable columns, stock level progress bars, lead time indicators, automated PO suggestion cards with approve/reject actions and smooth slide animations
+Notifications & Alerts Center: Timeline view of all triggered alerts (Telegram / Email / SMS / Web). Status badges, escalation chain visualization, animated incoming alert toasts
+Settings / Configuration: Clean form layout with toggle switches, API key fields, webhook URL inputs, notification channel toggles — all with smooth interaction states
+
+Design system built in Figma with Auto Layout, Variables, and Component Sets — fully scalable
+Use Figma Community advanced dark AI/SaaS UI kits as a baseline, then customize heavily
+Prototype all key interactions in Figma using Smart Animate and Advanced Prototyping
+Charts & graphs: Recharts or D3.js with custom animated themes
+Reference: Awwwards-winning dashboards, Dribbble dark AI UI 2024–2025, Linear.app interaction quality
+make it mobile reposable web app too
+
+hem dark mode olucak light mode olucak 
+Three.js animasyonlarında spesifik bir beklenti yok
+
+evet API entegrasyonlarını doğrudan bağla 
+son geliştirmeye başla
+

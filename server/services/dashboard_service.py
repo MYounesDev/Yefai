@@ -27,7 +27,7 @@ class DashboardService:
         # 1. Anomalies Overview
         anomalies_res = (
             self.supabase.table("anomalies")
-            .select("id, machine_id, score, wear_type, severity, status, created_at, wear")
+            .select("id, machine_id, score, wear_type, severity, status, detected_at, estimated_wear_um")
             .eq("org_id", org_id)
             .execute()
         )
@@ -40,12 +40,12 @@ class DashboardService:
             if isinstance(status, str) and status in ("new", "reviewed"):
                 active_anomalies += 1
 
-        total_wear = sum((float(anomaly.get("wear") or 0) for anomaly in anomalies), 0.0)
+        total_wear = sum((float(anomaly.get("estimated_wear_um") or 0) for anomaly in anomalies), 0.0)
         avg_wear_um = total_wear / total_anomalies if total_anomalies > 0 else 0.0
 
         recent_anomalies = sorted(
             anomalies,
-            key=lambda x: x.get("created_at", ""),
+            key=lambda x: x.get("detected_at", ""),
             reverse=True,
         )[:5]
 

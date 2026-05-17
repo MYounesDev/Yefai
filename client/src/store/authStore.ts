@@ -56,11 +56,9 @@ export const useAuthStore = create<AuthState>()(
           const user = await getCurrentUser() as UserWithOrgs;
           set({ user, isAuthenticated: true, isLoading: false });
           if (user.organizations.length > 0) {
-            const { setOrganizations, activeOrgId } = useOrgStore.getState();
+            const { setOrganizations, activeOrgId, switchOrg } = useOrgStore.getState();
             setOrganizations(user.organizations);
-            if (!activeOrgId) {
-              useOrgStore.getState().switchOrg(user.organizations[0].org_id);
-            }
+            switchOrg(activeOrgId || user.organizations[0].org_id);
           }
         } catch {
           set({ token: null, isAuthenticated: false, isLoading: false });
