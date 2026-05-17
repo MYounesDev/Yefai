@@ -185,7 +185,7 @@ Bu işlemler otomatik değildir. İlgili faz başlamadan önce tamamlanmış olm
 
 ---
 
-## Phase 3B: PUQ AI Bildirim & Yedek Parça Krizi Otomasyonu ∥
+## Phase 3B: PUQ AI Bildirim & Yedek Parça Krizi Otomasyonu ∥ ✅ IMPLEMENTED (backend mock-mode, 2026-05-17)
 
 **Amaç:** Anomali tespitinde PUQ AI webhook tetikleme, çok kanallı bildirim, yedek parça krizi otomasyonu (skor, PO, alternatif tedarikçi).
 
@@ -216,10 +216,13 @@ Bu işlemler otomatik değildir. İlgili faz başlamadan önce tamamlanmış olm
   - `GET /api/spare-parts/crisis-score/{image_id}` — kriz skoru hesapla
   - `POST /api/spare-parts/auto-order` — otomatik PO oluştur
   - `GET /api/spare-parts/alternative-suppliers/{part_id}` — alternatif tedarikçi öner
+  - `POST /api/spare-parts/crisis-workflow` — prediction + crisis + purchase_order + alternative_suppliers + notification tek payload
 
 **Bağımlılıklar:** Phase 2B (inference), G3 (PUQ AI webhook URL'leri)
 **Deliverable:** Çalışan bildirim sistemi, yedek parça krizi otomasyonu, FastAPI endpoint'leri
 **Tahmini süre:** 1.5 hafta
+
+**Durum — 2026-05-17:** Backend mock-mode contract uygulandı ve test edildi. PUQ AI webhook client/config/schema/template engine, retry queue, fallback, notification service, kriz skoru, mock PO, alternatif tedarikçi servisi, tek çağrılık `/api/spare-parts/crisis-workflow` orchestration endpoint'i ve `/api/notifications/*` + `/api/spare-parts/*` router'ları mevcut. G3 gerçek PUQ AI webhook URL'leri olmadığı için Telegram/E-posta/SMS live kanal gönderimi manuel gate olarak açık bırakıldı. Detay: `.planning/phases/03b-puqai-kriz/SUMMARY.md` ve `03b-VALIDATION.md`.
 
 ---
 
@@ -337,4 +340,4 @@ RAG Pipeline        PUQ AI + Kriz
 
 ---
 
-*Last updated: 2026-05-16 — Phase 2B mock-mode NovaVision contract durumu ve G2 kalan işleri işlendi*
+*Last updated: 2026-05-17 — Phase 3B backend mock-mode PUQ AI + yedek parça krizi contract durumu, birleşik crisis workflow endpoint'i ve G3 live gate işlendi*

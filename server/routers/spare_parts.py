@@ -13,7 +13,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from supabase import Client
 
 # Main file imports
-from ai.puqai.schemas import AutoOrderRequest, CrisisScoreResponse
+from ai.puqai.schemas import (
+    AutoOrderRequest,
+    CrisisScoreResponse,
+    CrisisWorkflowRequest,
+    CrisisWorkflowResponse,
+)
 
 # ABC file imports
 from auth.dependencies import get_org_context, require_permission
@@ -29,6 +34,7 @@ from services.purchase_order_service import (
     get_purchase_orders,
     update_po_status,
 )
+from services.spare_parts_workflow_service import SparePartsWorkflowService
 from services.supplier_service import find_alternatives
 
 logger = logging.getLogger(__name__)
@@ -88,6 +94,12 @@ def _get_crisis_service(supabase: Client = Depends(get_supabase_client)) -> Cris
     return CrisisService(supabase)
 
 
+def _get_workflow_service(
+    supabase: Client | None = Depends(get_supabase_client),
+) -> SparePartsWorkflowService:
+    return SparePartsWorkflowService(supabase)
+
+
 # ── Crisis Dashboard ───────────────────────────────────────────
 
 
@@ -124,6 +136,21 @@ async def get_crisis_score(
         raise
     except Exception as e:
         logger.exception("Failed to calculate crisis score")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.post("/crisis-workflow", response_model=CrisisWorkflowResponse)
+async def run_crisis_workflow(
+    request: CrisisWorkflowRequest,
+    service: SparePartsWorkflowService = Depends(_get_workflow_service),
+) -> dict[str, Any]:
+    """Run prediction, crisis score, mock PO, supplier, and PUQ AI workflow."""
+    try:
+        return await service.run(request)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        logger.exception("Failed to run spare-parts crisis workflow")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

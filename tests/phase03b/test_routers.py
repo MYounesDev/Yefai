@@ -63,6 +63,50 @@ class TestAutoOrder:
             assert "po" in data
 
 
+class TestCrisisWorkflow:
+    def test_workflow_without_po_or_notification(self, client):
+        response = client.post(
+            "/api/spare-parts/crisis-workflow",
+            json={
+                "image_id": 94,
+                "machine_id": "Set3",
+                "anomaly_score": 0.92,
+                "hours_to_critical": 16,
+                "auto_order": False,
+                "notify": False,
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["machine_id"] == "Set3"
+        assert data["prediction"]["hours_to_critical"] == 16
+        assert data["crisis"]["risk_level"] in {"watch", "at_risk", "crisis"}
+        assert data["purchase_order"]["created"] is False
+        assert data["notification"]["sent"] is False
+        assert "alternative_suppliers" in data
+
+    def test_workflow_creates_mock_po_for_crisis(self, client):
+        response = client.post(
+            "/api/spare-parts/crisis-workflow",
+            json={
+                "image_id": 94,
+                "machine_id": "Set3",
+                "anomaly_score": 0.99,
+                "hours_to_critical": 1,
+                "auto_order": True,
+                "notify": False,
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["crisis"]["needs_auto_order"] is True
+        assert data["purchase_order"]["created"] in {True, False}
+        if data["purchase_order"]["created"]:
+            assert data["purchase_order"]["po"]["status"] == "ready_for_review"
+        else:
+            assert data["purchase_order"]["reason"] == "duplicate_order_prevented"
+
+
 class TestAlternativeSuppliers:
     def test_alternatives(self, client):
         response = client.get("/api/spare-parts/alternative-suppliers/1")
