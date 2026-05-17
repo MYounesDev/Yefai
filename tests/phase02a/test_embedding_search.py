@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 
 from ai.embeddings.search import cosine_similarity

@@ -5,7 +5,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "server"))
 
-import pytest
 
 from services.crisis_service import CrisisResult, calculate_crisis_score
 

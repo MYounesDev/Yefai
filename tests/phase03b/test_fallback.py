@@ -5,9 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "server"))
 
-import platform
 
-import pytest
 
 from ai.puqai.fallback import send_os_notification
 
