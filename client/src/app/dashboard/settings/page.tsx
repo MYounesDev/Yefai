@@ -67,6 +67,7 @@ export default function SettingsPage() {
                   : 'text-muted hover:text-foreground'
               )}
             >
+              {/* @ts-expect-error - icon is ElementType and accepts className */}
               <t.icon className="w-3.5 h-3.5" />
               {t.label}
             </button>

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Loader2, MessageSquare, Plus, Sparkles } from 'lucide-react';
-import { sendChatMessage, getChatSessions } from '@/services/api';
+import { sendChatMessage } from '@/services/api';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -40,7 +40,7 @@ export default function ChatbotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async (text?: string) => {
+  const handleSend = useCallback(async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText || isLoading) return;
 
@@ -77,7 +77,7 @@ export default function ChatbotPage() {
       setIsLoading(false);
       inputRef.current?.focus();
     }
-  };
+  }, [input, isLoading]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">

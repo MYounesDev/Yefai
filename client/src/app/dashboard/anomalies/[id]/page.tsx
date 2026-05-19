@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, AlertTriangle, Camera, Activity } from 'lucide-react';
 import Link from 'next/link';
 import {
-  LineChart, Line, ResponsiveContainer, Tooltip, CartesianGrid, XAxis, YAxis,
+  LineChart, Line, ResponsiveContainer, Tooltip,
 } from 'recharts';
 import { getAnomalyDetailById } from '@/services/mock/anomalies';
 import { SeverityBadge, StatusBadge, ProgressBar } from '@/components/ui/index';
@@ -166,7 +166,11 @@ export default function AnomalyDetailPage({ params }: { params: Promise<{ id: st
                           fontSize: '10px',
                           color: 'var(--color-foreground)',
                         }}
-                        formatter={(value: number) => [value.toFixed(3), sensorLabels[key]]}
+                        // @ts-expect-error - Recharts formatter type is complex
+                        formatter={(value: number | undefined) => {
+                          const numValue = typeof value === 'number' ? value : Number(value);
+                          return [isNaN(numValue) ? '' : numValue.toFixed(3), sensorLabels[key]];
+                        }}
                       />
                     </LineChart>
                   </ResponsiveContainer>

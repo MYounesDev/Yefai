@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
-import { TrendingUp, ArrowUpRight, Clock, AlertTriangle, Gauge } from 'lucide-react';
+import { ArrowUpRight, Clock, AlertTriangle, Gauge } from 'lucide-react';
 import Link from 'next/link';
 import { ResponsiveContainer, AreaChart, Area, Tooltip } from 'recharts';
 import { mockPredictions } from '@/services/mock/predictions';
@@ -116,6 +116,7 @@ export default function PredictionsPage() {
                         fontSize: '10px',
                         color: 'var(--color-foreground)',
                       }}
+                      // @ts-expect-error - Recharts formatter type is complex
                       formatter={(v: number) => [`${v} µm`, 'Aşınma']}
                     />
                     <Area

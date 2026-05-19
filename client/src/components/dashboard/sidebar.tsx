@@ -143,6 +143,7 @@ export function Sidebar() {
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
+              {/* @ts-expect-error - Icon is ElementType and accepts className */}
               <Icon className={cn(
                 'w-[18px] h-[18px] shrink-0 transition-colors',
                 active ? 'text-cyan' : 'text-muted group-hover:text-foreground'

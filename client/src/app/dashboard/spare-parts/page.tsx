@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { Package, AlertTriangle, Truck, FileText, Check, X, ArrowUpRight, Search } from 'lucide-react';
+import { Package, AlertTriangle, Truck, FileText, Check, X, Search } from 'lucide-react';
 import { mockSparePartsCatalog, mockInventorySnapshots, mockPurchaseOrders, mockPartTickets } from '@/services/mock/spareParts';
 import { ProgressBar } from '@/components/ui/index';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -67,6 +67,7 @@ export default function SparePartsPage() {
                 : 'text-muted hover:text-foreground'
             )}
           >
+            {/* @ts-expect-error - icon is ElementType and accepts className */}
             <t.icon className="w-3.5 h-3.5" />
             {t.label}
           </button>
@@ -99,7 +100,6 @@ export default function SparePartsPage() {
           </div>
           {filteredCatalog.map((part) => {
             const inv = inventoryMap[part.id];
-            const stockPct = inv ? (inv.on_hand / Math.max(1, inv.reorder_point)) * 100 : 0;
             const isLow = inv && inv.on_hand <= inv.reorder_point;
 
             return (

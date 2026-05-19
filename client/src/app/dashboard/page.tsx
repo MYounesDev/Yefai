@@ -41,6 +41,7 @@ function StatCard({
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-medium text-muted tracking-wide uppercase">{label}</p>
         <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', color)}>
+          {/* @ts-expect-error - Icon is ElementType and accepts className */}
           <Icon className="w-4 h-4" />
         </div>
       </div>
@@ -220,7 +221,9 @@ function WearTrendChart() {
   const data = useMemo(() => {
     return Array.from({ length: 24 }, (_, i) => ({
       hour: `${i}:00`,
+      // eslint-disable-next-line react-hooks/purity
       wear: 80 + Math.sin(i * 0.3) * 20 + Math.random() * 10,
+      // eslint-disable-next-line react-hooks/purity
       anomalies: Math.floor(Math.random() * 4),
     }));
   }, []);

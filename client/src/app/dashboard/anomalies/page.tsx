@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion, type Variants } from 'framer-motion';
-import { AlertTriangle, Search, Filter, ArrowUpRight } from 'lucide-react';
+import { Search, Filter, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { mockAnomalies } from '@/services/mock/anomalies';
 import { SeverityBadge, StatusBadge, StatusDot } from '@/components/ui/index';

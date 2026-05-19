@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { Bell, Mail, MessageSquare, Smartphone, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 import { mockNotificationLogs } from '@/services/mock/notifications';
-import { StatusDot } from '@/components/ui/index';
 import { cn, formatRelativeTime } from '@/lib/utils';
 
 const stagger: { container: Variants; item: Variants } = {
@@ -107,8 +106,8 @@ export default function NotificationsPage() {
             </motion.h3>
             <div className="space-y-2">
               {logs.map((log) => {
-                const ChannelIcon = channelIcons[log.channel] || Bell;
-                const StatusIcon = statusIcons[log.status] || Clock;
+                const ChannelIcon = (channelIcons[log.channel] || Bell) as React.ComponentType<{ className?: string }>;
+                const StatusIcon = (statusIcons[log.status] || Clock) as React.ComponentType<{ className?: string }>;
 
                 return (
                   <motion.div
