@@ -90,6 +90,10 @@
 }
 
 html {
+  background: var(--color-background);
+}
+
+html {
   scroll-behavior: smooth;
 }
 
