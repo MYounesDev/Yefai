@@ -16,12 +16,12 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'Yefai — Kestirimci Bakım Platformu', template: '%s | Yefai' },
-  description: 'Yapay zeka destekli kestirimci bakım. Gerçek zamanlı anomali tespiti, akıllı yedek parça yönetimi ve endüstriyel IoT izleme.',
-  keywords: ['kestirimci bakım', 'yapay zeka', 'anomali tespiti', 'üretim', 'CNC', 'endüstriyel IoT'],
+  title: { default: 'Yefai — AI Predictive Maintenance Platform', template: '%s | Yefai' },
+  description: 'Industry 4.0 predictive maintenance powered by multimodal AI. Real-time tool wear detection, failure forecasting, and automated spare parts procurement.',
+  keywords: ['predictive maintenance', 'AI', 'tool wear detection', 'Industry 4.0', 'CNC', 'machine learning', 'computer vision', 'IoT'],
   openGraph: {
-    title: 'Yefai — Kestirimci Bakım Platformu',
-    description: 'Yapay zeka destekli kestirimci bakım platformu.',
+    title: 'Yefai — AI Predictive Maintenance Platform',
+    description: 'Know before it breaks. Yefai fuses computer vision, acoustic sensors, and AI to detect tool wear in real time.',
     type: 'website',
   },
 };
@@ -35,8 +35,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="tr"
-      className={`${inter.variable} ${spaceGrotesk.variable} antialiased`}
+      lang="en"
+      className={`${inter.variable} ${spaceGrotesk.variable} antialiased bg-background`}
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background text-foreground">
