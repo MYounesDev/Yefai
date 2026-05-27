@@ -7,9 +7,9 @@ import { Cpu, Menu, X } from 'lucide-react';
 
 const navLinks = [
   { label: 'Platform', href: '#features' },
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Docs', href: '#' },
+  { label: 'Nasıl Çalışır', href: '#how-it-works' },
+  { label: 'Fiyatlandırma', href: '#pricing' },
+  { label: 'Dokümanlar', href: '#' },
 ];
 
 export function Navbar() {
@@ -62,13 +62,13 @@ export function Navbar() {
               href="/login"
               className="px-4 py-2 rounded-lg text-sm font-medium text-muted hover:text-foreground transition-colors"
             >
-              Sign In
+              Giriş Yap
             </Link>
             <Link
               href="/login"
               className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-cyan text-background hover:brightness-110 transition-all active:scale-95 shadow-[0_0_20px_rgba(0,212,255,0.25)]"
             >
-              Request Demo
+              Demo Talep Et
             </Link>
           </div>
 
@@ -104,10 +104,10 @@ export function Navbar() {
           ))}
           <div className="flex gap-3 pt-2">
             <Link href="/login" className="flex-1 py-3 rounded-xl text-sm font-medium text-center border border-border hover:bg-surface-2 transition-all">
-              Sign In
+              Giriş Yap
             </Link>
             <Link href="/login" className="flex-1 py-3 rounded-xl text-sm font-semibold text-center bg-cyan text-background transition-all">
-              Request Demo
+              Demo Talep Et
             </Link>
           </div>
         </div>

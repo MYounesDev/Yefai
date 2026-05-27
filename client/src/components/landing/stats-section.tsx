@@ -4,10 +4,10 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const stats = [
-  { value: '99.7%', label: 'Anomaly Detection Accuracy', color: 'text-cyan' },
-  { value: '<50ms', label: 'Real-Time Inference Latency', color: 'text-violet' },
-  { value: '8+', label: 'Sensor Modalities Fused', color: 'text-amber' },
-  { value: '40%', label: 'Reduction in Downtime', color: 'text-emerald' },
+  { value: '99.7%', label: 'Anomali Tespit Doğruluğu', color: 'text-cyan' },
+  { value: '<50ms', label: 'Gerçek Zamanlı Çıkarım Gecikmesi', color: 'text-violet' },
+  { value: '8+', label: 'Farklı Sensör Modeli Birleşimi', color: 'text-amber' },
+  { value: '40%', label: 'Duruş Süresinde Azalma', color: 'text-emerald' },
 ];
 
 const logos = [
@@ -63,7 +63,7 @@ export function StatsSection() {
           className="text-center"
         >
           <motion.p variants={fadeUp} custom={0} className="text-xs text-muted/60 tracking-[0.2em] uppercase font-mono mb-6">
-            Trusted by manufacturing leaders worldwide
+            Dünya çapındaki üretim liderleri tarafından güveniliyor
           </motion.p>
           <motion.div variants={fadeUp} custom={1} className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
             {logos.map((logo) => (

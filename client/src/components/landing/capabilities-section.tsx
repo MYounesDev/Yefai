@@ -5,28 +5,28 @@ import { motion, useInView } from 'framer-motion';
 
 const capabilities = [
   {
-    title: 'Anomaly Detection',
+    title: 'Anomali Tespiti',
     description:
-      'Real-time sub-millisecond anomaly detection across every sensor stream. Identifies deviations before they propagate.',
+      'Her sensör akışında saniyenin altında gerçek zamanlı anomali tespiti. Sapmaları yayılmadan önce tespit eder.',
     image:
       'https://readdy.ai/api/search-image?query=Close-up of industrial CNC machine sensors and monitoring equipment with glowing cyan LED indicators in a dark high-tech factory environment, cinematic lighting, dark background with subtle grid lines, ultra-premium manufacturing aesthetic&width=600&height=800&seq=1&orientation=portrait',
-    status: 'LIVE',
+    status: 'CANLI',
   },
   {
-    title: 'Wear Prediction',
+    title: 'Aşınma Tahmini',
     description:
-      'Predictive modeling that forecasts tool degradation, surface finish decay, and optimal replacement windows.',
+      'Takım bozulmasını, yüzey kalitesi kaybını ve optimum değiştirme aralıklarını öngören kestirimci modelleme.',
     image:
       'https://readdy.ai/api/search-image?query=Macro photography of precision cutting tool tip with microscopic wear patterns visible, dark industrial background with cyan and violet accent lighting, ultra sharp detail, premium manufacturing aesthetic, cinematic depth of field&width=600&height=800&seq=2&orientation=portrait',
-    status: 'PREDICTIVE',
+    status: 'KESTİRİMCİ',
   },
   {
-    title: 'Crisis Scoring',
+    title: 'Kriz Puanlama',
     description:
-      'Intelligent spare-parts inventory scoring that predicts supply-chain disruptions and flags critical shortage risks.',
+      'Tedarik zinciri kesintilerini tahmin eden ve kritik eksiklik risklerini işaretleyen akıllı yedek parça envanter analizi.',
     image:
       'https://readdy.ai/api/search-image?query=Industrial crisis management dashboard interface with glowing red and amber alert indicators on dark background, holographic data overlays, supply chain visualization nodes connected by light lines, premium dark UI aesthetic&width=600&height=800&seq=3&orientation=portrait',
-    status: 'CRITICAL',
+    status: 'KRİTİK',
   },
 ];
 
@@ -57,13 +57,13 @@ export default function Capabilities() {
           className="mb-16 md:mb-20"
         >
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-            Platform Capabilities
+            Platform Yetenekleri
             <span className="inline-block ml-3 text-cyan-400 text-2xl md:text-4xl align-middle">
               <i className="ri-focus-3-line" />
             </span>
           </h2>
           <p className="mt-4 text-base md:text-lg text-white/35 max-w-xl font-light">
-            Three core pillars of autonomous manufacturing intelligence. Each deployed at machine speed, each trained on industrial-scale telemetry.
+            Otonom üretim zekasının üç temel direği. Her biri makine hızında devreye alındı, her biri endüstriyel ölçekteki telemetri verileriyle eğitildi.
           </p>
         </motion.div>
 
@@ -103,18 +103,18 @@ export default function Capabilities() {
                 <div className="absolute top-5 right-5 z-20">
                   <span
                     className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] tracking-widest uppercase font-semibold border backdrop-blur-sm ${
-                      cap.status === 'LIVE'
+                      cap.status === 'CANLI'
                         ? 'bg-emerald-500/10 border-emerald-400/30 text-emerald-400'
-                        : cap.status === 'PREDICTIVE'
+                        : cap.status === 'KESTİRİMCİ'
                         ? 'bg-cyan-500/10 border-cyan-400/30 text-cyan-400'
                         : 'bg-amber-500/10 border-amber-400/30 text-amber-400'
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        cap.status === 'LIVE'
+                        cap.status === 'CANLI'
                           ? 'bg-emerald-400 animate-pulse'
-                          : cap.status === 'PREDICTIVE'
+                          : cap.status === 'KESTİRİMCİ'
                           ? 'bg-cyan-400 animate-pulse'
                           : 'bg-amber-400 animate-pulse'
                       }`}
@@ -146,7 +146,7 @@ export default function Capabilities() {
                       transition={{ duration: 0.4 }}
                       className="mt-5 flex items-center gap-2"
                     >
-                      <span className="text-sm font-medium text-cyan-400">Learn more</span>
+                      <span className="text-sm font-medium text-cyan-400">Daha fazla bilgi</span>
                       <i className="ri-arrow-right-line text-cyan-400 text-sm" />
                     </motion.div>
                   )}

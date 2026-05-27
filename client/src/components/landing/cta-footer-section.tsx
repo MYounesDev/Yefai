@@ -16,19 +16,19 @@ const fadeUp = {
 const footerLinks = [
   {
     heading: 'Platform',
-    links: ['NovaVision AI', 'Predictive Forecasting', 'Crisis Score', 'Procurement Automation', 'Analytics Chatbot'],
+    links: ['NovaVision AI', 'Kestirimci Tahmin', 'Kriz Skoru', 'Tedarik Otomasyonu', 'Analitik Sohbet Robotu'],
   },
   {
-    heading: 'Company',
-    links: ['About', 'Blog', 'Careers', 'Press', 'Contact'],
+    heading: 'Şirket',
+    links: ['Hakkımızda', 'Blog', 'Kariyer', 'Basın', 'İletişim'],
   },
   {
-    heading: 'Resources',
-    links: ['Documentation', 'API Reference', 'Changelog', 'Status', 'Security'],
+    heading: 'Kaynaklar',
+    links: ['Dokümantasyon', 'API Referansı', 'Değişiklikler', 'Durum', 'Güvenlik'],
   },
   {
-    heading: 'Legal',
-    links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'GDPR'],
+    heading: 'Yasal',
+    links: ['Gizlilik Politikası', 'Hizmet Şartları', 'Çerez Politikası', 'GDPR / KVKK'],
   },
 ];
 
@@ -55,7 +55,7 @@ export function CtaFooterSection() {
             <motion.div variants={fadeUp} custom={0} className="inline-flex mb-6">
               <div className="relative p-px rounded-2xl bg-gradient-to-r from-cyan/40 via-violet/20 to-cyan/40">
                 <div className="px-5 py-2.5 rounded-[calc(1rem-1px)] bg-background text-xs font-mono text-cyan tracking-widest uppercase">
-                  Ready to transform your factory?
+                  Fabrikanızı dönüştürmeye hazır mısınız?
                 </div>
               </div>
             </motion.div>
@@ -65,9 +65,9 @@ export function CtaFooterSection() {
               custom={1}
               className="text-4xl sm:text-6xl font-heading font-bold mb-6 text-balance leading-tight"
             >
-              Stop Reacting.
+              Tepki Vermeyi Bırakın.
               <br />
-              <span className="text-gradient">Start Predicting.</span>
+              <span className="text-gradient">Tahmin Etmeye Başlayın.</span>
             </motion.h2>
 
             <motion.p
@@ -75,8 +75,8 @@ export function CtaFooterSection() {
               custom={2}
               className="text-muted text-lg leading-relaxed mb-10 max-w-xl mx-auto"
             >
-              Join manufacturers who reduced unplanned downtime by 40% in their first quarter with Yefai.
-              Request a live demo tailored to your production environment.
+              Yefai ile ilk çeyreklerinde planlanmamış duruş süresini %40 oranında azaltan üreticilere katılın.
+              Üretim ortamınıza özel canlı demo talep edin.
             </motion.p>
 
             <motion.div
@@ -88,14 +88,14 @@ export function CtaFooterSection() {
                 href="/login"
                 className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-semibold bg-cyan text-background hover:brightness-110 transition-all active:scale-95 shadow-[0_0_40px_rgba(0,212,255,0.35)]"
               >
-                Request Live Demo
+                Canlı Demo Talep Et
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="#features"
                 className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-medium border border-border-strong hover:border-cyan/30 hover:bg-surface-2 text-foreground transition-all active:scale-95"
               >
-                Explore Platform
+                Platformu Keşfet
               </Link>
             </motion.div>
 
@@ -105,7 +105,7 @@ export function CtaFooterSection() {
               custom={4}
               className="flex flex-wrap gap-6 justify-center mt-10 text-xs text-muted/60 font-mono"
             >
-              {['No credit card required', 'SOC 2 Type II', 'GDPR compliant', '30-day pilot free'].map((t) => (
+              {['Kredi kartı gerekmez', 'SOC 2 Type II', 'KVKK/GDPR uyumlu', 'Ücretsiz 30-gün pilot'].map((t) => (
                 <span key={t} className="flex items-center gap-1.5">
                   <span className="w-1 h-1 rounded-full bg-cyan/50" />
                   {t}
@@ -134,7 +134,7 @@ export function CtaFooterSection() {
                 </span>
               </Link>
               <p className="text-sm text-muted leading-relaxed max-w-[220px] mb-6">
-                Industry 4.0 predictive maintenance platform powered by multimodal AI.
+                Çok modlu yapay zeka tarafından desteklenen Endüstri 4.0 kestirimci bakım platformu.
               </p>
               {/* Social icons */}
               <div className="flex items-center gap-3">
@@ -175,11 +175,11 @@ export function CtaFooterSection() {
           <div className="border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-xs text-muted/50 font-mono">
               <Globe className="w-3.5 h-3.5" />
-              <span>© 2026 Yefai Technologies. All rights reserved.</span>
+              <span>© 2026 Yefai Technologies. Tüm hakları saklıdır.</span>
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-mono text-muted/40">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse" />
-              All systems operational
+              Tüm sistemler çalışıyor
             </div>
           </div>
         </div>

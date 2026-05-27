@@ -6,56 +6,56 @@ import { Check, Zap } from 'lucide-react';
 
 const plans = [
   {
-    name: 'Starter',
-    price: 'Custom',
-    period: 'per site / mo',
-    tagline: 'For pilot programs and single-line deployments',
+    name: 'Başlangıç',
+    price: 'Özel',
+    period: 'tesis başına / ay',
+    tagline: 'Pilot programlar ve tek hatlı kurulumlar için',
     features: [
-      'Up to 5 machines monitored',
-      'NovaVision AI inference',
-      'Real-time anomaly alerts',
-      'Telegram + email notifications',
-      'Basic wear trend charts',
-      'Community support',
+      'En fazla 5 makine izleme',
+      'NovaVision yapay zeka çıkarımı',
+      'Gerçek zamanlı anomali uyarıları',
+      'Telegram + e-posta bildirimleri',
+      'Temel aşınma trend grafikleri',
+      'Topluluk desteği',
     ],
-    cta: 'Start Pilot',
+    cta: 'Pilotu Başlat',
     highlight: false,
   },
   {
-    name: 'Growth',
-    price: 'Custom',
-    period: 'per site / mo',
-    tagline: 'For multi-line factories scaling predictive maintenance',
+    name: 'Büyüme',
+    price: 'Özel',
+    period: 'tesis başına / ay',
+    tagline: 'Kestirimci bakımı ölçeklendiren çok hatlı fabrikalar için',
     features: [
-      'Up to 50 machines monitored',
-      'Full multimodal sensor fusion',
-      'Predictive failure forecasting',
-      'Automated procurement + POs',
-      'RAG chatbot analytics',
-      'Priority support + SLA',
-      'Multi-org management',
-      'ERP / CMMS integrations',
+      'En fazla 50 makine izleme',
+      'Tam çok modlu sensör füzyonu',
+      'Kestirimci arıza tahminleme',
+      'Otomatik tedarik + Sipariş (PO) oluşturma',
+      'RAG sohbet robotu analitiği',
+      'Öncelikli destek + SLA',
+      'Çoklu organizasyon yönetimi',
+      'ERP / CMMS entegrasyonları',
     ],
-    cta: 'Request Demo',
+    cta: 'Demo Talep Et',
     highlight: true,
-    badge: 'Most Popular',
+    badge: 'En Popüler',
   },
   {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: 'negotiated',
-    tagline: 'For global manufacturers with complex environments',
+    name: 'Kurumsal',
+    price: 'Özel',
+    period: 'görüşülerek belirlenir',
+    tagline: 'Karmaşık ortamlara sahip küresel üreticiler için',
     features: [
-      'Unlimited machines',
-      'Dedicated edge infrastructure',
-      'Custom model fine-tuning',
-      'White-label & SSO',
-      'Audit logs & compliance',
-      'Dedicated CSM + onboarding',
-      '99.9% uptime SLA',
-      'On-prem deployment option',
+      'Sınırsız makine izleme',
+      'Size özel uç altyapı',
+      'Özel model ince ayarı',
+      'White-label & Kurumsal Kimlik (SSO)',
+      'Denetim kayıtları ve uyumluluk',
+      'Özel CSM + entegrasyon desteği',
+      '%99.9 çalışma süresi (SLA)',
+      'Yerinde (On-prem) kurulum seçeneği',
     ],
-    cta: 'Talk to Sales',
+    cta: 'Satış Ekibiyle Görüş',
     highlight: false,
   },
 ];
@@ -89,15 +89,15 @@ export function PricingSection() {
         >
           <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber/8 border border-amber/20 text-amber text-xs font-mono tracking-wider uppercase mb-5">
             <Zap className="w-3.5 h-3.5" />
-            Pricing
+            Fiyatlandırma
           </motion.div>
           <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-5xl font-heading font-bold mb-5 text-balance">
-            Transparent,{' '}
-            <span className="text-gradient">Outcome-Based</span>
-            {' '}Pricing
+            Şeffaf,{' '}
+            <span className="text-gradient">Sonuç Odaklı</span>
+            {' '}Fiyatlandırma
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="text-muted max-w-xl mx-auto text-base leading-relaxed">
-            All plans are scoped to your factory size. Contact us for a detailed quote tailored to your machine count and sensor mix.
+            Tüm planlar fabrika büyüklüğünüze göre ölçeklendirilir. Makine sayınıza ve sensör karışımnııza göre size özel detaylı bir teklif için bizimle iletişime geçin.
           </motion.p>
         </motion.div>
 
@@ -177,7 +177,7 @@ export function PricingSection() {
           transition={{ delay: 0.5, duration: 0.6 }}
           className="text-center text-xs text-muted/50 font-mono mt-10"
         >
-          All plans include a 30-day pilot period. No lock-in. GDPR compliant.
+          Tüm planlar 30 günlük deneme süresi içerir. Taahhüt yok. KVKK/GDPR uyumlu.
         </motion.p>
       </div>
     </section>

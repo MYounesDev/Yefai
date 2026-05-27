@@ -8,57 +8,57 @@ const features = [
   {
     icon: Eye,
     title: 'NovaVision AI',
-    desc: 'YOLO-NAS-L powered computer vision fuses camera and sensor streams to detect wear anomalies with zero-shot precision at the sub-millimeter level.',
+    desc: 'YOLO-NAS-L destekli bilgisayarlı görü, takım aşınması anomalilerini sıfır atışlı hassasiyetle alt milimetre düzeyinde tespit etmek için kamera ve sensör akışlarını birleştirir.',
     color: 'cyan',
     gradient: 'from-cyan/20 to-transparent',
     borderGlow: 'hover:border-cyan/30 hover:shadow-[0_0_24px_rgba(0,212,255,0.12)]',
     iconBg: 'bg-cyan/10 text-cyan',
-    badge: 'Computer Vision',
+    badge: 'Bilgisayarlı Görü',
   },
   {
     icon: TrendingUp,
-    title: 'Predictive Forecasting',
-    desc: 'Physics-informed wear rate models project when a tool will reach its critical threshold — days ahead — enabling precise maintenance windows.',
+    title: 'Kestirimci Tahmin',
+    desc: 'Fizik tabanlı aşınma oranı modelleri, bir takımın kritik eşiğine ne zaman ulaşacağını — günler öncesinden — tahmin ederek hassas bakım pencereleri sağlar.',
     color: 'violet',
     gradient: 'from-violet/20 to-transparent',
     borderGlow: 'hover:border-violet/30 hover:shadow-[0_0_24px_rgba(167,139,250,0.12)]',
     iconBg: 'bg-violet/10 text-violet',
-    badge: 'ML Forecasting',
+    badge: 'ML Tahminleme',
   },
   {
     icon: Shield,
-    title: 'Crisis Score',
-    desc: 'Unified risk score combining anomaly severity, stock levels, and supplier lead times. Triages factory-wide risk in a single glance.',
+    title: 'Kriz Skoru',
+    desc: 'Anomali şiddeti, stok seviyeleri ve tedarikçi teslim sürelerini birleştiren birleşik risk skoru. Fabrika çapındaki riski tek bakışta önceliklendirir.',
     color: 'amber',
     gradient: 'from-amber/20 to-transparent',
     borderGlow: 'hover:border-amber/30 hover:shadow-[0_0_24px_rgba(251,191,36,0.12)]',
     iconBg: 'bg-amber/10 text-amber',
-    badge: 'Risk Engine',
+    badge: 'Risk Motoru',
   },
   {
     icon: Zap,
-    title: 'Automated Procurement',
-    desc: 'When a threshold is crossed, Yefai automatically creates purchase orders, contacts preferred suppliers, and tracks delivery — zero human latency.',
+    title: 'Otomatik Tedarik',
+    desc: 'Bir eşik aşıldığında Yefai otomatik olarak satın alma siparişleri oluşturur, tercih edilen tedarikçilerle iletişime geçer ve teslimatı takip eder — sıfır insan gecikmesi.',
     color: 'emerald',
     gradient: 'from-emerald/20 to-transparent',
     borderGlow: 'hover:border-emerald/30 hover:shadow-[0_0_24px_rgba(52,211,153,0.12)]',
     iconBg: 'bg-emerald/10 text-emerald',
-    badge: 'Supply Chain',
+    badge: 'Tedarik Zinciri',
   },
   {
     icon: Bell,
-    title: 'Omnichannel Alerts',
-    desc: 'Telegram, email, and SMS push instantly when anomalies breach configurable thresholds. Escalation trees and on-call routing built in.',
+    title: 'Çok Kanallı Bildirimler',
+    desc: 'Anomaliler yapılandırılabilir eşikleri aştığında Telegram, e-posta ve SMS üzerinden anında bildirim gönderilir. Gömülü yönlendirme ve eskalasyon yolları.',
     color: 'rose',
     gradient: 'from-rose/20 to-transparent',
     borderGlow: 'hover:border-rose/30 hover:shadow-[0_0_24px_rgba(251,113,133,0.12)]',
     iconBg: 'bg-rose/10 text-rose',
-    badge: 'Notifications',
+    badge: 'Bildirimler',
   },
   {
     icon: BarChart3,
-    title: 'RAG Analytics Chatbot',
-    desc: 'Ask anything in natural language. The AI assistant retrieves live sensor data, historical trends, and anomaly reports across your entire fleet.',
+    title: 'RAG Analitik Asistanı',
+    desc: 'Doğal dilde istediğinizi sorun. Yapay zeka asistanı, tüm filonuzdaki canlı sensör verilerini, geçmiş trendleri ve anomali raporlarını anında getirir.',
     color: 'cyan',
     gradient: 'from-cyan/20 to-transparent',
     borderGlow: 'hover:border-cyan/30 hover:shadow-[0_0_24px_rgba(0,212,255,0.10)]',
@@ -124,15 +124,13 @@ export function FeaturesSection() {
         >
           <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet/8 border border-violet/20 text-violet text-xs font-mono tracking-wider uppercase mb-5">
             <Layers className="w-3.5 h-3.5" />
-            Platform Capabilities
+            Platform Yetenekleri
           </motion.div>
           <motion.h2 variants={fadeUp} custom={1} className="text-3xl sm:text-5xl font-heading font-bold mb-5 text-balance">
-            Built for{' '}
-            <span className="text-gradient">Industry 4.0</span>
+            <span className="text-gradient">Endüstri 4.0</span> için Üretildi
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="text-muted max-w-2xl mx-auto text-base leading-relaxed">
-            Every layer — from edge inference on the factory floor to executive dashboards —
-            is purpose-built to keep your machines running and procurement ahead of demand.
+            Fabrika zeminindeki uç çıkarımından yönetici panolarına kadar her katman — makinelerinizi çalışır durumda tutmak ve tedariki talebin önünde yürütmek için özel olarak tasarlandı.
           </motion.p>
         </motion.div>
 
@@ -160,10 +158,10 @@ export function FeaturesSection() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
               <Cpu className="w-4 h-4 text-cyan" />
-              <span className="text-sm font-medium text-foreground">Supported sensor modalities</span>
+              <span className="text-sm font-medium text-foreground">Desteklenen Sensör Türleri</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {['Vibration', 'Acoustic Emission', 'Temperature', 'Force / Torque', 'Current (Motor)', 'Camera RGB', 'Depth (LiDAR)', 'Spindle Load'].map((s) => (
+              {['Titreşim', 'Akustik Emisyon', 'Sıcaklık', 'Kuvvet / Tork', 'Akım (Motor)', 'Kamera RGB', 'Derinlik (LiDAR)', 'İş Mili Yükü'].map((s) => (
                 <span key={s} className="px-3 py-1 rounded-full text-[11px] font-mono text-muted border border-border bg-surface-2 hover:border-cyan/30 hover:text-cyan transition-colors">
                   {s}
                 </span>

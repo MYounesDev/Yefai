@@ -5,36 +5,36 @@ import { motion, useInView } from 'framer-motion';
 
 const dashboards = [
   {
-    title: 'Live Telemetry',
+    title: 'Canlı Telemetri',
     subtitle:
-      'Real-time spindle temperature, vibration, and load monitoring across all active units.',
+      'Tüm aktif ünitelerde gerçek zamanlı iş mili sıcaklık, titreşim ve yük izleme.',
     image:
       'https://readdy.ai/api/search-image?query=Industrial telemetry dashboard UI with real-time sensor data charts in dark mode, glowing cyan line graphs and gauges on deep navy background, premium futuristic manufacturing control panel aesthetic, holographic data overlays&width=700&height=500&seq=4&orientation=landscape',
-    status: 'LIVE',
+    status: 'CANLI',
   },
   {
-    title: 'Predictive Analytics',
+    title: 'Kestirimci Analitik',
     subtitle:
-      'Wear trajectory modeling with confidence intervals and replacement scheduling.',
+      'Güven aralıkları ve değiştirme planlamasıyla aşınma yörüngesi modellemesi.',
     image:
       'https://readdy.ai/api/search-image?query=Predictive analytics dashboard with forecast curves and probability charts in dark futuristic UI, violet and cyan gradient data visualization, manufacturing intelligence platform interface, deep navy background&width=700&height=500&seq=5&orientation=landscape',
-    status: 'PREDICTIVE',
+    status: 'KESTİRİMCİ',
   },
   {
-    title: 'Tool Wear Monitor',
+    title: 'Takım Aşınma İzleyicisi',
     subtitle:
-      'Microscopic degradation tracking with automated alert thresholds and wear-rate scoring.',
+      'Otomatik uyarı eşikleri ve aşınma oranı puanlamasıyla mikroskobik bozulma takibi.',
     image:
       'https://readdy.ai/api/search-image?query=Tool wear monitoring dashboard with microscopic surface analysis visualization, dark industrial UI with amber and red alert zones, precision manufacturing quality control interface, futuristic dark mode design&width=700&height=500&seq=6&orientation=landscape',
-    status: 'CRITICAL',
+    status: 'KRİTİK',
   },
   {
-    title: 'Crisis Overview',
+    title: 'Kriz Genel Bakış',
     subtitle:
-      'Supply-chain disruption scoring, inventory gaps, and emergency procurement pipeline.',
+      'Tedarik zinciri kesinti puanlaması, envanter boşlukları ve acil tedarik süreci.',
     image:
       'https://readdy.ai/api/search-image?query=Crisis management dashboard with supply chain network map visualization, red alert indicators on dark background, inventory shortage warnings, industrial operations command center UI, premium dark theme&width=700&height=500&seq=7&orientation=landscape',
-    status: 'CRITICAL',
+    status: 'KRİTİK',
   },
 ];
 
@@ -79,11 +79,11 @@ export default function DashboardPreview() {
         >
           <div>
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
-              Dashboard Preview
+              Yönetim Paneli Önizlemesi
             </h2>
           </div>
           <p className="text-sm md:text-base text-white/35 font-light max-w-sm">
-            Real-time plant telemetry and control — every metric, every alert, every decision surface.
+            Gerçek zamanlı tesis telemetrisi ve kontrolü — her metrik, her uyarı, her karar yüzeyi.
           </p>
         </motion.div>
 
@@ -119,18 +119,18 @@ export default function DashboardPreview() {
                 <div className="absolute top-4 right-4 z-20">
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] tracking-widest uppercase font-semibold border backdrop-blur-sm ${
-                      dash.status === 'LIVE'
+                      dash.status === 'CANLI'
                         ? 'bg-emerald-500/10 border-emerald-400/25 text-emerald-400'
-                        : dash.status === 'PREDICTIVE'
+                        : dash.status === 'KESTİRİMCİ'
                         ? 'bg-cyan-500/10 border-cyan-400/25 text-cyan-400'
                         : 'bg-amber-500/10 border-amber-400/25 text-amber-400'
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        dash.status === 'LIVE'
+                        dash.status === 'CANLI'
                           ? 'bg-emerald-400 animate-pulse'
-                          : dash.status === 'PREDICTIVE'
+                          : dash.status === 'KESTİRİMCİ'
                           ? 'bg-cyan-400 animate-pulse'
                           : 'bg-amber-400 animate-pulse'
                       }`}

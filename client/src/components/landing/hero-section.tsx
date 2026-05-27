@@ -38,7 +38,7 @@ function AIOverlay() {
         transition={{ delay: 1.2, duration: 0.6, repeat: Infinity, repeatDelay: 5 }}
       >
         <div className="absolute -top-5 left-0 text-[9px] font-mono text-cyan bg-background/80 px-1.5 py-0.5 rounded-sm whitespace-nowrap">
-          TOOL_01 · WEAR: 38%
+          TAKIM_01 · AŞINMA: %38
         </div>
         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan" />
         <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-cyan" />
@@ -55,7 +55,7 @@ function AIOverlay() {
         transition={{ delay: 2.0, duration: 0.5, repeat: Infinity, repeatDelay: 4.5 }}
       >
         <div className="absolute -top-5 left-0 text-[9px] font-mono text-rose bg-background/80 px-1.5 py-0.5 rounded-sm whitespace-nowrap">
-          ANOMALY · CRITICAL
+          ANOMALİ · KRİTİK
         </div>
         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-rose" />
         <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-rose" />
@@ -75,9 +75,9 @@ function AIOverlay() {
       <div className="absolute top-3 right-3 flex flex-col gap-1">
         <div className="flex items-center gap-1.5 text-[9px] font-mono text-cyan/80">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse-glow-cyan" />
-          LIVE · 60 FPS
+          CANLI · 60 FPS
         </div>
-        <div className="text-[9px] font-mono text-muted/60">AI INFERENCE: 8ms</div>
+        <div className="text-[9px] font-mono text-muted/60">YZ ÇIKARIM: 8ms</div>
       </div>
       <div className="absolute bottom-3 left-3 text-[9px] font-mono text-muted/60">
         NovaVision v2.4 · YOLO-NAS-L
@@ -169,16 +169,8 @@ export function HeroSection() {
             variants={stagger}
             className="flex flex-col items-center lg:items-start text-center lg:text-left"
           >
-            {/* Badge */}
-            <motion.div
-              variants={fadeUp}
-              custom={0}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan/8 border border-cyan/20 text-cyan text-xs font-medium mb-8 backdrop-blur-sm"
-            >
-              <Activity className="w-3.5 h-3.5 animate-pulse" />
-              <span className="font-mono tracking-wide">Industry 4.0 · AI Predictive Maintenance</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </motion.div>
+
+
 
             {/* Headline */}
             <motion.h1
@@ -186,10 +178,10 @@ export function HeroSection() {
               custom={1}
               className="text-[clamp(2.8rem,6vw,5.5rem)] font-heading font-bold leading-[1.04] tracking-tight mb-6 text-balance"
             >
-              <span className="text-foreground">Know Before</span>
+              <span className="text-foreground">Bozulmadan</span>
               <br />
-              <span className="text-foreground">It</span>{' '}
-              <span className="text-gradient">Breaks.</span>
+              <span className="text-foreground">Önce</span>{' '}
+              <span className="text-gradient">Bilin.</span>
             </motion.h1>
 
             {/* Subtitle */}
@@ -198,9 +190,7 @@ export function HeroSection() {
               custom={2}
               className="text-base sm:text-lg text-muted max-w-[520px] mb-10 leading-relaxed"
             >
-              Yefai fuses computer vision, acoustic sensors, and multimodal AI to detect
-              tool wear in real time — forecasting failures before they stop your line and
-              automating spare parts procurement end-to-end.
+              Yefai, bilgisayarlı görü, akustik sensörler ve çok modlu yapay zekayı birleştirerek takım aşınmasını gerçek zamanlı tespit eder — arızaları üretim hattınızı durdurmadan önce tahmin eder ve yedek parça tedarikini uçtan uca otomatikleştirir.
             </motion.p>
 
             {/* CTAs */}
@@ -213,30 +203,15 @@ export function HeroSection() {
                 href="/login"
                 className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm font-semibold bg-cyan text-background hover:brightness-110 transition-all active:scale-95 shadow-[0_0_32px_rgba(0,212,255,0.3)]"
               >
-                <span>Start Free Demo</span>
+                <span>Ücretsiz Demoyu Başlat</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <button className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm font-medium border border-border-strong hover:border-cyan/30 hover:bg-cyan/5 text-foreground transition-all active:scale-95">
-                <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-cyan/20 transition-colors">
-                  <Play className="w-3 h-3 fill-current ml-0.5" />
-                </div>
-                Watch Demo
-              </button>
+
+
             </motion.div>
 
-            {/* Micro-stats */}
-            <motion.div
-              variants={fadeUp}
-              custom={4}
-              className="flex items-center gap-6 text-sm text-muted"
-            >
-              {[['99.7%', 'Detection Accuracy'], ['<50ms', 'Response Time'], ['24/7', 'Live Monitoring']].map(([val, lbl]) => (
-                <div key={lbl} className="flex flex-col items-center lg:items-start gap-0.5">
-                  <span className="text-lg font-heading font-bold text-foreground">{val}</span>
-                  <span className="text-[11px] text-muted/70 tracking-wide">{lbl}</span>
-                </div>
-              ))}
-            </motion.div>
+
+
           </motion.div>
 
           {/* ── Right: Video card with parallax ── */}
@@ -291,7 +266,7 @@ export function HeroSection() {
 
             {/* Floating card: Wear Score */}
             <FloatingCard className="-top-4 -left-6 min-w-[150px]" delay={1.2}>
-              <div className="text-[10px] text-muted font-mono uppercase tracking-wider mb-1.5">Wear Index</div>
+              <div className="text-[10px] text-muted font-mono uppercase tracking-wider mb-1.5">Aşınma Endeksi</div>
               <div className="flex items-end gap-1.5 mb-2">
                 <span className="text-2xl font-heading font-bold text-cyan">38</span>
                 <span className="text-xs text-muted mb-0.5">/ 100</span>
@@ -310,17 +285,17 @@ export function HeroSection() {
             <FloatingCard className="-bottom-4 -right-6 min-w-[160px]" delay={1.5}>
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="w-2 h-2 rounded-full bg-rose animate-pulse-glow" />
-                <span className="text-[10px] font-mono text-rose uppercase tracking-wide">Critical Alert</span>
+                <span className="text-[10px] font-mono text-rose uppercase tracking-wide">Kritik Uyarı</span>
               </div>
-              <p className="text-[11px] text-foreground font-medium leading-tight">Insert B-4 · Replace in 2.3h</p>
-              <p className="text-[10px] text-muted mt-0.5">Procurement triggered</p>
+              <p className="text-[11px] text-foreground font-medium leading-tight">Uç B-4 · 2.3s içinde değiştirin</p>
+              <p className="text-[10px] text-muted mt-0.5">Tedarik başlatıldı</p>
             </FloatingCard>
 
             {/* Floating card: Prediction */}
             <FloatingCard className="top-1/2 -translate-y-1/2 -right-8 min-w-[140px] hidden xl:block" delay={1.8}>
-              <div className="text-[10px] text-muted font-mono uppercase tracking-wider mb-2">Next Failure</div>
-              <div className="text-lg font-heading font-bold text-amber">~14.2h</div>
-              <div className="text-[10px] text-muted mt-0.5">ETA Confidence: 94%</div>
+              <div className="text-[10px] text-muted font-mono uppercase tracking-wider mb-2">Sonraki Arıza</div>
+              <div className="text-lg font-heading font-bold text-amber">~14.2s</div>
+              <div className="text-[10px] text-muted mt-0.5">Tahmin Güveni: %94</div>
             </FloatingCard>
           </motion.div>
         </div>
@@ -333,7 +308,7 @@ export function HeroSection() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 2, duration: 0.6 }}
       >
-        <div className="text-[10px] font-mono text-muted/50 tracking-widest uppercase">Scroll</div>
+        <div className="text-[10px] font-mono text-muted/50 tracking-widest uppercase">Kaydır</div>
         <div className="w-px h-8 bg-gradient-to-b from-muted/30 to-transparent" />
         <motion.div
           className="w-1 h-1 rounded-full bg-cyan"

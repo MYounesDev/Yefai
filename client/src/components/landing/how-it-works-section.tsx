@@ -8,9 +8,9 @@ const steps = [
   {
     number: '01',
     icon: Camera,
-    title: 'Capture',
-    subtitle: 'Edge Data Ingestion',
-    desc: 'Industrial cameras, vibration sensors, and acoustic emission probes stream data continuously from CNC machines and assembly lines to the Yefai edge node.',
+    title: 'Yakala',
+    subtitle: 'Uç Veri Alma',
+    desc: 'Endüstriyel kameralar, titreşim sensörleri ve akustik emisyon probları, CNC makinelerinden ve montaj hatlarından Yefai uç noktasına sürekli veri aktarır.',
     detail: 'USB3 Vision · GigE · Modbus · OPC-UA · MQTT',
     color: 'cyan',
     dotColor: 'bg-cyan',
@@ -18,9 +18,9 @@ const steps = [
   {
     number: '02',
     icon: Brain,
-    title: 'Analyze',
-    subtitle: 'Multimodal AI Inference',
-    desc: 'NovaVision runs YOLO-NAS-L object detection on image frames while Anomalib scores acoustic and vibration signals — all fused in a unified wear index in <50ms.',
+    title: 'Analiz Et',
+    subtitle: 'Çok Modlu Yapay Zeka Çıkarımı',
+    desc: 'NovaVision, görüntü kareleri üzerinde YOLO-NAS-L nesne tespiti çalıştırırken, Anomalib akustik ve titreşim sinyallerini puanlar — tümü <50ms içinde birleştirilmiş bir aşınma endeksinde toplanır.',
     detail: 'YOLO-NAS-L · Anomalib · EfficientAD',
     color: 'violet',
     dotColor: 'bg-violet',
@@ -28,20 +28,20 @@ const steps = [
   {
     number: '03',
     icon: BarChart2,
-    title: 'Predict',
-    subtitle: 'Failure Horizon Forecasting',
-    desc: 'Bayesian wear-rate models extrapolate current degradation curves to produce a failure ETA with confidence intervals — giving maintenance teams days of runway.',
-    detail: '94% avg. forecast confidence · RUL estimation',
+    title: 'Tahmin Et',
+    subtitle: 'Arıza Ufku Tahminleme',
+    desc: 'Bayesyen aşınma oranı modelleri, güven aralıklarıyla birlikte bir arıza tahmini üretmek için mevcut bozulma eğrilerini tahmin eder — bakım ekiplerine günler süren bir zaman kazandırır.',
+    detail: 'Ortalama %94 tahmin güveni · RUL tahmini',
     color: 'amber',
     dotColor: 'bg-amber',
   },
   {
     number: '04',
     icon: ShoppingCart,
-    title: 'Act',
-    subtitle: 'Automated Procurement',
-    desc: 'Crisis Score triggers automatic purchase orders through preferred supplier integrations, sends omnichannel alerts, and updates inventory — zero manual steps.',
-    detail: 'PO auto-generation · Supplier API · ERP sync',
+    title: 'Harekete Geç',
+    subtitle: 'Otomatik Tedarik',
+    desc: 'Kriz Skoru, tercih edilen tedarikçi entegrasyonları aracılığıyla otomatik satın alma siparişlerini tetikler, çok kanallı bildirimler gönderir ve envanteri günceller — sıfır manuel adım.',
+    detail: 'Otomatik PO oluşturma · Tedarikçi API · ERP senkronizasyonu',
     color: 'emerald',
     dotColor: 'bg-emerald',
   },
@@ -90,15 +90,14 @@ export function HowItWorksSection() {
           className="text-center mb-20"
         >
           <motion.p variants={fadeUp} className="text-xs font-mono text-cyan tracking-[0.2em] uppercase mb-5">
-            The Pipeline
+            İşleyiş
           </motion.p>
           <motion.h2 variants={fadeUp} className="text-3xl sm:text-5xl font-heading font-bold mb-5 text-balance">
-            From Raw Signal to{' '}
-            <span className="text-gradient">Automated Action</span>
+            Ham Sinyalden{' '}
+            <span className="text-gradient">Otomatik Aksiyona</span>
           </motion.h2>
           <motion.p variants={fadeUp} className="text-muted max-w-xl mx-auto text-base leading-relaxed">
-            A fully automated loop — from sensor data capture to parts on the loading dock —
-            with no manual intervention required.
+            Sensör verisi yakalamadan yükleme alanındaki parçalara kadar hiçbir manuel müdahale gerektirmeyen tam otomatik bir döngü.
           </motion.p>
         </motion.div>
 

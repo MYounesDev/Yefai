@@ -44,7 +44,7 @@ export default function RAGAssistant() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-xs tracking-[0.2em] uppercase text-cyan-400/70 font-medium mb-4"
             >
-              Conversational Intelligence
+              Diyaloğa Dayalı Zeka
             </motion.p>
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
@@ -52,7 +52,7 @@ export default function RAGAssistant() {
               transition={{ duration: 0.7, delay: 0.4 }}
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.05]"
             >
-              Ask<br />Your<br />Factory.
+              Fabrikanıza<br />Soru<br />Sorun.
             </motion.h2>
           </div>
         </motion.div>
@@ -69,10 +69,10 @@ export default function RAGAssistant() {
 
           <div className="relative z-10 max-w-md">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
-              Deploy the<br />RAG Assistant.
+              RAG Asistanını<br />Devreye Alın.
             </h2>
             <p className="mt-6 text-base md:text-lg text-white/35 font-light leading-relaxed">
-              Your entire plant history, manuals, sensor logs, and maintenance records — accessible through natural language. Ask why a spindle vibrates. Ask when to schedule replacement. Ask what happened during the March outage. Your factory answers.
+              Tüm tesis geçmişiniz, kılavuzlar, sensör kayıtları ve bakım kayıtları — doğal dil aracılığıyla erişilebilir. Bir iş milinin neden titrediğini sorun. Değişimin ne zaman planlanacağını sorun. Mart kesintisinde ne olduğunu sorun. Fabrikanız cevaplasın.
             </p>
             <motion.button
               initial={{ opacity: 0, y: 20 }}
@@ -80,7 +80,7 @@ export default function RAGAssistant() {
               transition={{ duration: 0.6, delay: 0.6 }}
               className="mt-10 inline-flex items-center gap-3 px-8 py-4 rounded-full bg-yefai-charcoal border border-white/[0.08] text-white font-medium text-sm hover:bg-white/[0.08] hover:border-cyan-400/20 transition-all duration-300 cursor-pointer group"
             >
-              <span>Request Access</span>
+              <span>Erişim Talep Et</span>
               <i className="ri-arrow-right-line text-cyan-400 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </div>

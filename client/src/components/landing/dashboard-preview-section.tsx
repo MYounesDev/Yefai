@@ -87,24 +87,22 @@ export function DashboardPreviewSection() {
                 variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
                 className="text-xs font-mono text-cyan tracking-[0.2em] uppercase mb-5"
               >
-                Live Dashboard
+                Canlı Yönetim Paneli
               </motion.p>,
               <motion.h2
                 key="h2"
                 variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7 } } }}
                 className="text-3xl sm:text-5xl font-heading font-bold mb-6 text-balance"
               >
-                Full Factory{' '}
-                <span className="text-gradient">Visibility</span>
-                <br />in One View
+                Tek Ekranda <br />
+                Tam Fabrika <span className="text-gradient">Görünürlüğü</span>
               </motion.h2>,
               <motion.p
                 key="desc"
                 variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
                 className="text-muted text-base leading-relaxed mb-8 max-w-[480px]"
               >
-                Yefai&apos;s unified dashboard aggregates every machine&apos;s health, anomaly history,
-                wear trends, spare part inventory, and open purchase orders into a single real-time view.
+                Yefai&apos;nin birleşik yönetim paneli her makinenin sağlığını, anomali geçmişini, aşınma trendlerini, yedek parça envanterini ve açık satın alma siparişlerini tek bir gerçek zamanlı görünümde toplar.
               </motion.p>,
               <motion.ul
                 key="list"
@@ -112,10 +110,10 @@ export function DashboardPreviewSection() {
                 className="space-y-3"
               >
                 {[
-                  { icon: Activity, text: 'Live anomaly feed with severity scoring' },
-                  { icon: TrendingUp, text: 'Tool wear trend analysis per machine' },
-                  { icon: Package, text: 'Spare parts inventory & reorder triggers' },
-                  { icon: CheckCircle2, text: 'PO status tracking from creation to delivery' },
+                  { icon: Activity, text: 'Şiddet puanlı canlı anomali akışı' },
+                  { icon: TrendingUp, text: 'Makine bazında takım aşınma trend analizi' },
+                  { icon: Package, text: 'Yedek parça envanteri ve yeniden sipariş tetikleyicileri' },
+                  { icon: CheckCircle2, text: 'Oluşturulmadan teslimata kadar sipariş (PO) durumu takibi' },
                 ].map((item) => (
                   <motion.li
                     key={item.text}
@@ -151,10 +149,10 @@ export function DashboardPreviewSection() {
                   <div className="w-2.5 h-2.5 rounded-full bg-amber/60" />
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald/60" />
                 </div>
-                <span className="text-[10px] font-mono text-muted flex-1 text-center">Factory Floor — Live</span>
+                <span className="text-[10px] font-mono text-muted flex-1 text-center">Fabrika Zemini — Canlı</span>
                 <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald">
                   <Wifi className="w-3 h-3" />
-                  Connected
+                  Bağlı
                 </div>
               </div>
 
@@ -162,9 +160,9 @@ export function DashboardPreviewSection() {
                 {/* Header stats row */}
                 <div className="grid grid-cols-3 gap-3 mb-5">
                   {[
-                    { label: 'Machines Online', value: '12 / 14', color: 'text-emerald' },
-                    { label: 'Active Anomalies', value: '3', color: 'text-rose' },
-                    { label: 'Avg Wear Index', value: '44%', color: 'text-amber' },
+                    { label: 'Çevrimiçi Makineler', value: '12 / 14', color: 'text-emerald' },
+                    { label: 'Aktif Anomaliler', value: '3', color: 'text-rose' },
+                    { label: 'Ortalama Aşınma', value: '44%', color: 'text-amber' },
                   ].map((s) => (
                     <div key={s.label} className="p-3 rounded-xl bg-surface-2 border border-border">
                       <p className={`text-lg font-heading font-bold ${s.color}`}>{s.value}</p>
@@ -176,15 +174,15 @@ export function DashboardPreviewSection() {
                 {/* Wear trend chart */}
                 <div className="mb-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono text-muted">Spindle-C Wear Trend (24h)</span>
-                    <span className="text-[10px] font-mono text-rose">+29% / shift</span>
+                    <span className="text-[11px] font-mono text-muted">İş Mili-C Aşınma Trendi (24s)</span>
+                    <span className="text-[10px] font-mono text-rose">+%29 / vardiya</span>
                   </div>
                   <WearChart />
                 </div>
 
                 {/* Anomaly list */}
                 <div>
-                  <span className="text-[11px] font-mono text-muted block mb-2">Recent Anomalies</span>
+                  <span className="text-[11px] font-mono text-muted block mb-2">Son Anomaliler</span>
                   <AnomalyRow machine="CNC-03 · Spindle-C" score={82} status="critical" delay={1.0} />
                   <AnomalyRow machine="CNC-07 · Insert-B4" score={61} status="warning" delay={1.15} />
                   <AnomalyRow machine="CNC-01 · Drill-A2" score={23} status="normal" delay={1.30} />
@@ -203,10 +201,10 @@ export function DashboardPreviewSection() {
             >
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-4 h-4 text-rose" />
-                <span className="text-[11px] font-semibold text-rose">Crisis Alert</span>
+                <span className="text-[11px] font-semibold text-rose">Kriz Uyarısı</span>
               </div>
               <p className="text-[11px] text-foreground font-medium">CNC-03 Spindle-C</p>
-              <p className="text-[10px] text-muted mt-0.5">Failure in ~2.3h · PO #4821 sent</p>
+              <p className="text-[10px] text-muted mt-0.5">~2.3s içinde arıza · PO #4821 gönderildi</p>
             </motion.div>
           </div>
         </div>
