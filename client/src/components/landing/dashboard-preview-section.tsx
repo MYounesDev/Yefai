@@ -194,13 +194,12 @@ export function DashboardPreviewSection() {
 
             {/* Floating alert card */}
             <motion.div
-              style={{ y: card2Y }}
+              style={{ y: card2Y, backdropFilter: 'blur(20px)' } as React.CSSProperties}
               initial={{ opacity: 0, x: 30, scale: 0.9 }}
               whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.4, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               className="absolute -bottom-8 -right-6 glass-card border border-rose/25 p-4 rounded-2xl min-w-[200px] shadow-[0_0_32px_rgba(251,113,133,0.12)]"
-              style={{ backdropFilter: 'blur(20px)' } as React.CSSProperties}
             >
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-4 h-4 text-rose" />

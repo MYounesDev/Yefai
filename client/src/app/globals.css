@@ -355,3 +355,26 @@ body {
 .magnetic-hover:active {
   transform: translateY(0);
 }
+
+/* ===== YEFAI BRAND BG UTILITIES ===== */
+.bg-yefai-black { background-color: var(--color-yefai-black); }
+.bg-yefai-navy { background-color: var(--color-yefai-navy); }
+.bg-yefai-dark-charcoal { background-color: var(--color-yefai-dark-charcoal); }
+.bg-yefai-charcoal { background-color: var(--color-yefai-charcoal); }
+
+/* ===== GRID BG PATTERN ===== */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ===== SCROLLBAR HIDE ===== */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
