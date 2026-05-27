@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Cpu, Globe, Mail, Twitter, Linkedin } from 'lucide-react';
+import { ArrowRight, Cpu, Globe, Mail, Twitter, Rss } from 'lucide-react';
 
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.1 } } };
 const fadeUp = {
@@ -138,7 +138,7 @@ export function CtaFooterSection() {
               </p>
               {/* Social icons */}
               <div className="flex items-center gap-3">
-                {[Twitter, Linkedin, Mail].map((Icon, i) => (
+                {[Twitter, Rss, Mail].map((Icon, i) => (
                   <a
                     key={i}
                     href="#"
