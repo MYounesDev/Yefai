@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
@@ -8,11 +7,6 @@ import {
   Cpu, Shield, TrendingUp, Zap, Eye, BarChart3,
   ArrowRight, ChevronRight, Activity, Layers, Globe,
 } from 'lucide-react';
-
-const HeroScene = dynamic(
-  () => import('@/components/landing/hero-scene').then((m) => m.HeroScene),
-  { ssr: false }
-);
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -119,25 +113,26 @@ export default function LandingPage() {
       {/* ═══════════ HERO ═══════════ */}
       <motion.section
         style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative min-h-screen flex items-center justify-center px-6"
+        className="relative w-full pt-32 pb-20 px-4 sm:px-6 overflow-hidden min-h-screen flex items-center"
       >
-        <HeroScene />
+        {/* Abstract background glows */}
+        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan/20 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute top-1/2 right-1/4 translate-x-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-violet/20 blur-[100px] rounded-full pointer-events-none" />
 
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background z-[1]" />
-        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent z-[1]" />
-
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
+        <div className="relative z-10 w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+          
+          {/* Text Content */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={stagger}
+            className="flex flex-col items-center lg:items-start text-center lg:text-left pt-10 lg:pt-0"
           >
             {/* Tagline chip */}
             <motion.div
               variants={fadeUp}
               custom={0}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan/8 border border-cyan/15 text-cyan text-xs font-medium mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan/8 border border-cyan/15 text-cyan text-xs font-medium mb-8 backdrop-blur-sm"
             >
               <Activity className="w-3.5 h-3.5" />
               <span>Endüstriyel AI Platformu</span>
@@ -148,7 +143,7 @@ export default function LandingPage() {
             <motion.h1
               variants={fadeUp}
               custom={1}
-              className="text-4xl sm:text-5xl md:text-7xl font-heading font-bold leading-[1.08] tracking-tight mb-6"
+              className="text-5xl sm:text-6xl md:text-7xl xl:text-[5.5rem] font-heading font-bold leading-[1.05] tracking-tight mb-6"
             >
               <span className="text-foreground">Kırılmadan</span>
               <br />
@@ -159,7 +154,7 @@ export default function LandingPage() {
             <motion.p
               variants={fadeUp}
               custom={2}
-              className="text-base sm:text-lg text-muted max-w-2xl mx-auto mb-10 leading-relaxed"
+              className="text-base sm:text-xl text-muted max-w-xl mb-10 leading-relaxed"
             >
               Çok modlu yapay zeka ile takım tezgahı aşınmasını gerçek zamanlı izleyin.
               Sensör verileri, kamera görüntüleri ve akustik sinyallerden beslenen
@@ -170,23 +165,45 @@ export default function LandingPage() {
             <motion.div
               variants={fadeUp}
               custom={3}
-              className="flex flex-wrap items-center justify-center gap-4"
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-4"
             >
               <Link
                 href="/login"
-                className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-cyan to-violet text-white hover:shadow-2xl hover:shadow-cyan/20 transition-all active:scale-95"
+                className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-sm font-semibold bg-gradient-to-r from-cyan to-violet text-white hover:shadow-2xl hover:shadow-cyan/25 transition-all active:scale-95"
               >
                 <span>Platformu Keşfet</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="#features"
-                className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm font-medium border border-border hover:border-border-strong hover:bg-surface-2 text-foreground transition-all active:scale-95"
+                className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-sm font-medium border border-border/50 hover:border-border hover:bg-surface-2 text-foreground transition-all active:scale-95 backdrop-blur-sm"
               >
                 Daha Fazla Bilgi
               </Link>
             </motion.div>
           </motion.div>
+
+          {/* Video Presentation (Next to Text) */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, x: 20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-20 w-full rounded-3xl sm:rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(34,211,238,0.15)] ring-1 ring-white/5"
+          >
+            {/* Glass Overlay on top of video */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-background/40 via-transparent to-transparent opacity-80 pointer-events-none z-10" />
+            
+            <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              className="w-full h-auto aspect-square lg:aspect-[4/3] object-cover"
+            >
+              <source src="https://files.catbox.moe/p5wnuc.mp4" type="video/mp4" />
+            </video>
+          </motion.div>
+
         </div>
       </motion.section>
 
